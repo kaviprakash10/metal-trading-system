@@ -1,0 +1,89 @@
+.guest-layout {
+    min-height: 100vh;
+    background: #f0f2f5;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Header */
+  .luna-header {
+    background: linear-gradient(90deg, #722be6, #8b5cf6);
+    color: white;
+    padding: 0.9rem 0;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+  .header-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+  .logo {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+  .luna-text { color: whitesmoke; }
+  .pvt        { font-size: 0.6rem; vertical-align: super; color: #e5e7eb; }
+  .gold-text { color:#fde047; }
+
+  .main-nav {
+    display: flex;
+    gap: 2.2rem;
+  }
+  .nav-link {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1.05rem;
+    transition: color 0.2s;
+  }
+
+   .nav-link:hover {
+    color: #fde047;
+  }
+  .live-price {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    font-size: 1rem;
+  }
+  .price-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    white-space: nowrap;
+  }
+  
+  .wave-icon {
+    color: #fde047;
+    font-size: 1.1rem;
+  }
+
+  .signup-btn {
+    padding: 0.6rem 1.4rem;
+    background: #fde047;
+    color: #6d28d9;
+    font-weight: 600;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  
+  .signup-btn:hover {
+    background: #facc15;
+    transform: translateY(-1px);
+  }
+  .main-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+
+  
