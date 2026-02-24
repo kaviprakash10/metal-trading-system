@@ -5,11 +5,10 @@ import SilverPrice from "../models/SilverPriceModel.js";
 /* ── Fetch live USD → INR exchange rate from frankfurter.app ─────────────── */
 
 const getUsdToInrRate = async () => {
-  const res = await axios.get(
-    "https://api.frankfurter.app/latest?from=USD&to=INR",
-  );
-  const rate = res.data?.rates?.INR;
-  if (!rate || rate <= 0) throw new Error("Invalid exchange rate received");
+  const res = await axios.get("https://api.frankfurter.app/latest?from=USD&to=INR");
+  console.log("frankfurter response:", JSON.stringify(res.data));
+  const rate = Number(res.data?.rates?.INR);
+  if (!Number.isFinite(rate) || rate <= 0) throw new Error("Invalid exchange rate received");
   return rate;
 };
 
@@ -30,8 +29,8 @@ export const fetchPrices = async () => {
         "Content-Type": "application/json",
       },
     });
-    const goldPerGramUSD =
-      parseFloat(goldRes.data.price_gram_24k?.toFixed(2)) || 0;
+    console.log("goldapi XAU response:", JSON.stringify(goldRes.data));
+    const goldPerGramUSD = Number(goldRes.data?.price_gram_24k);
 
     // 3. Fetch silver price in USD
     const silverRes = await axios.get("https://www.goldapi.io/api/XAG/USD", {
@@ -40,10 +39,10 @@ export const fetchPrices = async () => {
         "Content-Type": "application/json",
       },
     });
-    const silverPerGramUSD =
-      parseFloat(silverRes.data.price_gram_24k?.toFixed(2)) || 0;
+    console.log("goldapi XAG response:", JSON.stringify(silverRes.data));
+    const silverPerGramUSD = Number(silverRes.data?.price_gram_24k);
 
-    if (!goldPerGramUSD || !silverPerGramUSD) {
+    if (!Number.isFinite(goldPerGramUSD) || goldPerGramUSD <= 0 || !Number.isFinite(silverPerGramUSD) || silverPerGramUSD <= 0) {
       throw new Error("API returned zero or invalid prices");
     }
 
@@ -61,7 +60,16 @@ export const fetchPrices = async () => {
     console.log(`   Gold  : $${goldPerGramUSD}/g  → ₹${goldPerGramINR}/g`);
     console.log(`   Silver: $${silverPerGramUSD}/g → ₹${silverPerGramINR}/g`);
   } catch (err) {
-    console.error("⚠️  Price fetch failed:", err.message);
+    console.error("⚠️  Price fetch failed:", err.stack || err.message);
+    if (err && err.response) {
+      try {
+        console.error("Axios response status:", err.response.status);
+        console.error("Axios response data:", JSON.stringify(err.response.data));
+        console.error("Axios response headers:", JSON.stringify(err.response.headers));
+      } catch (e) {
+        console.error("Failed to log axios response details:", e.message);
+      }
+    }
     console.log("🔁 Falling back to .env prices...");
     await useFallbackPrices();
   }
