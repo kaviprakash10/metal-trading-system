@@ -1,25 +1,41 @@
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, Link } from 'react-router-dom';
+import { loginUser } from '../slice/Authslice';
+import Logo from '../assets/Logo.png';
+import PassOff from '../assets/PassOff.png';
+import PassOn from '../assets/PassOn.png';
 
 export default function SigninPage() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { loading, error } = useSelector((state) => state.auth);
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    rememberMe: false
   });
 
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+
+    // Redirect based on role after login
+    const redirect = (user) => {
+      if (user?.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/user/dashboard');
+      }
+    };
+
+    dispatch(loginUser({ formData, redirect }));
   };
 
   return (
@@ -27,8 +43,8 @@ export default function SigninPage() {
       <div className="w-full max-w-md">
         {/* Logo/Brand Section */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-30 h-30 bg-gradient-to-br from-amber-400 to-yellow-600 rounded-full mb-4 shadow-lg">
-            <img src="/src/Pages/images/Logo2.png" alt="Luna Gold" className="w-30 h-30 shadow-lg rounded-full" />
+            <div className="inline-flex items-center justify-center w-30 h-30 bg-gradient-to-br from-amber-400 to-yellow-600 rounded-full mb-4 shadow-lg">
+            <img src={Logo} alt="Luna Gold" className="w-30 h-30 shadow-lg rounded-full" />
           </div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">GoldVault</h1>
           <p className="text-gray-600">Welcome back to your investment journey</p>
@@ -37,6 +53,13 @@ export default function SigninPage() {
         {/* Sign In Form Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Sign In</h2>
+
+          {/* Server Error */}
+          {error && (
+            <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
+              {Array.isArray(error) ? error.join(', ') : error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
@@ -83,9 +106,9 @@ export default function SigninPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                 >
                   {showPassword ? (
-                    <img src="/src/Pages/images/PassOff.png" className="hover:brightness-50 hover:contrast-50" alt="Hide password" />
+                    <img src={PassOff} className="hover:brightness-50 hover:contrast-50" alt="Hide password" />
                   ) : (
-                    <img src="/src/Pages/images/PassOn.png" className="hover:brightness-50 hover:contrast-50" alt="Show password" />
+                    <img src={PassOn} className="hover:brightness-50 hover:contrast-50" alt="Show password" />
                   )}
                 </button>
               </div>
@@ -94,9 +117,10 @@ export default function SigninPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-yellow-300 to-yellow-600 text-white font-semibold py-3 rounded-lg hover:from-amber-500 hover:to-yellow-600 transition-all duration-200 shadow-md hover:shadow-lg"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-yellow-300 to-yellow-600 text-white font-semibold py-3 rounded-lg hover:from-amber-500 hover:to-yellow-600 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Sign In
+              {loading ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
 
@@ -106,15 +130,16 @@ export default function SigninPage() {
               <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-4 text-gray-500">Or continue with</span>
+              <span className="bg-white px-4 text-gray-500">Or continue with</span>
             </div>
           </div>
+
           {/* Sign Up Link */}
           <p className="text-center text-sm text-gray-600 mt-6">
             Don't have an account?{' '}
-            <a href="#" className="text-amber-600 hover:text-amber-700 font-semibold">
+            <Link to="/register" className="text-amber-600 hover:text-amber-700 font-semibold">
               Create Account
-            </a>
+            </Link>
           </p>
         </div>
 

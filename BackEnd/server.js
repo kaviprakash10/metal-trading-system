@@ -17,14 +17,13 @@ import { fetchPrices } from "./app/utils/priceFetcher.js";
 // user controler
 import userCltr from "./app/controllers/UserCltr.js";
 
-// public route 
+// public route
 import PublicPrice from "./app/utils/Pricecontroller .js";
 // wallet controler
 import Wallet from "./app/controllers/walletController.js";
 // Assest controler
 import asset from "./app/controllers/assetController.js";
 import auth from "./app/middlewares/authUser.js";
-
 
 // TransactionHistory
 import TransactionHistory from "./app/controllers/transactionController.js";
@@ -62,7 +61,7 @@ app.use(
   }),
 );
 
-// ── User Routes 
+// ── User Routes
 app.post("/api/user/register", userCltr.register);
 app.post("/api/user/login", userCltr.login);
 app.get("/api/user/profile", auth, userCltr.getProfile);
@@ -110,18 +109,18 @@ app.post(
   AdminController.setSilverPrice,
 );
 // ── SIP Routes ──
-app.post("/api/sip/create",        auth, SipController.createSip);
-app.get("/api/sip/my",             auth, SipController.getMySips);
+app.post("/api/sip/create", auth, SipController.createSip);
+app.get("/api/sip/my", auth, SipController.getMySips);
 app.patch("/api/sip/:sipId/pause", auth, SipController.pauseSip);
-app.patch("/api/sip/:sipId/resume",auth, SipController.resumeSip);
-app.delete("/api/sip/:sipId",      auth, SipController.deleteSip);
+app.patch("/api/sip/:sipId/resume", auth, SipController.resumeSip);
+app.delete("/api/sip/:sipId", auth, SipController.deleteSip);
 
 // Public Route to see the price history
 app.get("/api/prices/current", PublicPrice.getCurrentPrices);
 app.get("/api/prices/history", PublicPrice.getPriceHistory);
 app.get("/api/prices/summary", PublicPrice.getPriceSummary);
 
-// To fetch the price 
+// To fetch the price
 app.get("/api/prices", async (req, res) => {
   const gold = await GoldPrice.findOne().sort({ createdAt: -1 });
   const silver = await SilverPrice.findOne().sort({ createdAt: -1 });
@@ -130,8 +129,8 @@ app.get("/api/prices", async (req, res) => {
     silver: silver?.pricePerGram,
   });
 });
-// ── Cron: refresh prices every 10 minutes ────────────────────────────────
-cron.schedule("0 8,20 * * *", () => {
+// ── Cron: refresh prices every 2 hours ────────────────────────────────
+cron.schedule("0 */2 * * *", () => {
   console.log("⏰ Cron: refreshing prices...");
   fetchPrices();
 });

@@ -5,10 +5,13 @@ import SilverPrice from "../models/SilverPriceModel.js";
 /* ── Fetch live USD → INR exchange rate from frankfurter.app ─────────────── */
 
 const getUsdToInrRate = async () => {
-  const res = await axios.get("https://api.frankfurter.app/latest?from=USD&to=INR");
+  const res = await axios.get(
+    "https://api.frankfurter.app/latest?from=USD&to=INR",
+  );
   console.log("frankfurter response:", JSON.stringify(res.data));
   const rate = Number(res.data?.rates?.INR);
-  if (!Number.isFinite(rate) || rate <= 0) throw new Error("Invalid exchange rate received");
+  if (!Number.isFinite(rate) || rate <= 0)
+    throw new Error("Invalid exchange rate received");
   return rate;
 };
 
@@ -23,26 +26,23 @@ export const fetchPrices = async () => {
     console.log(`💱 Exchange rate: 1 USD = ₹${usdToInr}`);
 
     // 2. Fetch gold price in USD
-    const goldRes = await axios.get("https://www.goldapi.io/api/XAU/USD", {
-      headers: {
-        "x-access-token": API_KEY,
-        "Content-Type": "application/json",
-      },
-    });
+    const goldRes = await axios.get("https://api.gold-api.com/price/XAU");
     console.log("goldapi XAU response:", JSON.stringify(goldRes.data));
-    const goldPerGramUSD = Number(goldRes.data?.price_gram_24k);
+    // The API returns price per Troy Ounce. Convert to price per gram (1 Troy Ounce = 31.1034768 grams)
+    const goldPerGramUSD = Number(goldRes.data?.price) / 31.1034768;
 
     // 3. Fetch silver price in USD
-    const silverRes = await axios.get("https://www.goldapi.io/api/XAG/USD", {
-      headers: {
-        "x-access-token": API_KEY,
-        "Content-Type": "application/json",
-      },
-    });
+    const silverRes = await axios.get("https://api.gold-api.com/price/XAG");
     console.log("goldapi XAG response:", JSON.stringify(silverRes.data));
-    const silverPerGramUSD = Number(silverRes.data?.price_gram_24k);
+    // The API returns price per Troy Ounce. Convert to price per gram
+    const silverPerGramUSD = Number(silverRes.data?.price) / 31.1034768;
 
-    if (!Number.isFinite(goldPerGramUSD) || goldPerGramUSD <= 0 || !Number.isFinite(silverPerGramUSD) || silverPerGramUSD <= 0) {
+    if (
+      !Number.isFinite(goldPerGramUSD) ||
+      goldPerGramUSD <= 0 ||
+      !Number.isFinite(silverPerGramUSD) ||
+      silverPerGramUSD <= 0
+    ) {
       throw new Error("API returned zero or invalid prices");
     }
 
@@ -64,8 +64,14 @@ export const fetchPrices = async () => {
     if (err && err.response) {
       try {
         console.error("Axios response status:", err.response.status);
-        console.error("Axios response data:", JSON.stringify(err.response.data));
-        console.error("Axios response headers:", JSON.stringify(err.response.headers));
+        console.error(
+          "Axios response data:",
+          JSON.stringify(err.response.data),
+        );
+        console.error(
+          "Axios response headers:",
+          JSON.stringify(err.response.headers),
+        );
       } catch (e) {
         console.error("Failed to log axios response details:", e.message);
       }

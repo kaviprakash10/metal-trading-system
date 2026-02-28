@@ -1,111 +1,125 @@
 import "./G-styles.css";
 import "./G-head.css";
-import Home from "./G-home";
+import Logo from "../assets/Logo.png";
+import Home from "./G-Home"; // Capitalized H to match filename
 import Calculator from "./Calculator";
 import About from "./About";
 import Contact from "./Contact";
-import SignIn from "./SignIn";
-import axios from "axios";
-import { Link, Route, Routes } from "react-router-dom";
-import { useEffect, useState } from "react";
+import SigninPage from "../Pages/SigninPage";
+import SignupPage from "../Pages/SignupPage";
+import { Link, Route, Routes, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchCurrentPrices } from "../slice/Priceslice";
 
 export default function Guest() {
-  // useState to update the price for the Gold & Silver
-  const [liveGold, setliveGold] = useState(0);
-  const [liveSilver, setLiveSilver] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { current, loading, error } = useSelector((state) => state.price);
 
-  // useEffect to update the price 
-  // useEffect(() => {
+  // Fetch prices from YOUR backend (not GoldAPI directly)
+  useEffect(() => {
+    dispatch(fetchCurrentPrices());
+    const interval = setInterval(() => {
+      dispatch(fetchCurrentPrices());
+    }, 180000); // refresh every 3 mins
+    return () => clearInterval(interval);
+  }, [dispatch]);
 
-  //   const API_KEY = 'goldapi-dpqtzqsml6a7f72-io';
-  //   const fetchPrice = async () => {
-  //     try {
-  //       const response = await axios.get('https://www.goldapi.io/api/XAU/INR', {
-  //         headers: {
-  //           'x-access-token': 'goldapi-dpqtzqsml6a7f72-io',
-  //           'Content-Type': 'application/json',
-  //         },
-  //       })
-  //       const goldPerGram = response.data.price_gram_24k?.toFixed(2) || 0;
-
-  //       // fetching for silver
-  //       const silverRes = await axios.get('https://www.goldapi.io/api/XAG/INR', {
-  //         headers: {
-  //           'x-access-token': 'goldapi-dpqtzqsml6a7f72-io',
-  //           'Content-Type': 'application/json',
-  //         },
-  //       });
-  //       const silverPerGram = silverRes.data.price_gram_24k?.toFixed(2) || 0;
-  //       setliveGold(goldPerGram);
-  //       setLiveSilver(silverPerGram);
-  //       setLoading(false);
-  //     }
-  //     catch (err) {
-  //       console.error('Failed to fetch metal prices:', err);
-  //       setError('Unable to load live prices');
-  //       setLoading(false);
-  //     }
-  //   }
-  //   fetchPrice();
-  //     const interval = setInterval(fetchPrice, 180000);
-  //     // To rest the price for every 3 mins 
-  //     return () => clearInterval(interval);
-  // }, []);
-  // if (loading) {
-  //   return <span>Loading live prices...</span>;
-  // }
-
-  // if (error) {
-  //   return <span style={{ color: 'red' }}>{error}</span>;
-  // }
-
+  const liveGold = current.gold?.pricePerGram ?? 0;
+  const liveSilver = current.silver?.pricePerGram ?? 0;
 
   return (
-    // home page design of the top 
-    <div className="guest-layout">
-      <header className="luna-header">
-        <div className="header-container">
-          {/* Head Section of the Brand name */}
-          <div className="logo">
-            <span className="luna-text"> Luna </span>
-            <span className="pvt"> pvt </span>
-            <span className="gold-text"> Gold</span>
+    <div className="min-h-screen flex flex-col bg-gray-100">
+      {/* Header */}
+      <header className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md">
+        <div className="w-full px-6 py-4 flex items-center justify-between">
+          {/* Logo */}
+          <div className="text-xl font-semibold tracking-wide">
+            <Link to="/" className="flex items-center gap-3">
+              <img
+                src={Logo}
+                alt="Luna Gold"
+                className="w-10 h-10 rounded-full shadow-xl object-cover"
+              />
+              <div>
+                <span className="text-white">Luna </span>
+                <span className="text-gray-200 text-sm">pvt </span>
+                <span className="text-yellow-300 font-bold">Gold</span>
+              </div>
+            </Link>
           </div>
-          {/* Head Section Nav Bar */}
-          <nav className="main-nav">
-            <Link to="/home" className="nav-link">Home</Link>
-            <Link to="/calculators/sip" className="nav-link">Calculator</Link>
-            <Link to="/about" className="nav-link">About</Link>
-            <Link to="/contact" className="nav-link">Contact Us</Link>
+
+          {/* Navigation */}
+          <nav className="hidden md:flex gap-6 font-medium">
+            <Link to="/" className="hover:text-yellow-300 transition">
+              Home
+            </Link>
+            <Link
+              to="/calculators/sip"
+              className="hover:text-yellow-300 transition"
+            >
+              Calculator
+            </Link>
+            <Link to="/about" className="hover:text-yellow-300 transition">
+              About
+            </Link>
+            <Link to="/contact" className="hover:text-yellow-300 transition">
+              Contact Us
+            </Link>
           </nav>
-          {/* To list the live Price */}
-          <div className="live-price">
-            <div className="price-item gold">
-              <span className="wave-icon">((•))</span>
-              Live Gold Price ₹{liveGold}/gm
+
+          {/* Live Prices */}
+          <div className="hidden lg:flex items-center gap-6 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="animate-pulse text-yellow-300">((•))</span>
+              {loading
+                ? "Loading..."
+                : error
+                  ? "Unavailable"
+                  : `Live Gold ₹${liveGold}/gm`}
             </div>
-            <div className="price-item silver">
-              <span className="wave-icon">((•))</span>
-              Live Gold Price ₹{liveSilver}/gm
+
+            <div className="flex items-center gap-2">
+              <span className="animate-pulse text-gray-300">((•))</span>
+              {loading
+                ? "Loading..."
+                : error
+                  ? "Unavailable"
+                  : `Live Silver ₹${liveSilver}/gm`}
             </div>
           </div>
-          {/* Sign Up btn */}
-          <Link to="/signup" className="signup-btn">Sign Up</Link>
+
+          {/* Auth Buttons */}
+          <div className="flex items-center gap-3">
+            <Link
+              to="/login"
+              className="hover:text-yellow-300 transition font-medium"
+            >
+              Sign In
+            </Link>
+
+            <Link
+              to="/register"
+              className="bg-yellow-400 text-black px-4 py-2 rounded-lg font-semibold hover:bg-yellow-300 transition"
+            >
+              Sign Up
+            </Link>
+          </div>
         </div>
       </header>
-      {/* Main content area */}
-      <main className="main-content">
+
+      {/* Main Content */}
+      <main className="flex-1 w-full px-6 py-10">
         <Routes>
-          < Route path="/home" element={<Home />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/home" element={<Navigate to="/" replace />} />
           <Route path="/calculators/sip" element={<Calculator />} />
-          < Route path="/about" element={<About />} />
-          < Route path="/contact" element={<Contact />} />
-          < Route path="/signup" element={<SignIn />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/login" element={<SigninPage />} />
+          <Route path="/register" element={<SignupPage />} />
         </Routes>
       </main>
-
     </div>
   );
 }
