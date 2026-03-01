@@ -13,12 +13,12 @@ export const registerUser = createAsyncThunk(
       const msg = err.response?.data?.error || "Registration failed";
       return rejectWithValue(msg);
     }
-  }
+  },
 );
 
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
-  async ({ formData, redirect }, { rejectWithValue }) => {
+  async ({ formData }, { rejectWithValue }) => {
     try {
       const response = await axios.post("/user/login", formData);
       localStorage.setItem("token", response.data.token);
@@ -28,13 +28,12 @@ export const loginUser = createAsyncThunk(
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
-      redirect();
       return userResponse.data;
     } catch (err) {
       const msg = err.response?.data?.error || "Login failed";
       return rejectWithValue(msg);
     }
-  }
+  },
 );
 
 export const fetchUser = createAsyncThunk(
@@ -49,10 +48,8 @@ export const fetchUser = createAsyncThunk(
       const msg = err.response?.data?.error || "Failed to fetch user";
       return rejectWithValue(msg);
     }
-  }
+  },
 );
-
-
 
 const authSlice = createSlice({
   name: "auth",
@@ -103,11 +100,17 @@ const authSlice = createSlice({
     });
 
     // Fetch User
+    builder.addCase(fetchUser.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
     builder.addCase(fetchUser.fulfilled, (state, action) => {
+      state.loading = false;
       state.user = action.payload;
       state.isLoggedIn = true;
     });
     builder.addCase(fetchUser.rejected, (state) => {
+      state.loading = false;
       state.user = null;
       state.isLoggedIn = false;
     });

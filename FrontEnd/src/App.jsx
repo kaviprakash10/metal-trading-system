@@ -6,11 +6,12 @@ import { fetchUser } from "./slice/Authslice";
 // Guest Layout (contains its own sub-routes)
 import Guest from "./Guest-user/Guest";
 
-// Auth Pages
-import SigninPage from "./Pages/SigninPage";
-import SignupPage from "./Pages/SignupPage";
-
+// User Layout
+import UserLayout from "./user/userLayout";
 import Dashboard from "./user/Dashboard";
+import BuyPage from "./user/metalBuyPage";
+import SellPage from "./user/metalSellPage";
+import PortfolioPage from "./portfolioPage";
 
 /* ── Protected Route: logged-in users only ── */
 const ProtectedRoute = ({ children }) => {
@@ -54,6 +55,30 @@ function App() {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/user/buy/:type"
+        element={
+          <ProtectedRoute>
+            <BuyPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/user/sell/:type"
+        element={
+          <ProtectedRoute>
+            <SellPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/user/portfolio"
+        element={
+          <ProtectedRoute>
+            <PortfolioPage />
           </ProtectedRoute>
         }
       />
