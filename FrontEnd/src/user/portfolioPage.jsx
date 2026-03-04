@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { fetchPortfolio } from "./slice/Portfolioslice";
-import { fetchCurrentPrices } from "./slice/Priceslice";
-import { fetchWallet } from "./slice/Walletslice";
-import UserLayout from "./user/userLayout";
+import { fetchPortfolio } from "../slice/Portfolioslice";
+import { fetchCurrentPrices } from "../slice/Priceslice";
+import { fetchWallet } from "../slice/Walletslice";
+import UserLayout from "./userLayout";
 
 const fmt = (n) =>
   Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });

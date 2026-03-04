@@ -11,8 +11,8 @@ import UserLayout from "./user/userLayout";
 import Dashboard from "./user/Dashboard";
 import BuyPage from "./user/metalBuyPage";
 import SellPage from "./user/metalSellPage";
-import PortfolioPage from "./portfolioPage";
-import WalletPage from "./walletPage";
+import PortfolioPage from "./user/portfolioPage";
+import WalletPage from "./user/walletPage";
 import TransactionsPage from "./user/transactionsPage";
 
 /* ── Protected Route: logged-in users only ── */
