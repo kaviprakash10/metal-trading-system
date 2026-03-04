@@ -12,6 +12,8 @@ import Dashboard from "./user/Dashboard";
 import BuyPage from "./user/metalBuyPage";
 import SellPage from "./user/metalSellPage";
 import PortfolioPage from "./portfolioPage";
+import WalletPage from "./walletPage";
+import TransactionsPage from "./user/transactionsPage";
 
 /* ── Protected Route: logged-in users only ── */
 const ProtectedRoute = ({ children }) => {
@@ -40,14 +42,19 @@ const AdminRoute = ({ children }) => {
 
 function App() {
   const dispatch = useDispatch();
-
+  const { isLoggedIn, loading } = useSelector((state) => state.auth);
   useEffect(() => {
     if (localStorage.getItem("token")) {
       dispatch(fetchUser());
     }
   }, [dispatch]);
 
+  if (localStorage.getItem("token") && isLoggedIn === false) {
+    return <p>...loading</p>;
+  }
+
   return (
+    // User Page LayOut Form
     <Routes>
       {/* ── User Protected Routes ── */}
       <Route
@@ -79,6 +86,22 @@ function App() {
         element={
           <ProtectedRoute>
             <PortfolioPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/user/wallet"
+        element={
+          <ProtectedRoute>
+            <WalletPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/user/transactions"
+        element={
+          <ProtectedRoute>
+            <TransactionsPage />
           </ProtectedRoute>
         }
       />

@@ -18,7 +18,7 @@ import { fetchPrices } from "./app/utils/priceFetcher.js";
 import userCltr from "./app/controllers/UserCltr.js";
 
 // public route
-import PublicPrice from "./app/utils/Pricecontroller .js";
+import PublicPrice from "./app/utils/Pricecontroller.js";
 // wallet controler
 import Wallet from "./app/controllers/walletController.js";
 // Assest controler
