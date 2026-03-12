@@ -109,10 +109,12 @@ const authSlice = createSlice({
       state.user = action.payload;
       state.isLoggedIn = true;
     });
-    builder.addCase(fetchUser.rejected, (state) => {
+    builder.addCase(fetchUser.rejected, (state, action) => {
       state.loading = false;
       state.user = null;
       state.isLoggedIn = false;
+      state.error = action.payload;
+      localStorage.removeItem("token");
     });
   },
 });
