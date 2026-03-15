@@ -7,13 +7,13 @@ import { fetchUser } from "./slice/Authslice";
 import Guest from "./Guest-user/Guest";
 
 // User Layout
-import UserLayout from "./user/userLayout";
 import Dashboard from "./user/Dashboard";
 import BuyPage from "./user/metalBuyPage";
 import SellPage from "./user/metalSellPage";
 import PortfolioPage from "./user/portfolioPage";
 import WalletPage from "./user/walletPage";
 import TransactionsPage from "./user/transactionsPage";
+import SIPPage from "./user/SIPpage";
 
 /* ── Protected Route: logged-in users only ── */
 const ProtectedRoute = ({ children }) => {
@@ -102,6 +102,14 @@ function App() {
         element={
           <ProtectedRoute>
             <TransactionsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/user/sip"
+        element={
+          <ProtectedRoute>
+            <SIPPage />
           </ProtectedRoute>
         }
       />

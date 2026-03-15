@@ -39,7 +39,7 @@ export const createSip = createAsyncThunk(
 
 export const pauseSip = createAsyncThunk(
   "sip/pauseSip",
-  async ({ sipId }, { rejectWithValue }) => {
+  async (sipId, { rejectWithValue }) => {
     try {
       const response = await axios.patch(
         `/sip/${sipId}/pause`,
@@ -58,7 +58,7 @@ export const pauseSip = createAsyncThunk(
 
 export const resumeSip = createAsyncThunk(
   "sip/resumeSip",
-  async ({ sipId }, { rejectWithValue }) => {
+  async (sipId, { rejectWithValue }) => {
     try {
       const response = await axios.patch(
         `/sip/${sipId}/resume`,
@@ -77,7 +77,7 @@ export const resumeSip = createAsyncThunk(
 
 export const deleteSip = createAsyncThunk(
   "sip/deleteSip",
-  async ({ sipId }, { rejectWithValue }) => {
+  async (sipId, { rejectWithValue }) => {
     try {
       await axios.delete(`/sip/${sipId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
