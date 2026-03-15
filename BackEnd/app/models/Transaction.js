@@ -30,6 +30,16 @@ const transactionSchema = new mongoose.Schema(
       required: true,
     },
 
+    gstAmount: {
+      type: Number,
+      default: 0,
+    },
+
+    totalAmount: {
+      type: Number,
+      default: 0,
+    },
+
     pricePerGram: {
       type: Number,
       default: 0,
@@ -37,7 +47,7 @@ const transactionSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["SUCCESS", "FAILED"],
+      enum: ["SUCCESS", "FAILED", "PENDING"],
       default: "SUCCESS",
     },
   },
