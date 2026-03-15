@@ -1,135 +1,88 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "../config/axios";
+import axios from "../config/axios.js";
 
-/* ================= ASYNC THUNKS ================= */
+const authHeader = () => ({
+  headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+});
 
-export const buyGold = createAsyncThunk(
-  "asset/buyGold",
-  async ({ grams, pricePerGram }, { rejectWithValue }) => {
+/* ── Generic buy/sell thunk factory ── */
+const makeBuyThunk = (name, endpoint) =>
+  createAsyncThunk(`asset/${name}`, async (payload, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        "/gold/buy",
-        { grams, pricePerGram },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
-      return response.data;
+      // payload can be:
+      // { amount, pricePerGram }   ← buy by ₹ amount
+      // { grams,  pricePerGram }   ← buy by grams
+      const res = await axios.post(endpoint, payload, authHeader());
+      return res.data;
     } catch (err) {
-      const msg = err.response?.data?.message || "Failed to buy gold";
-      return rejectWithValue(msg);
+      return rejectWithValue(
+        err.response?.data?.message || `${name} failed`
+      );
     }
-  }
-);
+  });
 
-export const sellGold = createAsyncThunk(
-  "asset/sellGold",
-  async ({ grams, pricePerGram }, { rejectWithValue }) => {
+const makeSellThunk = (name, endpoint) =>
+  createAsyncThunk(`asset/${name}`, async (payload, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        "/gold/sell",
-        { grams, pricePerGram },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
-      return response.data;
+      // payload: { grams, pricePerGram }
+      const res = await axios.post(endpoint, payload, authHeader());
+      return res.data;
     } catch (err) {
-      const msg = err.response?.data?.message || "Failed to sell gold";
-      return rejectWithValue(msg);
-    }
-  }
-);
-
-export const buySilver = createAsyncThunk(
-  "asset/buySilver",
-  async ({ grams, pricePerGram }, { rejectWithValue }) => {
-    try {
-      const response = await axios.post(
-        "/silver/buy",
-        { grams, pricePerGram },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
+      return rejectWithValue(
+        err.response?.data?.message || `${name} failed`
       );
-      return response.data;
-    } catch (err) {
-      const msg = err.response?.data?.message || "Failed to buy silver";
-      return rejectWithValue(msg);
     }
-  }
-);
+  });
 
-export const sellSilver = createAsyncThunk(
-  "asset/sellSilver",
-  async ({ grams, pricePerGram }, { rejectWithValue }) => {
-    try {
-      const response = await axios.post(
-        "/silver/sell",
-        { grams, pricePerGram },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
-      return response.data;
-    } catch (err) {
-      const msg = err.response?.data?.message || "Failed to sell silver";
-      return rejectWithValue(msg);
-    }
-  }
-);
-
-/* ================= SLICE ================= */
+export const buyGold    = makeBuyThunk("buyGold",    "/gold/buy");
+export const buySilver  = makeBuyThunk("buySilver",  "/silver/buy");
+export const sellGold   = makeSellThunk("sellGold",  "/gold/sell");
+export const sellSilver = makeSellThunk("sellSilver","/silver/sell");
 
 const assetSlice = createSlice({
   name: "asset",
   initialState: {
-    loading: false,
-    error: null,
+    loading:        false,
+    error:          null,
     successMessage: null,
+    lastTransaction: null,  // stores last response for UI display
   },
   reducers: {
-    clearAssetMessages: (state) => {
-      state.error = null;
+    clearAssetMessages(state) {
+      state.error          = null;
       state.successMessage = null;
+      state.lastTransaction = null;
     },
   },
   extraReducers: (builder) => {
-    const handlePending = (state) => {
-      state.loading = true;
-      state.error = null;
+    const pending = (state) => {
+      state.loading        = true;
+      state.error          = null;
       state.successMessage = null;
     };
-    const handleFulfilled = (state, action) => {
-      state.loading = false;
+    const fulfilled = (state, action) => {
+      state.loading        = false;
       state.successMessage = action.payload.message;
-      state.error = null;
+      // Store full response so BuyPage can show grams received etc.
+      state.lastTransaction = {
+        grams:       action.payload.grams,
+        baseAmount:  action.payload.baseAmount,
+        gstAmount:   action.payload.gstAmount,
+        totalAmount: action.payload.totalAmount,
+        usedPrice:   action.payload.usedPrice,
+      };
     };
-    const handleRejected = (state, action) => {
+    const rejected = (state, action) => {
       state.loading = false;
-      state.error = action.payload;
-      state.successMessage = null;
+      state.error   = action.payload;
     };
 
-    // Buy Gold
-    builder.addCase(buyGold.pending, handlePending);
-    builder.addCase(buyGold.fulfilled, handleFulfilled);
-    builder.addCase(buyGold.rejected, handleRejected);
-
-    // Sell Gold
-    builder.addCase(sellGold.pending, handlePending);
-    builder.addCase(sellGold.fulfilled, handleFulfilled);
-    builder.addCase(sellGold.rejected, handleRejected);
-
-    // Buy Silver
-    builder.addCase(buySilver.pending, handlePending);
-    builder.addCase(buySilver.fulfilled, handleFulfilled);
-    builder.addCase(buySilver.rejected, handleRejected);
-
-    // Sell Silver
-    builder.addCase(sellSilver.pending, handlePending);
-    builder.addCase(sellSilver.fulfilled, handleFulfilled);
-    builder.addCase(sellSilver.rejected, handleRejected);
+    [buyGold, buySilver, sellGold, sellSilver].forEach((thunk) => {
+      builder
+        .addCase(thunk.pending,   pending)
+        .addCase(thunk.fulfilled, fulfilled)
+        .addCase(thunk.rejected,  rejected);
+    });
   },
 });
 
