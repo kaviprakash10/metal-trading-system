@@ -8,7 +8,7 @@ import {
   deleteSip,
 } from "../slice/Sipslice";
 import { fetchWallet } from "../slice/Walletslice";
-import UserLayout from "./UserLayout.jsx";
+import UserLayout from "./userLayout";
 
 const fmt = (n) =>
   Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });

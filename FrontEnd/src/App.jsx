@@ -1,12 +1,12 @@
 import React, { useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchUser } from "./slice/Authslice";
 
-// Guest Layout (contains its own sub-routes)
+// Guest Layout
 import Guest from "./Guest-user/Guest";
 
-// User Layout
+// User Pages
 import Dashboard from "./user/Dashboard";
 import BuyPage from "./user/metalBuyPage";
 import SellPage from "./user/metalSellPage";
@@ -14,6 +14,10 @@ import PortfolioPage from "./user/portfolioPage";
 import WalletPage from "./user/walletPage";
 import TransactionsPage from "./user/transactionsPage";
 import SIPPage from "./user/SIPpage";
+
+// Admin Pages
+// import AdminDashboard from "./admin/adminDashboard";
+import ManageUsers from "./admin/manageUser";
 
 /* ── Protected Route: logged-in users only ── */
 const ProtectedRoute = ({ children }) => {
@@ -43,18 +47,22 @@ const AdminRoute = ({ children }) => {
 function App() {
   const dispatch = useDispatch();
   const { isLoggedIn, loading } = useSelector((state) => state.auth);
+
   useEffect(() => {
     if (localStorage.getItem("token")) {
       dispatch(fetchUser());
     }
   }, [dispatch]);
 
-  if (localStorage.getItem("token") && isLoggedIn === false) {
-    return <p>...loading</p>;
+  if (localStorage.getItem("token") && isLoggedIn === false && loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FDFBF7]">
+        <div className="w-10 h-10 border-4 border-[#BA943A] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   return (
-    // User Page LayOut Form
     <Routes>
       {/* ── User Protected Routes ── */}
       <Route
@@ -114,7 +122,25 @@ function App() {
         }
       />
 
-      {/* ── Guest / Public Routes (Includes Login/Register) ── */}
+      {/* ── Admin Protected Routes ── */}
+      {/* <Route
+        path="/admin/dashboard"
+        element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        }
+      /> */}
+      <Route
+        path="/admin/users"
+        element={
+          <AdminRoute>
+            <ManageUsers />
+          </AdminRoute>
+        }
+      />
+
+      {/* ── Guest / Public Routes (Login, Register, Landing) ── */}
       <Route path="/*" element={<Guest />} />
     </Routes>
   );
