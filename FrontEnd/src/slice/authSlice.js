@@ -18,17 +18,29 @@ export const registerUser = createAsyncThunk(
 
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
-  async ({ formData }, { rejectWithValue }) => {
+  async ({ formData, redirect }, { rejectWithValue }) => {
     try {
+      // Step 1: Login → get token
       const response = await axios.post("/user/login", formData);
       localStorage.setItem("token", response.data.token);
 
-      // Fetch full user profile after login
+      // Step 2: Fetch full profile → get role
       const userResponse = await axios.get("/user/profile", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `Bearer ${response.data.token}` },
       });
 
-      return userResponse.data;
+      const user = userResponse.data;
+
+      // Step 3: Redirect based on role AFTER we have the user data
+      if (redirect) {
+        if (user.role === "admin") {
+          redirect("/admin/dashboard");
+        } else {
+          redirect("/user/dashboard");
+        }
+      }
+
+      return user;
     } catch (err) {
       const msg = err.response?.data?.error || "Login failed";
       return rejectWithValue(msg);

@@ -2,20 +2,13 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../slice/Authslice";
-import Logo from "../assets/Logo.png";
-import PassOff from "../assets/PassOff.png";
-import PassOn from "../assets/PassOn.png";
 
 export default function SigninPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.auth);
 
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
@@ -23,23 +16,16 @@ export default function SigninPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    try {
-      const user = await dispatch(loginUser({ formData })).unwrap();
-
-      // Redirect based on role after successful login and state update
-      if (user?.role === "admin") {
-        // Fallback to user dashboard if admin dashboard is not yet implemented
-        navigate("/user/dashboard");
-      } else {
-        navigate("/user/dashboard");
-      }
-    } catch (err) {
-      // Errors are handled by the slice and displayed via the 'error' state from selector
-      console.error("Login failed:", err);
-    }
+    dispatch(
+      loginUser({
+        formData,
+        // redirect is called AFTER profile is fetched, so user.role is known
+        redirect: (path) => navigate(path, { replace: true }),
+      }),
+    );
   };
 
   return (
@@ -49,7 +35,7 @@ export default function SigninPage() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-30 h-30 bg-gradient-to-br from-amber-400 to-yellow-600 rounded-full mb-4 shadow-lg">
             <img
-              src={Logo}
+              src="/src/Pages/images/Logo2.png"
               alt="Luna Gold"
               className="w-30 h-30 shadow-lg rounded-full"
             />
@@ -126,13 +112,13 @@ export default function SigninPage() {
                 >
                   {showPassword ? (
                     <img
-                      src={PassOff}
+                      src="/src/Pages/images/PassOff.png"
                       className="hover:brightness-50 hover:contrast-50"
                       alt="Hide password"
                     />
                   ) : (
                     <img
-                      src={PassOn}
+                      src="/src/Pages/images/PassOn.png"
                       className="hover:brightness-50 hover:contrast-50"
                       alt="Show password"
                     />
