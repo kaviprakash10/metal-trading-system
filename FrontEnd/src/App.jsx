@@ -18,6 +18,7 @@ import SIPPage from "./user/SIPpage";
 // Admin Pages
 // import AdminDashboard from "./admin/adminDashboard";
 import ManageUsers from "./admin/manageUser";
+import AllTransactions from "./admin/Alltransactions";
 
 /* ── Protected Route: logged-in users only ── */
 const ProtectedRoute = ({ children }) => {
@@ -136,6 +137,14 @@ function App() {
         element={
           <AdminRoute>
             <ManageUsers />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/transactions"
+        element={
+          <AdminRoute>
+            <AllTransactions />
           </AdminRoute>
         }
       />
