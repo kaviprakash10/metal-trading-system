@@ -16,9 +16,10 @@ import TransactionsPage from "./user/transactionsPage";
 import SIPPage from "./user/SIPpage";
 
 // Admin Pages
-// import AdminDashboard from "./admin/adminDashboard";
+import AdminDashboard from "./admin/Admindashboard";
 import ManageUsers from "./admin/manageUser";
 import AllTransactions from "./admin/Alltransactions";
+import PriceManagement from "./admin/priceUpdate";
 
 /* ── Protected Route: logged-in users only ── */
 const ProtectedRoute = ({ children }) => {
@@ -124,14 +125,14 @@ function App() {
       />
 
       {/* ── Admin Protected Routes ── */}
-      {/* <Route
+      <Route
         path="/admin/dashboard"
         element={
           <AdminRoute>
             <AdminDashboard />
           </AdminRoute>
         }
-      /> */}
+      />
       <Route
         path="/admin/users"
         element={
@@ -145,6 +146,14 @@ function App() {
         element={
           <AdminRoute>
             <AllTransactions />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/prices"
+        element={
+          <AdminRoute>
+            <PriceManagement />
           </AdminRoute>
         }
       />
