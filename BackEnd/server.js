@@ -31,7 +31,7 @@ import GoldPrice from "./app/models/GoldPriceModel.js";
 import SilverPrice from "./app/models/SilverPriceModel.js";
 
 // SIP controlers
-import SipController from "./app/controllers/Sipcontroller .js";
+import SipController from "./app/controllers/Sipcontroller.js";
 import Sip from "./app/models/Sipmodel.js";
 
 // PortfolioController
