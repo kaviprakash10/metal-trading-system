@@ -20,6 +20,7 @@ import AdminDashboard from "./admin/Admindashboard";
 import ManageUsers from "./admin/manageUser";
 import AllTransactions from "./admin/Alltransactions";
 import PriceManagement from "./admin/priceUpdate";
+import KycManagement from "./admin/KycManagement";
 
 /* ── Protected Route: logged-in users only ── */
 const ProtectedRoute = ({ children }) => {
@@ -154,6 +155,14 @@ function App() {
         element={
           <AdminRoute>
             <PriceManagement />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/kyc"
+        element={
+          <AdminRoute>
+            <KycManagement />
           </AdminRoute>
         }
       />

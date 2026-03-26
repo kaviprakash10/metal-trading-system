@@ -13,6 +13,7 @@ const ADMIN_NAV = [
   { icon: "👥", label: "Users", to: "/admin/users" },
   { icon: "📋", label: "Transactions", to: "/admin/transactions" },
   { icon: "💰", label: "Price Control", to: "/admin/prices" },
+  { icon: "📑", label: "KYC Management", to: "/admin/kyc" },
 ];
 
 export default function AdminLayout({ children, active }) {
