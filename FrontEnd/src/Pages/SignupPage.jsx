@@ -54,33 +54,38 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-100 via-white to-yellow-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-amber-200 via-white to-amber-200 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Decorative Elemets (Keeping subtle for depth) */}
+      <div className="absolute top-0 left-0 w-full h-full bg-white/40 pointer-events-none"></div>
+      <div className="absolute -top-40 -left-40 w-96 h-96 bg-amber-200/20 rounded-full blur-3xl animate-float"></div>
+      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-orange-200/10 rounded-full blur-3xl animate-float [animation-delay:2s]"></div>
+
+      <div className="w-full max-w-[520px] relative z-10 animate-scale-in">
         {/* Logo/Brand Section */}
-        <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-30 h-30 bg-gradient-to-br from-amber-400 to-yellow-600 rounded-full mb-4 shadow-lg">
-            <img src={Logo2} alt="Luna Gold" className="w-30 h-30 shadow-lg rounded-full" />
+        <div className="text-center mb-8 animate-slide-up">
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-white rounded-[32px] mb-6 shadow-2xl shadow-amber-900/10 p-4 border border-amber-50 group transition-transform hover:scale-110">
+            <img src={Logo2} alt="Luna Gold" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">GoldVault</h1>
-          <p className="text-gray-600">Start your digital gold investment journey</p>
+          <h1 className="text-4xl font-black text-gray-900 mb-3 tracking-tighter uppercase">Luna <span className="text-amber-600">Gold</span></h1>
+          <p className="text-gray-400 font-light text-lg">Invest in the world's most stable asset</p>
         </div>
 
         {/* Signup Form Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Create Account</h2>
+        <div className="bg-white/80 backdrop-blur-xl rounded-[44px] shadow-2xl shadow-amber-900/5 p-10 md:p-12 border border-white animate-slide-up [animation-delay:200ms]">
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">Create your Account</h2>
 
-          {/* Server Error */}
-          {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
-              {Array.isArray(error) ? error.join(', ') : error}
+          {/* Server/Client Errors */}
+          {(error || clientError) && (
+            <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-sm font-medium animate-shake">
+              {clientError || (Array.isArray(error) ? error.join(', ') : error)}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* User Name */}
-            <div>
-              <label htmlFor="userName" className="block text-sm font-medium text-gray-700 mb-2">
-                User Name
+            <div className="space-y-2">
+              <label htmlFor="userName" className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
+                Display Name
               </label>
               <input
                 type="text"
@@ -88,15 +93,15 @@ export default function SignupPage() {
                 name="userName"
                 value={formData.userName}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition outline-none"
-                placeholder="Enter your name"
+                className="w-full px-6 py-4 bg-gray-50/50 border border-transparent rounded-2xl focus:bg-white focus:border-amber-500/30 focus:ring-4 focus:ring-amber-500/5 transition-all outline-none text-gray-900 font-medium"
+                placeholder="How should we address you?"
                 required
               />
             </div>
 
             {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
                 Email Address
               </label>
               <input
@@ -105,95 +110,68 @@ export default function SignupPage() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition outline-none"
+                className="w-full px-6 py-4 bg-gray-50/50 border border-transparent rounded-2xl focus:bg-white focus:border-amber-500/30 focus:ring-4 focus:ring-amber-500/5 transition-all outline-none text-gray-900 font-medium"
                 placeholder="your.email@example.com"
                 required
               />
             </div>
 
-            {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition outline-none pr-12"
-                  placeholder="Create a strong password"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                >
-                  {showPassword ? (
-                    <img src={PassOff} className="hover:brightness-50 hover:contrast-50 w-5 h-5" alt="Hide" />
-                  ) : (
-                    <img src={PassOn} className="hover:brightness-50 hover:contrast-50 w-5 h-5" alt="Show" />
-                  )}
-                </button>
-              </div>
-            </div>
+            {/* Password Grid */}
+            <div className="grid md:grid-cols-2 gap-6">
+               <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Password</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className="w-full px-6 py-4 bg-gray-50/50 border border-transparent rounded-2xl focus:bg-white focus:border-amber-500/30 focus:ring-4 focus:ring-amber-500/5 transition-all outline-none pr-12 text-gray-900 font-medium"
+                      placeholder="••••••••"
+                      required
+                    />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 opacity-30 hover:opacity-100 transition-opacity">
+                      {showPassword ? <img src={PassOff} className="w-4 h-4" /> : <img src={PassOn} className="w-4 h-4" />}
+                    </button>
+                  </div>
+               </div>
 
-            {/* Confirm Password */}
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition outline-none pr-12"
-                  placeholder="Confirm your password"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                >
-                  {showConfirmPassword ? (
-                    <img src={PassOff} className="hover:brightness-50 hover:contrast-50 w-5 h-5" alt="Hide" />
-                  ) : (
-                    <img src={PassOn} className="hover:brightness-50 hover:contrast-50 w-5 h-5" alt="Show" />
-                  )}
-                </button>
-              </div>
-              {clientError && (
-                <p className="text-red-500 text-sm mt-2">{clientError}</p>
-              )}
+               <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Confirm</label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className="w-full px-6 py-4 bg-gray-50/50 border border-transparent rounded-2xl focus:bg-white focus:border-amber-500/30 focus:ring-4 focus:ring-amber-500/5 transition-all outline-none pr-12 text-gray-900 font-medium"
+                      placeholder="••••••••"
+                      required
+                    />
+                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 opacity-30 hover:opacity-100 transition-opacity">
+                      {showConfirmPassword ? <img src={PassOff} className="w-4 h-4" /> : <img src={PassOn} className="w-4 h-4" />}
+                    </button>
+                  </div>
+               </div>
             </div>
 
             {/* Terms and Conditions */}
-            <div className="flex items-start">
+            <div className="flex items-start gap-4 p-4 rounded-2xl bg-amber-50/30 border border-amber-100/50">
               <input
                 type="checkbox"
                 id="agreeToTerms"
                 name="agreeToTerms"
                 checked={formData.agreeToTerms}
                 onChange={handleChange}
-                className="mt-1 w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+                className="mt-1 w-5 h-5 accent-amber-600 rounded cursor-pointer"
                 required
               />
-              <label htmlFor="agreeToTerms" className="ml-3 text-sm text-gray-600">
-                I agree to the{' '}
-                <a href="#" className="text-amber-600 hover:text-amber-700 font-medium">
-                  Terms and Conditions
-                </a>
+              <label htmlFor="agreeToTerms" className="text-xs text-gray-500 leading-relaxed font-medium">
+                I acknowledge the{' '}
+                <a href="#" className="text-amber-700 font-bold hover:underline">Terms</a>
                 {' '}and{' '}
-                <a href="#" className="text-amber-600 hover:text-amber-700 font-medium">
-                  Privacy Policy
-                </a>
+                <a href="#" className="text-amber-700 font-bold hover:underline">Privacy Policy</a>
+                {' '}of Luna Gold Pvt Ltd.
               </label>
             </div>
 
@@ -201,24 +179,26 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-yellow-300 to-yellow-600 text-white font-semibold py-3 rounded-lg hover:from-amber-500 hover:to-yellow-600 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold py-5 rounded-2xl shadow-xl shadow-amber-600/20 hover:shadow-amber-600/30 hover:from-amber-700 hover:to-amber-800 transition-all duration-300 transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-4"
             >
               {loading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 
           {/* Login Link */}
-          <p className="text-center text-sm text-gray-600 mt-6">
-            Already have an account?{' '}
-            <Link to="/login" className="text-amber-600 hover:text-amber-700 font-semibold">
-              Sign in
-            </Link>
-          </p>
+          <div className="mt-10 text-center">
+            <p className="text-gray-400 font-light">
+               Already have an account?{' '}
+               <Link to="/login" className="text-amber-600 hover:text-amber-700 font-bold transition-colors">
+                 Sign in
+               </Link>
+            </p>
+          </div>
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-gray-500 mt-6">
-          Secure gold investment platform trusted by thousands
+        <p className="text-center text-xs text-gray-300 mt-10 uppercase tracking-[0.2em] font-medium">
+          Trusted by 50,000+ investors nationwide
         </p>
       </div>
     </div>
