@@ -32,7 +32,7 @@ export default function SigninPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-200 via-white to-amber-200 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-amber-100 via-white to-amber-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo/Brand Section */}
         <div className="text-center mb-8">
