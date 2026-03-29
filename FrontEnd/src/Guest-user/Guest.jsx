@@ -20,7 +20,7 @@ export default function Guest() {
     dispatch(fetchCurrentPrices());
     const interval = setInterval(() => {
       dispatch(fetchCurrentPrices());
-    }, 180000); 
+    }, 180000);
     return () => clearInterval(interval);
   }, [dispatch]);
 
@@ -44,18 +44,28 @@ export default function Guest() {
                 />
               </div>
               <div className="flex flex-col -space-y-1">
-                <span className="text-xl font-black text-gray-900 tracking-tight">LUNA GOLD</span>
-                <span className="text-[10px] uppercase tracking-[0.3em] text-amber-600 font-bold">Private Limited</span>
+                <span className="text-xl font-black text-gray-900 tracking-tight">
+                  LUNA GOLD
+                </span>
+                <span className="text-[10px] uppercase tracking-[0.3em] text-amber-600 font-bold">
+                  Private Limited
+                </span>
               </div>
             </Link>
           </div>
 
           {/* Navigation */}
           <nav className="hidden lg:flex items-center gap-8 font-semibold text-gray-500">
-            {['Home', 'Calculator', 'About', 'Contact'].map((item) => (
-              <Link 
+            {["Home", "Calculator", "About", "Contact"].map((item) => (
+              <Link
                 key={item}
-                to={item === 'Home' ? '/' : (item === 'Calculator' ? '/calculators/sip' : `/${item.toLowerCase()}`)} 
+                to={
+                  item === "Home"
+                    ? "/"
+                    : item === "Calculator"
+                      ? "/calculators/sip"
+                      : `/${item.toLowerCase()}`
+                }
                 className="relative py-1 group hover:text-gray-900 transition-colors"
               >
                 {item}
@@ -66,17 +76,25 @@ export default function Guest() {
 
           {/* Live Price Tickers */}
           <div className="hidden xl:flex items-center gap-6 bg-gray-50/50 px-6 py-2 rounded-2xl border border-gray-100">
-             <div className="flex items-center gap-2 text-sm font-bold">
-                <div className="flex items-center justify-center w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
-                <span className="text-gray-400 uppercase tracking-tighter text-[10px]">Gold</span>
-                <span className="text-gray-900">₹{liveGold.toLocaleString("en-IN")}/gm</span>
-             </div>
-             <div className="w-px h-4 bg-gray-200"></div>
-             <div className="flex items-center gap-2 text-sm font-bold">
-                <div className="flex items-center justify-center w-2 h-2 rounded-full bg-gray-400 animate-pulse"></div>
-                <span className="text-gray-400 uppercase tracking-tighter text-[10px]">Silver</span>
-                <span className="text-gray-900">₹{liveSilver.toLocaleString("en-IN")}/gm</span>
-             </div>
+            <div className="flex items-center gap-2 text-sm font-bold">
+              <div className="flex items-center justify-center w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+              <span className="text-gray-400 uppercase tracking-tighter text-[10px]">
+                Gold
+              </span>
+              <span className="text-gray-900">
+                ₹{liveGold.toLocaleString("en-IN")}/gm
+              </span>
+            </div>
+            <div className="w-px h-4 bg-gray-200"></div>
+            <div className="flex items-center gap-2 text-sm font-bold">
+              <div className="flex items-center justify-center w-2 h-2 rounded-full bg-gray-400 animate-pulse"></div>
+              <span className="text-gray-400 uppercase tracking-tighter text-[10px]">
+                Silver
+              </span>
+              <span className="text-gray-900">
+                ₹{liveSilver.toLocaleString("en-IN")}/gm
+              </span>
+            </div>
           </div>
 
           {/* Auth Buttons */}

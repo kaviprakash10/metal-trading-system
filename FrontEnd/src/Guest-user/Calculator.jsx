@@ -9,9 +9,7 @@ export default function Calculator() {
 
   // Calculations
   const monthlyInvestment = mode === "sip" ? sipAmount : 0;
-  const totalInvestment = mode === "lump" 
-    ? lumpAmount 
-    : sipAmount * years * 12;
+  const totalInvestment = mode === "lump" ? lumpAmount : sipAmount * years * 12;
 
   const rate = expectedReturn / 100;
   let futureValue = 0;
@@ -21,12 +19,17 @@ export default function Calculator() {
   } else {
     // SIP Future Value Formula
     futureValue = Math.round(
-      sipAmount * ((Math.pow(1 + rate / 12, years * 12) - 1) / (rate / 12)) * (1 + rate / 12)
+      sipAmount *
+        ((Math.pow(1 + rate / 12, years * 12) - 1) / (rate / 12)) *
+        (1 + rate / 12),
     );
   }
 
   const totalReturns = futureValue - totalInvestment;
-  const returnPercentage = totalInvestment > 0 ? Math.round((totalReturns / totalInvestment) * 100) : 0;
+  const returnPercentage =
+    totalInvestment > 0
+      ? Math.round((totalReturns / totalInvestment) * 100)
+      : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50/30 py-16 px-4">
@@ -34,10 +37,13 @@ export default function Calculator() {
         {/* Header */}
         <div className="text-center space-y-4 animate-fade-in">
           <h1 className="text-5xl md:text-7xl font-extrabold text-amber-950 tracking-tight">
-            Gold <span className="text-amber-600 font-serif italic">Returns</span> Calculator
+            Gold{" "}
+            <span className="text-amber-600 font-serif italic">Returns</span>{" "}
+            Calculator
           </h1>
           <p className="text-xl text-gray-500 max-w-2xl mx-auto font-light">
-            Visualize your path to wealth. Our smart projection tool helps you plan your gold and silver future.
+            Visualize your path to wealth. Our smart projection tool helps you
+            plan your gold and silver future.
           </p>
         </div>
 
@@ -46,17 +52,21 @@ export default function Calculator() {
           <div className="bg-white/80 backdrop-blur-md rounded-[24px] p-1.5 shadow-xl shadow-amber-900/5 inline-flex border border-amber-100/50">
             <button
               onClick={() => setMode("lump")}
-              className={`px-10 py-4 rounded-[20px] font-bold transition-all duration-300 ${mode === "lump" 
-                ? "bg-amber-600 text-white shadow-lg shadow-amber-600/20 scale-105" 
-                : "text-gray-500 hover:text-amber-700 hover:bg-amber-50"}`}
+              className={`px-10 py-4 rounded-[20px] font-bold transition-all duration-300 ${
+                mode === "lump"
+                  ? "bg-amber-600 text-white shadow-lg shadow-amber-600/20 scale-105"
+                  : "text-gray-500 hover:text-amber-700 hover:bg-amber-50"
+              }`}
             >
               Lump Sum
             </button>
             <button
               onClick={() => setMode("sip")}
-              className={`px-10 py-4 rounded-[20px] font-bold transition-all duration-300 ${mode === "sip" 
-                ? "bg-amber-600 text-white shadow-lg shadow-amber-600/20 scale-105" 
-                : "text-gray-500 hover:text-amber-700 hover:bg-amber-50"}`}
+              className={`px-10 py-4 rounded-[20px] font-bold transition-all duration-300 ${
+                mode === "sip"
+                  ? "bg-amber-600 text-white shadow-lg shadow-amber-600/20 scale-105"
+                  : "text-gray-500 hover:text-amber-700 hover:bg-amber-50"
+              }`}
             >
               Monthly SIP
             </button>
@@ -69,9 +79,13 @@ export default function Calculator() {
             {mode === "lump" ? (
               <div className="space-y-6">
                 <div className="flex justify-between items-end">
-                  <span className="text-lg font-semibold text-gray-800">One-time Investment</span>
+                  <span className="text-lg font-semibold text-gray-800">
+                    One-time Investment
+                  </span>
                   <div className="text-right">
-                    <span className="text-3xl font-black text-amber-700">₹{lumpAmount.toLocaleString("en-IN")}</span>
+                    <span className="text-3xl font-black text-amber-700">
+                      ₹{lumpAmount.toLocaleString("en-IN")}
+                    </span>
                   </div>
                 </div>
                 <input
@@ -93,9 +107,13 @@ export default function Calculator() {
             ) : (
               <div className="space-y-6">
                 <div className="flex justify-between items-end">
-                  <span className="text-lg font-semibold text-gray-800">Monthly Investment</span>
+                  <span className="text-lg font-semibold text-gray-800">
+                    Monthly Investment
+                  </span>
                   <div className="text-right">
-                    <span className="text-3xl font-black text-amber-700">₹{sipAmount.toLocaleString("en-IN")}</span>
+                    <span className="text-3xl font-black text-amber-700">
+                      ₹{sipAmount.toLocaleString("en-IN")}
+                    </span>
                   </div>
                 </div>
                 <input
@@ -119,8 +137,15 @@ export default function Calculator() {
             {/* Duration */}
             <div className="space-y-6">
               <div className="flex justify-between items-end">
-                <span className="text-lg font-semibold text-gray-800">Investment Period</span>
-                <span className="text-3xl font-black text-amber-700">{years} <span className="text-sm font-medium text-gray-400 uppercase tracking-widest">Years</span></span>
+                <span className="text-lg font-semibold text-gray-800">
+                  Investment Period
+                </span>
+                <span className="text-3xl font-black text-amber-700">
+                  {years}{" "}
+                  <span className="text-sm font-medium text-gray-400 uppercase tracking-widest">
+                    Years
+                  </span>
+                </span>
               </div>
               <input
                 type="range"
@@ -135,8 +160,12 @@ export default function Calculator() {
             {/* Expected Return */}
             <div className="space-y-6">
               <div className="flex justify-between items-end">
-                <span className="text-lg font-semibold text-gray-800">Expected Annual Return</span>
-                <span className="text-3xl font-black text-amber-700">{expectedReturn}%</span>
+                <span className="text-lg font-semibold text-gray-800">
+                  Expected Annual Return
+                </span>
+                <span className="text-3xl font-black text-amber-700">
+                  {expectedReturn}%
+                </span>
               </div>
               <input
                 type="range"
@@ -158,28 +187,40 @@ export default function Calculator() {
             <div className="bg-gradient-to-br from-amber-600 via-amber-650 to-amber-700 text-white rounded-[44px] p-10 md:p-14 h-full flex flex-col relative overflow-hidden shadow-2xl shadow-amber-950/20">
               {/* Decorative background element */}
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
-              
+
               <div className="relative z-10 flex flex-col h-full">
-                <h3 className="text-amber-400/80 text-sm font-bold uppercase tracking-[0.2em] mb-12">Growth Projection</h3>
+                <h3 className="text-amber-400/80 text-sm font-bold uppercase tracking-[0.2em] mb-12">
+                  Growth Projection
+                </h3>
 
                 <div className="space-y-12 flex-1">
                   <div className="space-y-1">
-                    <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">Total Money Invested</p>
-                    <p className="text-4xl md:text-5xl font-black font-sans tracking-tight text-white">₹{totalInvestment.toLocaleString("en-IN")}</p>
+                    <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">
+                      Total Money Invested
+                    </p>
+                    <p className="text-4xl md:text-5xl font-black font-sans tracking-tight text-white">
+                      ₹{totalInvestment.toLocaleString("en-IN")}
+                    </p>
                   </div>
 
                   <div className="space-y-1">
-                    <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">Estimated Portfolio Value</p>
+                    <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">
+                      Estimated Portfolio Value
+                    </p>
                     <p className="text-5xl md:text-6xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-yellow-400 to-amber-500">
                       ₹{futureValue.toLocaleString("en-IN")}
                     </p>
                   </div>
 
                   <div className="pt-10 border-t border-white/10 space-y-2">
-                    <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">Total Wealth Gained</p>
-                    <p className="text-4xl font-black text-green-400">+₹{totalReturns.toLocaleString("en-IN")}</p>
+                    <p className="text-gray-400 text-sm font-medium uppercase tracking-wide">
+                      Total Wealth Gained
+                    </p>
+                    <p className="text-4xl font-black text-green-400">
+                      +₹{totalReturns.toLocaleString("en-IN")}
+                    </p>
                     <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-sm font-bold">
-                       {returnPercentage}% Growth
+                      {returnPercentage}% Growth
                     </div>
                   </div>
                 </div>
@@ -187,9 +228,13 @@ export default function Calculator() {
                 <div className="mt-12 pt-8 border-t border-white/10 flex justify-between items-center text-sm font-medium text-gray-500">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
-                    <span className="uppercase tracking-widest">{mode} Plan</span>
+                    <span className="uppercase tracking-widest">
+                      {mode} Plan
+                    </span>
                   </div>
-                  <span className="bg-white/5 px-4 py-1.5 rounded-full text-white/80">{years}YR Horizon</span>
+                  <span className="bg-white/5 px-4 py-1.5 rounded-full text-white/80">
+                    {years}YR Horizon
+                  </span>
                 </div>
               </div>
             </div>
@@ -199,9 +244,10 @@ export default function Calculator() {
         {/* Disclaimer */}
         <div className="bg-white/40 backdrop-blur-sm border border-white/60 rounded-3xl p-8 text-center animate-fade-in [animation-delay:600ms]">
           <p className="text-gray-400 text-sm leading-relaxed max-w-2xl mx-auto italic">
-            "Gold is the money of kings." This simulation uses compound interest models. 
-            Real world returns depend on actual market performance and metal price fluctuations. 
-            Always consult with a financial advisor before making large investments.
+            "Gold is the money of kings." This simulation uses compound interest
+            models. Real world returns depend on actual market performance and
+            metal price fluctuations. Always consult with a financial advisor
+            before making large investments.
           </p>
         </div>
       </div>
