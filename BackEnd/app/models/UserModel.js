@@ -53,6 +53,20 @@ const userSchema = new Schema(
       enum: ["PENDING", "VERIFIED", "REJECTED"],
       default: "PENDING",
     },
+
+    // ── Personal Info ──
+    phone:   { type: String, default: "" },
+    address: { type: String, default: "" },
+    city:    { type: String, default: "" },
+    state:   { type: String, default: "" },
+    pincode: { type: String, default: "" },
+
+    // ── Payment Details ──
+    upiId:         { type: String, default: "" },
+    accountName:   { type: String, default: "" },
+    accountNumber: { type: String, default: "" },
+    ifscCode:      { type: String, default: "" },
+    bankName:      { type: String, default: "" },
   },
   {
     timestamps: true,

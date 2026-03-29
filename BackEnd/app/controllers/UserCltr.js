@@ -139,4 +139,57 @@ UserCltr.getProfile = async (req, res) => {
   }
 };
 
+/* ================= UPDATE PROFILE ================= */
+UserCltr.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    // Fields user is allowed to update
+    const allowedFields = [
+      "userName",
+      "phone",
+      "address",
+      "city",
+      "state",
+      "pincode",
+      "upiId",
+      "accountName",
+      "accountNumber",
+      "ifscCode",
+      "bankName",
+    ];
+
+    const updates = {};
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
+      }
+    });
+
+    // Check userName uniqueness if it's being changed
+    if (updates.userName) {
+      const existing = await User.findOne({
+        userName: updates.userName,
+        _id: { $ne: userId },
+      });
+      if (existing) {
+        return res.status(400).json({ error: "Username already taken" });
+      }
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.json({ message: "Profile updated successfully", user });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Failed to update profile" });
+  }
+};
+
 export default UserCltr;

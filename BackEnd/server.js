@@ -65,6 +65,7 @@ app.use(
 app.post("/api/user/register", userCltr.register);
 app.post("/api/user/login", userCltr.login);
 app.get("/api/user/profile", auth, userCltr.getProfile);
+app.patch("/api/user/profile", auth, userCltr.updateProfile);
 
 // To buy and sell the assest
 app.post("/api/gold/buy", auth, asset.buyGold);
