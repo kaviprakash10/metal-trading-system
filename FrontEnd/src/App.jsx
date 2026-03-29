@@ -14,6 +14,7 @@ import PortfolioPage from "./user/portfolioPage";
 import WalletPage from "./user/walletPage";
 import TransactionsPage from "./user/transactionsPage";
 import SIPPage from "./user/SIPpage";
+import AccountPage from "./user/Accountpage";
 
 // Admin Pages
 import AdminDashboard from "./admin/Admindashboard";
@@ -57,10 +58,18 @@ function App() {
     }
   }, [dispatch]);
 
-  if (localStorage.getItem("token") && isLoggedIn === false && loading) {
+  const hasToken = localStorage.getItem("token");
+  const isAuthenticating = hasToken && !isLoggedIn;
+
+  if (isAuthenticating || (hasToken && loading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FDFBF7]">
-        <div className="w-10 h-10 border-4 border-[#BA943A] border-t-transparent rounded-full animate-spin"></div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[#BA943A] border-t-transparent rounded-full animate-spin"></div>
+          <p className="font-serif text-[#BA943A] animate-pulse">
+            Authenticating...
+          </p>
+        </div>
       </div>
     );
   }
@@ -121,6 +130,14 @@ function App() {
         element={
           <ProtectedRoute>
             <SIPPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/user/account"
+        element={
+          <ProtectedRoute>
+            <AccountPage />
           </ProtectedRoute>
         }
       />

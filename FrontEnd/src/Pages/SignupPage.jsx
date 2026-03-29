@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { registerUser } from '../slice/Authslice';
 import Logo2 from '../assets/Logo2.png';
+import PassOff from '../assets/PassOff.png';
+import PassOn from '../assets/PassOn.png';
 
 export default function SignupPage() {
   const dispatch = useDispatch();
@@ -131,9 +133,9 @@ export default function SignupPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                 >
                   {showPassword ? (
-                    <img src="/src/Pages/images/PassOff.png" className="hover:brightness-50 hover:contrast-50" alt="Hide" />
+                    <img src={PassOff} className="hover:brightness-50 hover:contrast-50 w-5 h-5" alt="Hide" />
                   ) : (
-                    <img src="/src/Pages/images/PassOn.png" className="hover:brightness-50 hover:contrast-50" alt="Show" />
+                    <img src={PassOn} className="hover:brightness-50 hover:contrast-50 w-5 h-5" alt="Show" />
                   )}
                 </button>
               </div>
@@ -161,9 +163,9 @@ export default function SignupPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                 >
                   {showConfirmPassword ? (
-                    <img src="/src/Pages/images/PassOff.png" className="hover:brightness-50 hover:contrast-50" alt="Hide" />
+                    <img src={PassOff} className="hover:brightness-50 hover:contrast-50 w-5 h-5" alt="Hide" />
                   ) : (
-                    <img src="/src/Pages/images/PassOn.png" className="hover:brightness-50 hover:contrast-50" alt="Show" />
+                    <img src={PassOn} className="hover:brightness-50 hover:contrast-50 w-5 h-5" alt="Show" />
                   )}
                 </button>
               </div>

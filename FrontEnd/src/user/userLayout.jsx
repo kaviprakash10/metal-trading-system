@@ -47,6 +47,8 @@ const NAV_ITEMS = [
   { type: "section", label: "MANAGE" },
   { icon: RefreshCcw, label: "SIP", to: "/user/sip" },
   { icon: ClipboardList, label: "Transactions", to: "/user/transactions" },
+  { type: "section", label: "PROFILE" },
+  { icon: ShieldCheck, label: "My Account", to: "/user/account" },
 ];
 
 export default function UserLayout({ children }) {

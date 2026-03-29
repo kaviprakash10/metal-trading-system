@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../slice/Authslice";
+import Logo2 from "../assets/Logo2.png";
+import PassOff from "../assets/PassOff.png";
+import PassOn from "../assets/PassOn.png";
 
 export default function SigninPage() {
   const dispatch = useDispatch();
@@ -33,11 +36,11 @@ export default function SigninPage() {
       <div className="w-full max-w-md">
         {/* Logo/Brand Section */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-30 h-30 bg-gradient-to-br from-amber-400 to-yellow-600 rounded-full mb-4 shadow-lg">
+          <div className="inline-flex items-center justify-center w-30 h-30 bg-gradient-to-br from-amber-400 to-yellow-600 rounded-full mb-4 shadow-lg overflow-hidden">
             <img
-              src="/src/Pages/images/Logo2.png"
+              src={Logo2}
               alt="Luna Gold"
-              className="w-30 h-30 shadow-lg rounded-full"
+              className="w-full h-full object-cover"
             />
           </div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">GoldVault</h1>
@@ -112,14 +115,14 @@ export default function SigninPage() {
                 >
                   {showPassword ? (
                     <img
-                      src="/src/Pages/images/PassOff.png"
-                      className="hover:brightness-50 hover:contrast-50"
+                      src={PassOff}
+                      className="hover:brightness-50 hover:contrast-50 w-5 h-5"
                       alt="Hide password"
                     />
                   ) : (
                     <img
-                      src="/src/Pages/images/PassOn.png"
-                      className="hover:brightness-50 hover:contrast-50"
+                      src={PassOn}
+                      className="hover:brightness-50 hover:contrast-50 w-5 h-5"
                       alt="Show password"
                     />
                   )}
