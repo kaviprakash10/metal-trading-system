@@ -14,6 +14,9 @@ const ADMIN_NAV = [
   { icon: "📋", label: "Transactions", to: "/admin/transactions" },
   { icon: "💰", label: "Price Control", to: "/admin/prices" },
   { icon: "📑", label: "KYC Management", to: "/admin/kyc" },
+  { section: "Switch Portals" },
+  { icon: "🌍", label: "User Portal", to: "/user/dashboard" },
+  { icon: "🛡️", label: "Staff Portal", to: "/staff/dashboard" },
 ];
 
 export default function AdminLayout({ children, active }) {

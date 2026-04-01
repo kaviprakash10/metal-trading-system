@@ -13,6 +13,7 @@ import {
   LogOut,
   ShieldCheck,
   CircleDot,
+  ShieldPlus,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -89,6 +90,15 @@ export default function UserLayout({ children }) {
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4 px-4 custom-scrollbar">
           <div className="space-y-1.5">
+            {user?.role !== "user" && (
+              <Link
+                to={user?.role === "admin" ? "/admin/dashboard" : "/staff/dashboard"}
+                className="flex items-center gap-3.5 px-4 py-3 mb-4 rounded-2xl bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-all font-semibold"
+              >
+                <ShieldPlus size={20} />
+                <span>Management Portal</span>
+              </Link>
+            )}
             {NAV_ITEMS.map((item, index) => {
               if (item.type === "section") {
                 return (

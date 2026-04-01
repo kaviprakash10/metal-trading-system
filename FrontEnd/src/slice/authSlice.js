@@ -35,6 +35,8 @@ export const loginUser = createAsyncThunk(
       if (redirect) {
         if (user.role === "admin") {
           redirect("/admin/dashboard");
+        } else if (user.role === "staff") {
+          redirect("/staff/dashboard");
         } else {
           redirect("/user/dashboard");
         }

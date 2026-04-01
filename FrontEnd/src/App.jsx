@@ -23,6 +23,12 @@ import AllTransactions from "./admin/Alltransactions";
 import PriceManagement from "./admin/priceUpdate";
 import KycManagement from "./admin/KycManagement";
 
+// Staff Pages
+import StaffDashboard from "./staff/StaffDashboard";
+import StaffUsers from "./staff/StaffUsers";
+import StaffTransactions from "./staff/StaffTransactions";
+import StaffKyc from "./staff/StaffKyc";
+
 /* ── Protected Route: logged-in users only ── */
 const ProtectedRoute = ({ children }) => {
   const { isLoggedIn, loading } = useSelector((state) => state.auth);
@@ -45,6 +51,18 @@ const AdminRoute = ({ children }) => {
   if (loading) return null;
   if (!isLoggedIn) return <Navigate to="/login" replace />;
   if (user?.role !== "admin") return <Navigate to="/user/dashboard" replace />;
+  return children;
+};
+
+/* ── Staff Route: staff or admin users only ── */
+const StaffRoute = ({ children }) => {
+  const { isLoggedIn, user, loading } = useSelector((state) => state.auth);
+
+  if (loading) return null;
+  if (!isLoggedIn) return <Navigate to="/login" replace />;
+  if (user?.role !== "staff" && user?.role !== "admin") {
+    return <Navigate to="/user/dashboard" replace />;
+  }
   return children;
 };
 
@@ -181,6 +199,40 @@ function App() {
           <AdminRoute>
             <KycManagement />
           </AdminRoute>
+        }
+      />
+
+      {/* ── Staff Protected Routes ── */}
+      <Route
+        path="/staff/dashboard"
+        element={
+          <StaffRoute>
+            <StaffDashboard />
+          </StaffRoute>
+        }
+      />
+      <Route
+        path="/staff/users"
+        element={
+          <StaffRoute>
+            <StaffUsers />
+          </StaffRoute>
+        }
+      />
+      <Route
+        path="/staff/transactions"
+        element={
+          <StaffRoute>
+            <StaffTransactions />
+          </StaffRoute>
+        }
+      />
+      <Route
+        path="/staff/kyc"
+        element={
+          <StaffRoute>
+            <StaffKyc />
+          </StaffRoute>
         }
       />
 

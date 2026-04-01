@@ -63,19 +63,37 @@ export default function AllTransactions() {
   const [typeFilter, setTypeFilter] = useState("All");
   const [assetFilter, setAssetFilter] = useState("All");
   const [sortDesc, setSortDesc] = useState(true);
+  const [selectedUser, setSelectedUser] = useState(null); // New: Tracks active user filter
   const [expanded, setExpanded] = useState(null);
 
   useEffect(() => {
     dispatch(fetchAllTransactions());
   }, [dispatch]);
 
+  /* ── Get Unique Users for the List ── */
+  const uniqueUsers = Array.from(new Set((transactions || []).map(tx => tx.user?._id)))
+    .map(id => (transactions || []).find(tx => tx.user?._id === id)?.user)
+    .filter(u => u && u.userName)
+    .sort((a,b) => a.userName.localeCompare(b.userName));
+
   /* ── Filter + Search + Sort ── */
   const filtered = (transactions || [])
     .filter((tx) => {
+      // If a user is selected, only show their transactions
+      if (selectedUser && tx.user?._id !== selectedUser._id) return false;
+      
       if (typeFilter !== "All" && tx.type !== typeFilter) return false;
       if (assetFilter !== "All" && tx.asset !== assetFilter) return false;
+      
       if (search) {
         const s = search.toLowerCase();
+        // If searching users in the list mode
+        if (!selectedUser) {
+           return (
+              tx.user?.userName?.toLowerCase().includes(s) ||
+              tx.user?.email?.toLowerCase().includes(s)
+           );
+        }
         return (
           tx.user?.userName?.toLowerCase().includes(s) ||
           tx.user?.email?.toLowerCase().includes(s) ||
@@ -152,9 +170,33 @@ export default function AllTransactions() {
         <p
           style={{ color: "#999", fontSize: "0.875rem", marginTop: "0.25rem" }}
         >
-          Full platform audit trail — all buys, sells and GST collected.
+          {selectedUser 
+            ? `Viewing transactions for ${selectedUser.userName} (${selectedUser.email})` 
+            : "Select a user to view their full transaction history."}
         </p>
       </div>
+
+      {selectedUser && (
+        <button
+          onClick={() => setSelectedUser(null)}
+          style={{
+            marginBottom: "1.5rem",
+            padding: "0.5rem 1rem",
+            borderRadius: "8px",
+            background: "#1a1200",
+            color: "#c9a84c",
+            border: "none",
+            fontWeight: 600,
+            cursor: "pointer",
+            fontSize: "0.85rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem"
+          }}
+        >
+          ← Back to User List
+        </button>
+      )}
 
       {/* ── STATS ROW ── */}
       <div
@@ -340,39 +382,56 @@ export default function AllTransactions() {
         }}
       >
         {/* Head */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1.8fr 1.5fr 1fr 1fr 1fr 1fr 1fr 1.2fr",
-            padding: "0.7rem 1.25rem",
-            background: "#fafaf7",
-            borderBottom: "1px solid #f0ead8",
-          }}
-        >
-          {[
-            "User",
-            "Type",
-            "Asset",
-            "Grams",
-            "Base Amt",
-            "GST",
-            "Total",
-            "Date & Time",
-          ].map((h) => (
-            <div
-              key={h}
-              style={{
-                fontSize: "0.62rem",
-                fontWeight: 600,
-                color: "#bbb",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-              }}
-            >
-              {h}
-            </div>
-          ))}
-        </div>
+        {!selectedUser ? (
+           <div
+            style={{
+              padding: "1rem 1.25rem",
+              background: "#fafaf7",
+              borderBottom: "1px solid #f0ead8",
+              fontSize: "0.62rem",
+              fontWeight: 600,
+              color: "#bbb",
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+            }}
+          >
+            Registered Users with Activity
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1.8fr 1.5fr 1fr 1fr 1fr 1fr 1fr 1.2fr",
+              padding: "0.7rem 1.25rem",
+              background: "#fafaf7",
+              borderBottom: "1px solid #f0ead8",
+            }}
+          >
+            {[
+              "User",
+              "Type",
+              "Asset",
+              "Grams",
+              "Base Amt",
+              "GST",
+              "Total",
+              "Date & Time",
+            ].map((h) => (
+              <div
+                key={h}
+                style={{
+                  fontSize: "0.62rem",
+                  fontWeight: 600,
+                  color: "#bbb",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                }}
+              >
+                {h}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Loading */}
         {loading && (
@@ -418,7 +477,49 @@ export default function AllTransactions() {
         )}
 
         {/* Rows */}
-        {!loading &&
+        {!loading && !selectedUser && (
+           <div style={{ display: "flex", flexDirection: "column" }}>
+              {uniqueUsers.filter(u => {
+                 if(!search) return true;
+                 const s = search.toLowerCase();
+                 return u.userName.toLowerCase().includes(s) || u.email.toLowerCase().includes(s);
+              }).map(u => (
+                 <div
+                    key={u._id}
+                    onClick={() => setSelectedUser(u)}
+                    style={{
+                       display: "flex",
+                       alignItems: "center",
+                       justifyContent: "space-between",
+                       padding: "1rem 1.5rem",
+                       borderBottom: "1px solid #f5f0e8",
+                       cursor: "pointer",
+                       transition: "background 0.15s"
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "#fafaf7"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                 >
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                       <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "linear-gradient(135deg,#c9a84c,#e2c06a)", display: "flex", alignItems: "center", justifyContent: "center", color: "#0a0800", fontWeight: 700 }}>
+                          {u.userName[0].toUpperCase()}
+                       </div>
+                       <div>
+                          <div style={{ fontWeight: 600, color: "#1a1200" }}>{u.userName}</div>
+                          <div style={{ fontSize: "0.75rem", color: "#bbb" }}>{u.email}</div>
+                       </div>
+                    </div>
+                    <div style={{ color: "#c9a84c", fontWeight: 600, fontSize: "0.85rem" }}>
+                       View Transactions →
+                    </div>
+                 </div>
+              ))}
+              {uniqueUsers.length === 0 && (
+                 <div style={{ padding: "3rem", textAlign: "center", color: "#bbb" }}>No user activity found.</div>
+              )}
+           </div>
+        )}
+
+        {!loading && selectedUser &&
           filtered.map((tx, i) => {
             const cfg = TYPE_CONFIG[tx.type] || TYPE_CONFIG.BUY_GOLD;
             const isBuy = tx.type.startsWith("BUY");

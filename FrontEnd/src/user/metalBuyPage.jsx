@@ -5,7 +5,7 @@ import {
   buyGold,
   buySilver,
   clearAssetMessages,
-} from "../slice/AssetSlice";
+} from "../slice/Assetslice";
 import { fetchCurrentPrices } from "../slice/Priceslice";
 import { fetchWallet } from "../slice/Walletslice";
 import { fetchPortfolio } from "../slice/Portfolioslice";
