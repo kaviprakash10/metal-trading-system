@@ -10,6 +10,7 @@ import cron from "node-cron";
 import { fileURLToPath } from "url";
 // Admin access
 import admin from "./app/middlewares/authAdmin.js";
+import staff from "./app/middlewares/staffAuth.js";
 import AdminController from "./app/controllers/AdminController.js";
 import configureDB from "./config/db.js";
 import { fetchPrices } from "./app/utils/priceFetcher.js";
@@ -81,13 +82,13 @@ app.get("/api/transaction/history", auth, TransactionHistory.getMyTransactions);
 app.post("/api/wallet/addAmount", auth, Wallet.addMoney);
 app.get("/api/wallet/checkAmount", auth, Wallet.getWallet);
 
-// ── Admin Routes (auth + adminOnly middleware on all) ──
-app.get("/api/admin/stats", auth, admin, AdminController.getStats);
-app.get("/api/admin/users", auth, admin, AdminController.getAllUsers);
+// ── Admin Routes (auth + adminOnly/staffOnly middleware) ──
+app.get("/api/admin/stats", auth, staff, AdminController.getStats);
+app.get("/api/admin/users", auth, staff, AdminController.getAllUsers);
 app.patch(
   "/api/admin/users/:userId/kyc",
   auth,
-  admin,
+  staff,
   AdminController.updateKycStatus,
 );
 app.patch(
@@ -99,7 +100,7 @@ app.patch(
 app.get(
   "/api/admin/transactions",
   auth,
-  admin,
+  staff,
   AdminController.getAllTransactions,
 );
 app.post("/api/admin/prices/gold", auth, admin, AdminController.setGoldPrice);

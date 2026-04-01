@@ -76,6 +76,14 @@ AdminController.updateKycStatus = async (req, res) => {
       return res.status(400).json({ message: "Invalid KYC status" });
     }
 
+    const targetUser = await User.findById(userId);
+    if (!targetUser) return res.status(404).json({ message: "User not found" });
+
+    // Staff / others cannot change an admin's KYC status
+    if (targetUser.role === "admin" && req.user.role !== "admin") {
+      return res.status(403).json({ message: "You cannot modify admin details." });
+    }
+
     const user = await User.findByIdAndUpdate(
       userId,
       { kycStatus },
@@ -99,6 +107,20 @@ AdminController.updateUserRole = async (req, res) => {
     const validRoles = ["user", "admin", "staff"];
     if (!validRoles.includes(role)) {
       return res.status(400).json({ message: "Invalid role" });
+    }
+
+    const targetUser = await User.findById(userId);
+    if (!targetUser) return res.status(404).json({ message: "User not found" });
+
+    // Protect existing admin accounts
+    if (targetUser.role === "admin" && req.user.role !== "admin") {
+      return res.status(403).json({ message: "You cannot modify admin roles." });
+    }
+
+    // Per user request: "admin only able to change their details"
+    // If target is admin, requester must be that same admin
+    if (targetUser.role === "admin" && req.user._id.toString() !== targetUser._id.toString()) {
+       return res.status(403).json({ message: "Only the admin themselves can modify their own account." });
     }
 
     const user = await User.findByIdAndUpdate(
