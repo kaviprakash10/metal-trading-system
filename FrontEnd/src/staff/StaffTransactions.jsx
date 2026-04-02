@@ -1,298 +1,497 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchAllTransactions } from "../slice/Adminslice";
 import StaffLayout from "./StaffLayout";
-
-const fmt     = (n) => Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
-const fmtG    = (n) => Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 4 });
-const fmtDate = (d) => new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-const fmtTime = (d) => new Date(d).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+import { fetchAllTransactions } from "../slice/Adminslice";
+import {
+  Search,
+  Filter,
+  ArrowUpDown,
+  ChevronDown,
+  ChevronRight,
+  ChevronLeft,
+  Calendar,
+  Clock,
+  Zap,
+  TrendingUp,
+  Package,
+  Coins,
+  ReceiptText,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const TYPE_CONFIG = {
-  BUY_GOLD:    { label: "Buy Gold",    icon: "🟡", bg: "#fee2e2", color: "#dc2626" },
-  SELL_GOLD:   { label: "Sell Gold",   icon: "🟡", bg: "#dcfce7", color: "#16a34a" },
-  BUY_SILVER:  { label: "Buy Silver",  icon: "⚪", bg: "#fee2e2", color: "#dc2626" },
-  SELL_SILVER: { label: "Sell Silver", icon: "⚪", bg: "#dcfce7", color: "#16a34a" },
+  BUY_GOLD: {
+    label: "Gold Acquisition",
+    icon: <TrendingUp className="text-emerald-500" size={18} />,
+    bg: "bg-emerald-50",
+    border: "border-emerald-100",
+  },
+  SELL_GOLD: {
+    label: "Gold Liquidated",
+    icon: <TrendingUp className="text-rose-500 rotate-180" size={18} />,
+    bg: "bg-rose-50",
+    border: "border-rose-100",
+  },
+  BUY_SILVER: {
+    label: "Silver Acquisition",
+    icon: <TrendingUp className="text-indigo-500" size={18} />,
+    bg: "bg-indigo-50",
+    border: "border-indigo-100",
+  },
+  SELL_SILVER: {
+    label: "Silver Liquidated",
+    icon: <TrendingUp className="text-slate-500 rotate-180" size={18} />,
+    bg: "bg-slate-50",
+    border: "border-slate-100",
+  },
 };
 
-const FILTERS = { All:"All", BUY_GOLD:"Buy Gold", SELL_GOLD:"Sell Gold", BUY_SILVER:"Buy Silver", SELL_SILVER:"Sell Silver" };
+const FILTERS = {
+  All: "All Operations",
+  Buy: "Acquisitions",
+  Sell: "Liquidations",
+};
 
 export default function StaffTransactions() {
   const dispatch = useDispatch();
-  const { transactions, loading } = useSelector((s) => s.admin);
+  const {
+    transactions,
+    loading,
+    total,
+    totalPages,
+    currentPage,
+    totalVolume,
+    totalGst,
+  } = useSelector((state) => state.admin);
 
-  const [search,      setSearch]      = useState("");
-  const [typeFilter,  setTypeFilter]  = useState("All");
+  // Local State Intelligence
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("All");
   const [assetFilter, setAssetFilter] = useState("All");
-  const [sortDesc,    setSortDesc]    = useState(true);
+  const [page, setPage] = useState(1);
+  const [sortDesc, setSortDesc] = useState(true);
+  const [expanded, setExpanded] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [expanded,    setExpanded]    = useState(null);
 
+  // Thunk Dispatch Sync
   useEffect(() => {
-    dispatch(fetchAllTransactions());
-  }, [dispatch]);
+    const params = {
+      page,
+      limit: 20,
+      search,
+      filter: typeFilter !== "All" ? typeFilter.toUpperCase() : "",
+      sort: sortDesc ? "newest" : "oldest",
+    };
+    if (selectedUser) params.userId = selectedUser._id;
+    
+    dispatch(fetchAllTransactions(params));
+  }, [dispatch, page, search, typeFilter, sortDesc, selectedUser]);
+
+  // Event Handlers
+  const handleSearchChange = (val) => {
+    setSearch(val);
+    setPage(1);
+  };
+
+  const handleTypeChange = (val) => {
+    setTypeFilter(val);
+    setPage(1);
+  };
+
+  const handleUserSelect = (user) => {
+    setSelectedUser(user);
+    setPage(1);
+    setSearch("");
+  };
 
   const txList = transactions || [];
 
-  /* ── Get Unique Users for the List ── */
-  const uniqueUsers = Array.from(new Set((transactions || []).map(tx => tx.user?._id)))
-    .map(id => (transactions || []).find(tx => tx.user?._id === id)?.user)
-    .filter(u => u && u.userName)
-    .sort((a,b) => a.userName.localeCompare(b.userName));
+  // Formatter Utilities
+  const fmt = (v) =>
+    new Intl.NumberFormat("en-IN", {
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 2,
+    }).format(v || 0);
 
-  const filtered = txList
-    .filter((tx) => !selectedUser || tx.user?._id === selectedUser._id)
-    .filter((tx) => typeFilter  === "All" || tx.type  === typeFilter)
-    .filter((tx) => assetFilter === "All" || tx.asset === assetFilter)
-    .filter((tx) => {
-      if (!search) return true;
-      const s = search.toLowerCase();
-      if (!selectedUser) {
-          return tx.user?.userName?.toLowerCase().includes(s) || tx.user?.email?.toLowerCase().includes(s);
-      }
-      return tx.user?.userName?.toLowerCase().includes(s) || tx.type?.toLowerCase().includes(s);
-    })
-    .sort((a, b) => sortDesc
-      ? new Date(b.createdAt) - new Date(a.createdAt)
-      : new Date(a.createdAt) - new Date(b.createdAt)
-    );
+  const fmtG = (v) =>
+    new Intl.NumberFormat("en-IN", {
+      maximumFractionDigits: 3,
+      minimumFractionDigits: 3,
+    }).format(v || 0);
 
-  const totalVol = txList.reduce((s, t) => s + (t.totalAmount || t.amount || 0), 0);
-  const totalGst = txList.reduce((s, t) => s + (t.gstAmount || 0), 0);
+  const fmtDate = (d) =>
+    new Date(d).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  const fmtTime = (d) =>
+    new Date(d).toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+  const stats = [
+    {
+      label: "Gross Cumulative Volume",
+      value: `₹${fmt(totalVolume)}`,
+      icon: <TrendingUp size={20} />,
+      color: "from-slate-900 to-indigo-900",
+    },
+    {
+      label: "Aggregate Tax Revenue",
+      value: `₹${fmt(totalGst)}`,
+      icon: <ReceiptText size={20} />,
+      color: "from-slate-900 to-slate-800",
+    },
+    {
+      label: "Total Operations",
+      value: total,
+      icon: <Zap size={20} />,
+      color: "from-indigo-600 to-indigo-900",
+    },
+  ];
 
   return (
-    <StaffLayout active="/staff/transactions">
-
-      {/* Header */}
-      <div style={{ marginBottom: "1.75rem" }}>
-        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.9rem", fontWeight: 700, color: "#1a1200", margin: 0 }}>All Transactions</h1>
-        <p style={{ color: "#999", fontSize: "0.875rem", marginTop: "0.25rem" }}>
-          {selectedUser 
-            ? `Audit trail for ${selectedUser.userName}` 
-            : "Platform-wide transaction history grouped by user."}
-        </p>
-      </div>
-
-      {selectedUser && (
-        <button
-          onClick={() => setSelectedUser(null)}
-          style={{
-            marginBottom: "1.5rem",
-            padding: "0.45rem 0.9rem",
-            borderRadius: "8px",
-            background: "#0f1623",
-            color: "#63b3ed",
-            border: "none",
-            fontWeight: 600,
-            cursor: "pointer",
-            fontSize: "0.82rem",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem"
-          }}
-        >
-          ← Back to User List
-        </button>
-      )}
-
-      {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
-        {[
-          { label: "Total Trades",    value: txList.length,                                     icon: "📋", color: "#1a1200" },
-          { label: "Total Buys",      value: txList.filter((t) => t.type?.startsWith("BUY")).length, icon: "📥", color: "#dc2626" },
-          { label: "Total Sells",     value: txList.filter((t) => t.type?.startsWith("SELL")).length, icon: "📤", color: "#16a34a" },
-          { label: "Total Volume",    value: `₹${fmt(totalVol)}`,                               icon: "💰", color: "#c9a84c" },
-          { label: "GST Collected",   value: `₹${fmt(totalGst)}`,                               icon: "🏛️", color: "#7c3aed" },
-        ].map(({ label, value, icon, color }) => (
-          <div key={label} style={{ background: "#fff", borderRadius: "14px", padding: "1.1rem 1.2rem", border: "1px solid #e2e8f0", boxShadow: "0 1px 8px rgba(0,0,0,0.04)" }}>
-            <div style={{ fontSize: "1.2rem", marginBottom: "0.4rem" }}>{icon}</div>
-            <div style={{ fontSize: "0.65rem", color: "#aaa", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "0.2rem" }}>{label}</div>
-            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.45rem", fontWeight: 700, color }}>{value}</div>
+    <StaffLayout>
+      <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100">
+              <Zap size={12} /> Financial Intelligence
+            </div>
+            <h1 className="text-4xl font-serif font-black text-slate-900 tracking-tight">
+              {selectedUser ? `${selectedUser.userName}'s Ledger` : "Global Audit Ledger"}
+            </h1>
+            <p className="text-slate-400 font-medium max-w-lg">
+              Synchronized real-time transaction monitoring and immutable asset tracking infrastructure.
+            </p>
           </div>
-        ))}
-      </div>
-
-      {/* Filters */}
-      <div style={{ background: "#fff", borderRadius: "14px", border: "1px solid #e2e8f0", padding: "0.85rem 1.1rem", marginBottom: "1.1rem", display: "flex", gap: "0.85rem", alignItems: "center", flexWrap: "wrap" }}>
-        <div style={{ position: "relative", flex: 1, minWidth: "180px" }}>
-          <span style={{ position: "absolute", left: "0.7rem", top: "50%", transform: "translateY(-50%)", color: "#bbb" }}>🔍</span>
-          <input type="text" placeholder="Search by user or type..." value={search} onChange={(e) => setSearch(e.target.value)}
-            style={{ width: "100%", padding: "0.5rem 0.7rem 0.5rem 2rem", borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "0.82rem", color: "#1a1200", outline: "none", background: "#f8fafc", boxSizing: "border-box" }} />
-        </div>
-        <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>
-          {Object.entries(FILTERS).map(([key, label]) => (
-            <button key={key} onClick={() => setTypeFilter(key)}
-              style={{ padding: "0.35rem 0.75rem", borderRadius: "100px", border: "none", fontSize: "0.72rem", fontWeight: 500, cursor: "pointer", background: typeFilter === key ? "#0f1623" : "#f1f5f9", color: typeFilter === key ? "#63b3ed" : "#888" }}>
-              {label}
+          {selectedUser && (
+            <button
+              onClick={() => setSelectedUser(null)}
+              className="px-6 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all border border-slate-200"
+            >
+              Back to Global Feed
             </button>
-          ))}
+          )}
         </div>
-        <div style={{ display: "flex", gap: "0.35rem" }}>
-          {["All", "GOLD", "SILVER"].map((f) => (
-            <button key={f} onClick={() => setAssetFilter(f)}
-              style={{ padding: "0.35rem 0.75rem", borderRadius: "100px", border: "none", fontSize: "0.72rem", fontWeight: 500, cursor: "pointer", background: assetFilter === f ? "#1a1200" : "#f1f5f9", color: assetFilter === f ? "#fff" : "#888" }}>
-              {f}
-            </button>
-          ))}
-        </div>
-        <button onClick={() => setSortDesc((v) => !v)}
-          style={{ padding: "0.38rem 0.8rem", borderRadius: "8px", border: "1px solid #e2e8f0", background: "#f8fafc", color: "#888", fontSize: "0.75rem", cursor: "pointer", whiteSpace: "nowrap" }}>
-          {sortDesc ? "↓ Newest" : "↑ Oldest"}
-        </button>
-      </div>
 
-      {/* Table */}
-      <div style={{ background: "#fff", borderRadius: "16px", border: "1px solid #e2e8f0", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
-        {/* Head */}
-        {!selectedUser ? (
-           <div
-            style={{
-              padding: "0.85rem 1.1rem",
-              background: "#f8fafc",
-              borderBottom: "1px solid #e2e8f0",
-              fontSize: "0.6rem",
-              fontWeight: 600,
-              color: "#94a3b8",
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-            }}
-          >
-            Registered Users with Activity
-          </div>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "1.8fr 1.5fr 1fr 1fr 1fr 1fr 1fr 1.2fr", padding: "0.65rem 1.1rem", background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
-            {["User", "Type", "Asset", "Grams", "Base Amt", "GST", "Total", "Date & Time"].map((h) => (
-              <div key={h} style={{ fontSize: "0.6rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>{h}</div>
-            ))}
-          </div>
-        )}
-
-        {loading && (
-          <div style={{ padding: "3rem", textAlign: "center" }}>
-            <div style={{ width: "28px", height: "28px", border: "3px solid #63b3ed", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-          </div>
-        )}
-
-        {/* Rows */}
-        {!loading && !selectedUser && (
-           <div style={{ display: "flex", flexDirection: "column" }}>
-              {uniqueUsers.filter(u => {
-                 if(!search) return true;
-                 const s = search.toLowerCase();
-                 return u.userName.toLowerCase().includes(s) || u.email.toLowerCase().includes(s);
-              }).map(u => (
-                 <div
-                    key={u._id}
-                    onClick={() => setSelectedUser(u)}
-                    style={{
-                       display: "flex",
-                       alignItems: "center",
-                       justifyContent: "space-between",
-                       padding: "1rem 1.25rem",
-                       borderBottom: "1px solid #f1f5f9",
-                       cursor: "pointer",
-                       transition: "background 0.15s"
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = "#f8fafc"}
-                    onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                 >
-                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                       <div style={{ width: "34px", height: "34px", borderRadius: "10px", background: "linear-gradient(135deg,#63b3ed,#90cdf4)", display: "flex", alignItems: "center", justifyContent: "center", color: "#0f1623", fontWeight: 700 }}>
-                          {u.userName[0].toUpperCase()}
-                       </div>
-                       <div>
-                          <div style={{ fontWeight: 600, color: "#1a1200", fontSize: "0.9rem" }}>{u.userName}</div>
-                          <div style={{ fontSize: "0.72rem", color: "#bbb" }}>{u.email}</div>
-                       </div>
-                    </div>
-                    <div style={{ color: "#63b3ed", fontWeight: 600, fontSize: "0.8rem" }}>
-                       View Transactions →
-                    </div>
-                 </div>
-              ))}
-              {uniqueUsers.length === 0 && (
-                 <div style={{ padding: "2.5rem", textAlign: "center", color: "#94a3b8", fontSize: "0.88rem" }}>No user activity found.</div>
-              )}
-           </div>
-        )}
-
-        {!loading && selectedUser && filtered.map((tx, i) => {
-          const cfg   = TYPE_CONFIG[tx.type] || TYPE_CONFIG.BUY_GOLD;
-          const isBuy = tx.type?.startsWith("BUY");
-          const isOpen = expanded === tx._id;
-          return (
-            <div key={tx._id}>
-              <div onClick={() => setExpanded(isOpen ? null : tx._id)}
-                style={{ display: "grid", gridTemplateColumns: "1.8fr 1.5fr 1fr 1fr 1fr 1fr 1fr 1.2fr", padding: "0.82rem 1.1rem", borderBottom: "1px solid #f1f5f9", cursor: "pointer", background: isOpen ? "#f0f9ff" : "transparent", transition: "background 0.15s" }}
-                onMouseEnter={(e) => { if (!isOpen) e.currentTarget.style.background = "#f8fafc"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = isOpen ? "#f0f9ff" : "transparent"; }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
-                  <div style={{ width: "26px", height: "26px", borderRadius: "50%", background: "linear-gradient(135deg,#63b3ed,#90cdf4)", display: "flex", alignItems: "center", justifyContent: "center", color: "#0f1623", fontWeight: 700, fontSize: "0.65rem", flexShrink: 0 }}>
-                    {tx.user?.userName?.[0]?.toUpperCase() || "?"}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: "0.8rem", color: "#1a1200" }}>{tx.user?.userName || "—"}</div>
-                    <div style={{ fontSize: "0.63rem", color: "#bbb" }}>{tx.user?.email || "—"}</div>
-                  </div>
+        {/* Global Analytics Intelligence */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {stats.map((stat, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className="relative overflow-hidden group bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm"
+            >
+              <div
+                className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${stat.color} opacity-[0.03] rounded-bl-[5rem] group-hover:scale-110 transition-transform`}
+              />
+              <div className="flex flex-col gap-6">
+                <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-slate-900 transition-colors shadow-inner">
+                  {stat.icon}
                 </div>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <span style={{ padding: "0.15rem 0.5rem", borderRadius: "100px", fontSize: "0.68rem", fontWeight: 600, background: cfg.bg, color: cfg.color }}>{cfg.icon} {cfg.label}</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <span style={{ padding: "0.15rem 0.5rem", borderRadius: "100px", fontSize: "0.68rem", fontWeight: 600, background: tx.asset === "GOLD" ? "#fffbeb" : "#f8fafc", color: tx.asset === "GOLD" ? "#c9a84c" : "#64748b", border: `1px solid ${tx.asset === "GOLD" ? "#fde68a" : "#e2e8f0"}` }}>{tx.asset}</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", fontSize: "0.8rem", fontWeight: 500, color: "#444" }}>{fmtG(tx.grams)}g</div>
-                <div style={{ display: "flex", alignItems: "center", fontSize: "0.8rem", color: "#444" }}>₹{fmt(tx.amount)}</div>
-                <div style={{ display: "flex", alignItems: "center", fontSize: "0.8rem", color: tx.gstAmount > 0 ? "#f59e0b" : "#bbb" }}>{tx.gstAmount > 0 ? `₹${fmt(tx.gstAmount)}` : "—"}</div>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <span style={{ fontWeight: 700, fontSize: "0.85rem", color: isBuy ? "#dc2626" : "#16a34a" }}>
-                    {isBuy ? "−" : "+"}₹{fmt(tx.totalAmount || tx.amount)}
-                  </span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div>
-                    <div style={{ fontSize: "0.72rem", color: "#888" }}>{fmtDate(tx.createdAt)}</div>
-                    <div style={{ fontSize: "0.65rem", color: "#bbb" }}>{fmtTime(tx.createdAt)}</div>
-                  </div>
-                  <span style={{ color: "#bbb", fontSize: "0.65rem" }}>{isOpen ? "▲" : "▼"}</span>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                    {stat.label}
+                  </p>
+                  <p className="text-3xl font-serif font-black text-slate-900 tracking-tight">
+                    {stat.value}
+                  </p>
                 </div>
               </div>
+            </motion.div>
+          ))}
+        </div>
 
-              {isOpen && (
-                <div style={{ padding: "0.85rem 1.1rem", background: "#f0f9ff", borderBottom: "1px solid #bae6fd", display: "grid", gridTemplateColumns: "repeat(8,1fr)", gap: "0.75rem" }}>
-                  {[
-                    { label: "TX ID",       value: tx._id?.slice(-8) + "..." },
-                    { label: "User",        value: tx.user?.userName || "—"  },
-                    { label: "Price/gram",  value: `₹${fmt(tx.pricePerGram)}/g` },
-                    { label: "Base Amount", value: `₹${fmt(tx.amount)}`      },
-                    { label: "GST",         value: tx.gstAmount > 0 ? `₹${fmt(tx.gstAmount)}` : "No GST (Sell)" },
-                    { label: "Total",       value: `₹${fmt(tx.totalAmount || tx.amount)}` },
-                    { label: "Status",      value: tx.status || "SUCCESS"    },
-                    { label: "Date & Time", value: `${fmtDate(tx.createdAt)} ${fmtTime(tx.createdAt)}` },
-                  ].map(({ label, value }) => (
-                    <div key={label}>
-                      <div style={{ fontSize: "0.58rem", color: "#93c5fd", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.18rem" }}>{label}</div>
-                      <div style={{ fontWeight: 500, fontSize: "0.76rem", color: "#1e3a5f", wordBreak: "break-all" }}>{value}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
+        {/* Search & Filter Matrix */}
+        <div className="bg-white p-6 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-6">
+          <div className="flex flex-col lg:flex-row gap-6 items-center">
+            {/* Search */}
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+              <input
+                type="text"
+                placeholder="Lookup Name, Corporate Email, or Transaction UUID..."
+                value={search}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-[13px] font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-400 transition-all tracking-tight"
+              />
             </div>
-          );
-        })}
 
-        {!loading && filtered.length > 0 && (
-          <div style={{ padding: "0.65rem 1.1rem", background: "#f8fafc", borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontSize: "0.72rem", color: "#94a3b8" }}>Showing {filtered.length} of {txList.length} transactions</span>
-            {(search || typeFilter !== "All" || assetFilter !== "All") && (
-              <button onClick={() => { setSearch(""); setTypeFilter("All"); setAssetFilter("All"); }} style={{ fontSize: "0.72rem", color: "#63b3ed", background: "none", border: "none", cursor: "pointer", fontWeight: 500 }}>Clear filters</button>
+            {/* View Segments */}
+            <div className="flex bg-slate-50 p-1.5 rounded-[1.5rem] border border-slate-100 overflow-x-auto w-full lg:w-auto no-scrollbar">
+              {Object.entries(FILTERS).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => handleTypeChange(key)}
+                  className={`px-6 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${
+                    typeFilter === key
+                      ? "bg-white text-slate-900 shadow-sm border border-slate-100"
+                      : "text-slate-400 hover:text-slate-600"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Temporal Toggle */}
+            <button
+              onClick={() => setSortDesc((v) => !v)}
+              className="flex items-center gap-3 px-6 py-4 bg-slate-900 text-white rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest hover:bg-slate-700 transition-all shadow-lg active:scale-95"
+            >
+              <ArrowUpDown size={14} />
+              {sortDesc ? "Latest First" : "Earliest First"}
+            </button>
+          </div>
+        </div>
+
+        {/* Ledger Table Section */}
+        <div className="bg-white rounded-[3rem] border border-slate-200/80 shadow-sm overflow-hidden relative">
+          <div className="overflow-x-auto">
+            {loading ? (
+              <div className="py-32 flex flex-col items-center justify-center gap-6">
+                <div className="w-16 h-16 border-[5px] border-indigo-500/10 border-t-indigo-600 rounded-full animate-spin" />
+                <p className="text-slate-400 font-black text-xs uppercase tracking-[0.2em] animate-pulse">
+                  Accessing Core Ledger Database...
+                </p>
+              </div>
+            ) : (
+              <table className="w-full text-left border-collapse min-w-[1100px]">
+                <thead className="bg-slate-50/50">
+                  <tr>
+                    <th className="px-10 py-6 text-[10px] uppercase tracking-[0.3em] font-black text-slate-400">
+                      Principal / Operation
+                    </th>
+                    <th className="px-10 py-6 text-[10px] uppercase tracking-[0.3em] font-black text-slate-400">
+                      Mass (g)
+                    </th>
+                    <th className="px-10 py-6 text-[10px] uppercase tracking-[0.3em] font-black text-slate-400">
+                      Quote Detail
+                    </th>
+                    <th className="px-10 py-6 text-[10px] uppercase tracking-[0.3em] font-black text-slate-400">
+                      Displacement
+                    </th>
+                    <th className="px-10 py-6 text-[10px] uppercase tracking-[0.3em] font-black text-slate-400">
+                      Timestamp
+                    </th>
+                    <th className="px-10 py-6"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100/50">
+                  {txList.map((tx, i) => {
+                    const cfg = TYPE_CONFIG[tx.type] || TYPE_CONFIG.BUY_GOLD;
+                    const isBuy = tx.type?.startsWith("BUY");
+                    const isOpen = expanded === tx._id;
+                    return (
+                      <React.Fragment key={tx._id}>
+                        <tr className={`group hover:bg-slate-50/80 cursor-pointer transition-colors ${isOpen ? "bg-slate-50/80" : ""}`}>
+                          <td className="px-10 py-6">
+                            <div className="flex items-center gap-4">
+                              <div
+                                onClick={(e) => { e.stopPropagation(); handleUserSelect(tx.user); }}
+                                className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-white text-[10px] font-black hover:bg-indigo-600 transition-all shadow-sm"
+                                title={`Drill into ${tx.user?.userName}`}
+                              >
+                                {tx.user?.userName ? tx.user.userName[0].toUpperCase() : "?"}
+                              </div>
+                              <div onClick={() => setExpanded(isOpen ? null : tx._id)} className="flex items-center gap-4 flex-1">
+                                <div className={`w-10 h-10 rounded-xl ${cfg.bg} flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform`}>
+                                  {cfg.icon}
+                                </div>
+                                <div className="space-y-1">
+                                  <p className="text-[13px] font-black text-slate-900 tracking-tight">{cfg.label}</p>
+                                  <div className="flex items-center gap-2">
+                                    <div className={`w-2 h-2 rounded-full ${tx.asset === "GOLD" ? "bg-amber-400" : "bg-slate-400"} shadow-sm`} />
+                                    <span className="text-[10px] font-black text-slate-400 tracking-[0.1em] uppercase">
+                                      {tx.asset} (99.9) {selectedUser ? "" : `• ${tx.user?.userName}`}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-10 py-6" onClick={() => setExpanded(isOpen ? null : tx._id)}>
+                            <div className="flex items-center gap-2.5 font-serif font-black text-slate-900 text-lg">
+                              <Package size={16} className="text-slate-300" />
+                              {fmtG(tx.grams)}
+                            </div>
+                          </td>
+                          <td className="px-10 py-6" onClick={() => setExpanded(isOpen ? null : tx._id)}>
+                            <div className="space-y-1.5">
+                              <div className="flex items-center gap-3 text-[11px] font-extrabold text-slate-700 uppercase tracking-tight">
+                                <span className="text-slate-300 w-10 text-[9px] font-black tracking-widest">Base:</span>
+                                ₹{fmt(tx.amount)}
+                              </div>
+                              <div className="flex items-center gap-3 text-[11px] font-extrabold text-slate-700 uppercase tracking-tight">
+                                <span className="text-slate-300 w-10 text-[9px] font-black tracking-widest">Tax (3%):</span>
+                                {tx.gstAmount > 0 ? `₹${fmt(tx.gstAmount)}` : "—"}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-10 py-6" onClick={() => setExpanded(isOpen ? null : tx._id)}>
+                            <div className={`text-xl font-serif font-black tracking-tighter ${isBuy ? "text-rose-600" : "text-emerald-600"}`}>
+                              {isBuy ? "−" : "+"}₹{fmt(tx.totalAmount || tx.amount)}
+                            </div>
+                          </td>
+                          <td className="px-10 py-6" onClick={() => setExpanded(isOpen ? null : tx._id)}>
+                            <div className="flex flex-col gap-1.5">
+                              <div className="flex items-center gap-2.5 text-[11px] font-black text-slate-900 uppercase tracking-tight">
+                                <Calendar size={14} className="text-slate-300" />
+                                {fmtDate(tx.createdAt)}
+                              </div>
+                              <div className="flex items-center gap-2.5 text-[10px] font-bold text-slate-400">
+                                <Clock size={14} className="text-slate-300 opacity-50" />
+                                {fmtTime(tx.createdAt)}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-10 py-6 text-right">
+                            <div
+                              onClick={() => setExpanded(isOpen ? null : tx._id)}
+                              className={`p-2.5 rounded-xl transition-all border ${isOpen ? "bg-slate-900 text-white border-slate-900 rotate-180" : "bg-white text-slate-200 border-slate-100 group-hover:text-slate-400"}`}
+                            >
+                              <ChevronDown size={18} />
+                            </div>
+                          </td>
+                        </tr>
+                        <AnimatePresence>
+                          {isOpen && (
+                            <tr>
+                              <td colSpan="6" className="px-10 py-0">
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: "auto", opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  className="overflow-hidden border-x-2 border-slate-100 bg-slate-50/30"
+                                >
+                                  <div className="p-10 grid grid-cols-2 lg:grid-cols-4 gap-10">
+                                    {[
+                                      { label: "Operation System Reference", value: tx._id, full: true },
+                                      { label: "Market Quote / Unit", value: `₹${fmt(tx.pricePerGram)}`, icon: <TrendingUp size={14} /> },
+                                      { label: "Asset Classification", value: tx.asset === "GOLD" ? "MCX AU High Grade" : "MCX AG Pure Grade", icon: <Coins size={14} /> },
+                                      { label: "Node Verification", value: tx.status || "CONFIRMED", icon: <Zap size={14} />, color: "text-emerald-600" },
+                                      { label: "Compliance UUID", value: `AU-LEDGER-${tx._id?.slice(-8).toUpperCase()}`, icon: <ReceiptText size={14} /> },
+                                    ].map((item, idx) => (
+                                      <div key={idx} className={item.full ? "col-span-full pb-8 mb-4 border-b border-slate-200/50" : ""}>
+                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 flex items-center gap-3">
+                                          <span className="p-1.5 bg-white rounded-lg shadow-sm">{item.icon}</span>
+                                          {item.label}
+                                        </p>
+                                        <p className={`font-serif font-black text-slate-900 ${item.full ? "text-2xl" : "text-xl"} tracking-tight ${item.color || ""}`}>
+                                          {item.value}
+                                        </p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </motion.div>
+                              </td>
+                            </tr>
+                          )}
+                        </AnimatePresence>
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
             )}
+          </div>
+
+          {/* Pagination Intelligence */}
+          {!loading && totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-6 px-10 py-10 border-t border-slate-50">
+              <div className="flex items-center gap-4 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="w-12 h-12 flex items-center justify-center rounded-xl border border-slate-100 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-all text-slate-900"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <div className="flex items-center gap-1">
+                  {[...Array(totalPages)].map((_, i) => {
+                    const p = i + 1;
+                    if (p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1)) {
+                      return (
+                        <button
+                          key={p}
+                          onClick={() => setPage(p)}
+                          className={`w-12 h-12 rounded-xl text-[11px] font-black tracking-widest transition-all ${page === p ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20" : "bg-white text-slate-400 hover:text-slate-600 hover:bg-slate-50"}`}
+                        >
+                          {p}
+                        </button>
+                      );
+                    }
+                    if (p === page - 2 || p === page + 2) {
+                      return <span key={p} className="w-8 text-center text-slate-300 font-black">...</span>;
+                    }
+                    return null;
+                  })}
+                </div>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="w-12 h-12 flex items-center justify-center rounded-xl border border-slate-100 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-all text-slate-900"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+              <div className="text-[10px] uppercase font-black tracking-[0.3em] text-slate-400 flex items-center gap-3">
+                <div className="px-3 py-1.5 bg-slate-100 rounded-lg text-slate-900">Page {page} of {totalPages}</div>
+                <span>•</span>
+                <span>Total Ledger: {total}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Void State */}
+          {!loading && txList.length === 0 && (
+            <div className="py-32 flex flex-col items-center justify-center gap-6 text-center">
+              <div className="w-24 h-24 bg-slate-50 flex items-center justify-center text-slate-200 rounded-[2.5rem] shadow-inner mb-2">
+                <Search size={48} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-serif font-black text-slate-900 tracking-tight">
+                  No Encrypted Records
+                </h3>
+                <p className="text-slate-400 text-sm font-medium px-10 max-w-sm mx-auto">
+                  The search parameters did not yield clinical matches within our prioritized audit buffers.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setSearch("");
+                  setTypeFilter("All");
+                  setAssetFilter("All");
+                  setSelectedUser(null);
+                }}
+                className="mt-6 flex items-center gap-3 px-8 py-3.5 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-xl active:scale-95"
+              >
+                Reset Ledger Filter
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Operational Intelligence Footer */}
+        {!loading && txList.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-10 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400/80">
+            <span className="flex items-center gap-2">
+              Viewing prioritized entries from synchronized ledger
+            </span>
+            <span className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-full border border-slate-200/50 shadow-sm">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse ring-4 ring-emerald-500/10" />
+              Live Clinical Observation Active
+            </span>
           </div>
         )}
       </div>
-
     </StaffLayout>
   );
 }

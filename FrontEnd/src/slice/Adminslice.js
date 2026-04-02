@@ -23,9 +23,11 @@ export const fetchAdminStats = createAsyncThunk(
 
 export const fetchAllUsers = createAsyncThunk(
   "admin/fetchAllUsers",
-  async (_, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
+      const { page = 1, limit = 20, search = "", kycStatus = "All" } = params;
       const response = await axios.get("/admin/users", {
+        params: { page, limit, search, kycStatus },
         headers: adminHeaders(),
       });
       return response.data;
@@ -69,9 +71,11 @@ export const updateUserRole = createAsyncThunk(
 
 export const fetchAllTransactions = createAsyncThunk(
   "admin/fetchAllTransactions",
-  async (_, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
+      const { page = 1, limit = 20, search = "", type = "All", asset = "All", userId = "", sort = "-createdAt" } = params;
       const response = await axios.get("/admin/transactions", {
+        params: { page, limit, search, type, asset, userId, sort },
         headers: adminHeaders(),
       });
       return response.data;
@@ -122,6 +126,13 @@ const adminSlice = createSlice({
     recentTrades: [],
     users: [],
     transactions: [],
+    total: 0,
+    verifiedCount: 0,
+    pendingCount: 0,
+    totalVolume: 0,
+    totalGst: 0,
+    currentPage: 1,
+    totalPages: 1,
     loading: false,
     error: null,
     successMessage: null,
@@ -154,6 +165,11 @@ const adminSlice = createSlice({
     builder.addCase(fetchAllUsers.fulfilled, (state, action) => {
       state.loading = false;
       state.users = action.payload.users;
+      state.total = action.payload.total;
+      state.verifiedCount = action.payload.verifiedCount || 0;
+      state.pendingCount = action.payload.pendingCount || 0;
+      state.currentPage = action.payload.currentPage;
+      state.totalPages = action.payload.totalPages;
     });
     builder.addCase(fetchAllUsers.rejected, (state, action) => {
       state.loading = false;
@@ -187,6 +203,11 @@ const adminSlice = createSlice({
     builder.addCase(fetchAllTransactions.fulfilled, (state, action) => {
       state.loading = false;
       state.transactions = action.payload.transactions;
+      state.total = action.payload.total;
+      state.totalVolume = action.payload.totalVolume || 0;
+      state.totalGst = action.payload.totalGst || 0;
+      state.currentPage = action.payload.currentPage;
+      state.totalPages = action.payload.totalPages;
     });
     builder.addCase(fetchAllTransactions.rejected, (state, action) => {
       state.loading = false;
