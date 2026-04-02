@@ -83,7 +83,7 @@ export default function StaffTransactions() {
       sort: sortDesc ? "newest" : "oldest",
     };
     if (selectedUser) params.userId = selectedUser._id;
-    
+
     dispatch(fetchAllTransactions(params));
   }, [dispatch, page, search, typeFilter, sortDesc, selectedUser]);
 
@@ -230,11 +230,10 @@ export default function StaffTransactions() {
                 <button
                   key={key}
                   onClick={() => handleTypeChange(key)}
-                  className={`px-6 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${
-                    typeFilter === key
-                      ? "bg-white text-slate-900 shadow-sm border border-slate-100"
-                      : "text-slate-400 hover:text-slate-600"
-                  }`}
+                  className={`px-6 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${typeFilter === key
+                    ? "bg-white text-slate-900 shadow-sm border border-slate-100"
+                    : "text-slate-400 hover:text-slate-600"
+                    }`}
                 >
                   {label}
                 </button>

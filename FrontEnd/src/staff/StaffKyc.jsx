@@ -44,7 +44,7 @@ export default function StaffKyc() {
       limit: 20,
       search,
       kycStatus: statusFilter !== "All" ? statusFilter : ""
-    }));
+    }));X
   }, [dispatch, page, search, statusFilter]);
 
   const handleSearch = (val) => {

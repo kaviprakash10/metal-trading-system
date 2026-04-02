@@ -4,16 +4,16 @@ import { Link } from "react-router-dom";
 import { fetchAllUsers } from "../slice/Adminslice";
 import StaffLayout from "./StaffLayout";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Users, 
-  Search, 
-  Filter, 
-  ChevronDown, 
-  MoreHorizontal, 
-  Mail, 
-  Wallet, 
-  ShieldCheck, 
-  ShieldAlert, 
+import {
+  Users,
+  Search,
+  Filter,
+  ChevronDown,
+  MoreHorizontal,
+  Mail,
+  Wallet,
+  ShieldCheck,
+  ShieldAlert,
   ShieldX,
   Calendar,
   ArrowUpDown,
@@ -31,28 +31,28 @@ import {
   ChevronRight
 } from "lucide-react";
 
-const fmt     = (n) => Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+const fmt = (n) => Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
 const fmtDate = (d) => new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
 const KYC_CONFIG = {
   VERIFIED: { icon: <ShieldCheck size={14} />, bg: "bg-emerald-50 text-emerald-600 border-emerald-100", label: "Validated" },
-  PENDING:  { icon: <Clock size={14} />,       bg: "bg-amber-50 text-amber-600 border-amber-100",   label: "Auditing" },
-  REJECTED: { icon: <ShieldX size={14} />,     bg: "bg-rose-50 text-rose-600 border-rose-100",     label: "Revoked" },
+  PENDING: { icon: <Clock size={14} />, bg: "bg-amber-50 text-amber-600 border-amber-100", label: "Auditing" },
+  REJECTED: { icon: <ShieldX size={14} />, bg: "bg-rose-50 text-rose-600 border-rose-100", label: "Revoked" },
 };
 
 export default function StaffUsers() {
   const dispatch = useDispatch();
   const { users, loading, total, totalPages, currentPage, verifiedCount, pendingCount } = useSelector((s) => s.admin);
 
-  const [search,    setSearch]    = useState("");
+  const [search, setSearch] = useState("");
   const [kycFilter, setKycFilter] = useState("All");
-  const [sortBy,    setSortBy]    = useState("newest");
-  const [selected,  setSelected]  = useState(null);
-  const [page,      setPage]      = useState(1);
+  const [sortBy, setSortBy] = useState("newest");
+  const [selected, setSelected] = useState(null);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-       dispatch(fetchAllUsers({ page, search, kycStatus: kycFilter, sort: sortBy }));
+      dispatch(fetchAllUsers({ page, search, kycStatus: kycFilter, sort: sortBy }));
     }, search ? 500 : 0);
     return () => clearTimeout(timer);
   }, [dispatch, page, search, kycFilter, sortBy]);
@@ -82,10 +82,10 @@ export default function StaffUsers() {
   return (
     <StaffLayout>
       <div className="max-w-7xl mx-auto space-y-10 pb-10">
-        
+
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-200/60 pb-8">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -25 }}
             animate={{ opacity: 1, x: 0 }}
           >
@@ -102,13 +102,13 @@ export default function StaffUsers() {
               Comprehensive directory of institutional and individual platform participants.
             </p>
           </motion.div>
-          
-          <motion.div 
+
+          <motion.div
             initial={{ opacity: 0, x: 25 }}
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-4"
           >
-             <div className="flex -space-x-3">
+            <div className="flex -space-x-3">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="w-10 h-10 rounded-xl border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400 shadow-sm">
                   {String.fromCharCode(64 + i)}
@@ -124,10 +124,10 @@ export default function StaffUsers() {
         {/* Strategic Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {[
-            { label: "Active Directory", value: stats.total,    icon: <Users className="text-indigo-500" />, bg: "bg-indigo-50" },
-            { label: "Validated Node",   value: stats.verified, icon: <CheckCircle2 className="text-emerald-500" />, bg: "bg-emerald-50" },
-            { label: "Awaiting Audit",   value: stats.pending,  icon: <Clock className="text-amber-500" />, bg: "bg-amber-50" },
-            { label: "System Health",    value: "99.9%",        icon: <ShieldCheck className="text-blue-500" />, bg: "bg-blue-50" },
+            { label: "Active Directory", value: stats.total, icon: <Users className="text-indigo-500" />, bg: "bg-indigo-50" },
+            { label: "Validated Node", value: stats.verified, icon: <CheckCircle2 className="text-emerald-500" />, bg: "bg-emerald-50" },
+            { label: "Awaiting Audit", value: stats.pending, icon: <Clock className="text-amber-500" />, bg: "bg-amber-50" },
+            { label: "System Health", value: "99.9%", icon: <ShieldCheck className="text-blue-500" />, bg: "bg-blue-50" },
           ].map((stat, i) => (
             <motion.div
               key={stat.label}
@@ -153,10 +153,10 @@ export default function StaffUsers() {
             {/* Search */}
             <div className="relative flex-1 w-full text-slate-500">
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-              <input 
-                type="text" 
-                placeholder="Search Corporate Identifiers, Emails, or Legal Names..." 
-                value={search} 
+              <input
+                type="text"
+                placeholder="Search Corporate Identifiers, Emails, or Legal Names..."
+                value={search}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 className="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-[13px] font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-400 transition-all font-medium"
               />
@@ -168,11 +168,10 @@ export default function StaffUsers() {
                 <button
                   key={f}
                   onClick={() => handleFilterChange(f)}
-                  className={`px-6 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${
-                    kycFilter === f 
-                      ? "bg-white text-slate-900 shadow-sm border border-slate-100" 
-                      : "text-slate-400 hover:text-slate-600"
-                  }`}
+                  className={`px-6 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${kycFilter === f
+                    ? "bg-white text-slate-900 shadow-sm border border-slate-100"
+                    : "text-slate-400 hover:text-slate-600"
+                    }`}
                 >
                   {f}
                 </button>
@@ -180,8 +179,8 @@ export default function StaffUsers() {
             </div>
 
             {/* Sort Strategy */}
-            <select 
-              value={sortBy} 
+            <select
+              value={sortBy}
               onChange={(e) => handleSortChange(e.target.value)}
               className="px-6 py-4 bg-slate-900 text-white rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-indigo-500/20 border-none appearance-none cursor-pointer pr-12 relative"
               style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'white\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1.5rem center', backgroundSize: '1rem' }}
@@ -215,7 +214,7 @@ export default function StaffUsers() {
               </thead>
               <tbody className="divide-y divide-slate-100/50">
                 {users.map((u, i) => (
-                  <motion.tr 
+                  <motion.tr
                     key={u._id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -286,25 +285,24 @@ export default function StaffUsers() {
               >
                 <ChevronLeft size={18} />
               </button>
-              
+
               <div className="flex items-center gap-1">
                 {[...Array(totalPages)].map((_, i) => {
                   const p = i + 1;
                   // Show current page, first, last, and neighbors
                   if (
-                    p === 1 || 
-                    p === totalPages || 
+                    p === 1 ||
+                    p === totalPages ||
                     (p >= page - 1 && p <= page + 1)
                   ) {
                     return (
                       <button
                         key={p}
                         onClick={() => setPage(p)}
-                        className={`w-12 h-12 rounded-xl text-[11px] font-black tracking-widest transition-all ${
-                          page === p 
-                            ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20" 
-                            : "bg-white text-slate-400 hover:text-slate-600 hover:bg-slate-50"
-                        }`}
+                        className={`w-12 h-12 rounded-xl text-[11px] font-black tracking-widest transition-all ${page === p
+                          ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20"
+                          : "bg-white text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+                          }`}
                       >
                         {p}
                       </button>
@@ -346,7 +344,7 @@ export default function StaffUsers() {
                 onClick={() => setSelected(null)}
                 className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl"
               />
-              
+
               {/* Modal Content */}
               <motion.div
                 initial={{ scale: 0.9, opacity: 0, y: 40 }}
@@ -362,8 +360,8 @@ export default function StaffUsers() {
                       </div>
                       <div className="space-y-2">
                         <div className="flex items-center gap-3">
-                           <h3 className="text-4xl font-serif font-black tracking-tight">{selected.userName}</h3>
-                           <div className="p-1 px-3 bg-amber-500 text-slate-900 rounded-lg font-black text-[10px] uppercase tracking-widest">Active Client</div>
+                          <h3 className="text-4xl font-serif font-black tracking-tight">{selected.userName}</h3>
+                          <div className="p-1 px-3 bg-amber-500 text-slate-900 rounded-lg font-black text-[10px] uppercase tracking-widest">Active Client</div>
                         </div>
                         <p className="text-slate-400 font-bold tracking-widest text-[11px] flex items-center gap-3">
                           <Fingerprint size={14} className="text-indigo-400" />
@@ -371,7 +369,7 @@ export default function StaffUsers() {
                         </p>
                       </div>
                     </div>
-                    <button 
+                    <button
                       onClick={() => setSelected(null)}
                       className="group flex items-center gap-3 px-8 py-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all border border-white/10 text-[10px] font-black uppercase tracking-widest active:scale-95"
                     >
@@ -412,7 +410,7 @@ export default function StaffUsers() {
                     </Link>
                   </div>
                 </div>
-                
+
                 {/* Background Aesthetics */}
                 <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
                 <div className="absolute -left-20 top-20 w-60 h-60 bg-amber-500/5 rounded-full blur-[100px] pointer-events-none" />
