@@ -58,8 +58,48 @@ AdminController.getStats = async (req, res) => {
 
 AdminController.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-password").sort({ createdAt: -1 });
-    res.status(200).json({ total: users.length, users });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+    const { search, kycStatus, sort = "-createdAt" } = req.query;
+
+    const query = {};
+    if (kycStatus && kycStatus !== "All") {
+      query.kycStatus = kycStatus;
+    }
+    if (search) {
+      query.$or = [
+        { userName: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Determine sort object
+    let sortQuery = { createdAt: -1 };
+    if (sort === "newest") sortQuery = { createdAt: -1 };
+    if (sort === "oldest") sortQuery = { createdAt: 1 };
+    if (sort === "wallet") sortQuery = { walletBalance: -1 };
+    if (sort === "name")   sortQuery = { userName: 1 };
+
+    const total = await User.countDocuments(query);
+    const verifiedCount = await User.countDocuments({ kycStatus: "VERIFIED" });
+    const pendingCount = await User.countDocuments({ kycStatus: "PENDING" });
+    
+    const users = await User.find(query)
+      .select("-password")
+      .sort(sortQuery)
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      total,
+      verifiedCount,
+      pendingCount,
+      users,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      limit,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch users" });
@@ -142,11 +182,65 @@ AdminController.updateUserRole = async (req, res) => {
 
 AdminController.getAllTransactions = async (req, res) => {
   try {
-    const transactions = await Transaction.find()
-      .sort({ createdAt: -1 })
-      .populate("user", "userName email");
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+    const { search, type, asset, userId, sort = "-createdAt" } = req.query;
 
-    res.status(200).json({ total: transactions.length, transactions });
+    const query = {};
+    if (userId) query.user = userId;
+    if (type && type !== "All") query.type = type;
+    if (asset && asset !== "All") query.asset = asset;
+    
+    if (search) {
+      // Find users matching search first if search is by name/email
+      const matchingUsers = await User.find({
+        $or: [
+          { userName: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+        ]
+      }).select("_id");
+      
+      const userIds = matchingUsers.map(u => u._id);
+      
+      query.$or = [
+        { _id: search.length === 24 ? search : null }, // Match by ID if valid
+        { user: { $in: userIds } },
+        { type: { $regex: search, $options: "i" } }
+      ].filter(condition => condition._id !== null);
+    }
+
+    const total = await Transaction.countDocuments(query);
+    
+    // Global stats for the current view (filtered by query)
+    const statsResult = await Transaction.aggregate([
+      { $match: query },
+      { $group: { 
+          _id: null, 
+          totalVol: { $sum: { $ifNull: ["$totalAmount", "$amount"] } },
+          totalGst: { $sum: { $ifNull: ["$gstAmount", 0] } }
+        } 
+      }
+    ]);
+    
+    const totalVolume = statsResult[0]?.totalVol || 0;
+    const totalGst = statsResult[0]?.totalGst || 0;
+
+    const transactions = await Transaction.find(query)
+      .sort(sort)
+      .populate("user", "userName email")
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      total,
+      totalVolume,
+      totalGst,
+      transactions,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      limit,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch transactions" });
