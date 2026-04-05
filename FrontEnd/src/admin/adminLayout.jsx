@@ -1,6 +1,23 @@
-import { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  LayoutDashboard, 
+  Users, 
+  History, 
+  Banknote, 
+  ShieldCheck, 
+  Globe, 
+  LogOut,
+  ChevronRight,
+  TrendingUp,
+  TrendingDown,
+  Bell,
+  Search,
+  Menu,
+  X
+} from "lucide-react";
 import { logout } from "../slice/Authslice";
 import { fetchCurrentPrices } from "../slice/Priceslice";
 
@@ -8,22 +25,23 @@ const fmt = (n) =>
   Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
 
 const ADMIN_NAV = [
-  { icon: "⬡", label: "Overview", to: "/admin/dashboard" },
-  { section: "Manage" },
-  { icon: "👥", label: "Users", to: "/admin/users" },
-  { icon: "📋", label: "Transactions", to: "/admin/transactions" },
-  { icon: "💰", label: "Price Control", to: "/admin/prices" },
-  { icon: "📑", label: "KYC Management", to: "/admin/kyc" },
-  { section: "Switch Portals" },
-  { icon: "🌍", label: "User Portal", to: "/user/dashboard" },
-  { icon: "🛡️", label: "Staff Portal", to: "/staff/dashboard" },
+  { icon: LayoutDashboard, label: "Overview", to: "/admin/dashboard" },
+  { section: "Management" },
+  { icon: Users, label: "User Accounts", to: "/admin/users" },
+  { icon: History, label: "Transactions", to: "/admin/transactions" },
+  { icon: Banknote, label: "Price Control", to: "/admin/prices" },
+  { icon: ShieldCheck, label: "KYC Verification", to: "/admin/kyc" },
+  { section: "Portals" },
+  { icon: Globe, label: "Go to User Portal", to: "/user/dashboard" },
 ];
 
-export default function AdminLayout({ children, active }) {
+export default function AdminLayout({ children }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useSelector((s) => s.auth);
   const { current } = useSelector((s) => s.price);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
     dispatch(fetchCurrentPrices());
@@ -33,234 +51,187 @@ export default function AdminLayout({ children, active }) {
 
   const handleLogout = () => {
     dispatch(logout());
-    navigate("/login");
+    navigate("/signin");
   };
 
+  const isActive = (path) => location.pathname === path;
+
   return (
-    <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        background: "#f7f5f0",
-        fontFamily: "'DM Sans', sans-serif",
-      }}
-    >
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap"
-      />
-
-      {/* ── SIDEBAR ── */}
-      <aside
-        style={{
-          width: "220px",
-          flexShrink: 0,
-          background: "#0a0a0a",
-          display: "flex",
-          flexDirection: "column",
-          position: "sticky",
-          top: 0,
-          height: "100vh",
-        }}
+    <div className="min-h-screen bg-[#F8F9FA] font-sans text-slate-900 flex">
+      {/* --- Sidebar --- */}
+      <motion.aside
+        initial={false}
+        animate={{ width: isSidebarOpen ? 260 : 80 }}
+        className="fixed left-0 top-0 h-full bg-[#0F172A] text-slate-300 shadow-2xl z-50 flex flex-col"
       >
-        <div
-          style={{
-            padding: "1.5rem 1.3rem 1rem",
-            borderBottom: "1px solid rgba(255,255,255,0.06)",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "1.4rem",
-              fontWeight: 700,
-            }}
-          >
-            <span style={{ color: "#fff" }}>Luna </span>
-            <span style={{ color: "#c9a84c" }}>Admin</span>
-          </div>
-          <div
-            style={{
-              color: "rgba(255,255,255,0.3)",
-              fontSize: "0.65rem",
-              marginTop: "0.1rem",
-            }}
-          >
-            Control Panel
-          </div>
-        </div>
-
-        <nav style={{ flex: 1, padding: "0.75rem 0", overflowY: "auto" }}>
-          {ADMIN_NAV.map((item, i) =>
-            item.section ? (
-              <div
-                key={i}
-                style={{
-                  padding: "0.4rem 1.2rem 0.2rem",
-                  color: "rgba(255,255,255,0.25)",
-                  fontSize: "0.62rem",
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  marginTop: "0.5rem",
-                }}
+        {/* Logo Section */}
+        <div className="p-6 flex items-center justify-between border-b border-slate-800/50">
+          <AnimatePresence mode="wait">
+            {isSidebarOpen && (
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                className="flex items-center gap-2"
               >
-                {item.section}
-              </div>
-            ) : (
-              <Link
-                key={item.to}
-                to={item.to}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.7rem",
-                  padding: "0.6rem 1.1rem",
-                  margin: "0.1rem 0.5rem",
-                  borderRadius: "8px",
-                  textDecoration: "none",
-                  fontSize: "0.85rem",
-                  fontWeight: active === item.to ? 600 : 400,
-                  color:
-                    active === item.to ? "#c9a84c" : "rgba(255,255,255,0.55)",
-                  background:
-                    active === item.to ? "rgba(201,168,76,0.1)" : "transparent",
-                  transition: "all 0.15s",
-                }}
-              >
-                <span>{item.icon}</span>
-                <span>{item.label}</span>
-              </Link>
-            ),
-          )}
-        </nav>
-
-        <div
-          style={{
-            padding: "0.85rem 0.5rem",
-            borderTop: "1px solid rgba(255,255,255,0.06)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.65rem",
-              padding: "0.65rem 0.8rem",
-              borderRadius: "10px",
-              background: "rgba(255,255,255,0.04)",
-              marginBottom: "0.4rem",
-            }}
+                <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-xl font-serif">L</span>
+                </div>
+                <span className="text-xl font-serif font-bold text-white tracking-tight">
+                  Luna <span className="text-amber-500">Admin</span>
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <button 
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="p-1.5 hover:bg-slate-800 rounded-lg transition-colors text-slate-400"
           >
-            <div
-              style={{
-                width: "32px",
-                height: "32px",
-                borderRadius: "50%",
-                background: "linear-gradient(135deg,#c9a84c,#e2c06a)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#0a0800",
-                fontWeight: 700,
-                fontSize: "0.8rem",
-              }}
-            >
-              {user?.userName?.[0]?.toUpperCase() || "A"}
-            </div>
-            <div>
-              <div
-                style={{ color: "#fff", fontSize: "0.8rem", fontWeight: 500 }}
-              >
-                {user?.userName || "Admin"}
-              </div>
-              <div
-                style={{
-                  color: "#c9a84c",
-                  fontSize: "0.62rem",
-                  fontWeight: 600,
-                  letterSpacing: "0.06em",
-                }}
-              >
-                ADMIN
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={handleLogout}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.7rem",
-              padding: "0.6rem 1.1rem",
-              margin: "0.1rem 0.5rem",
-              borderRadius: "8px",
-              border: "none",
-              fontSize: "0.85rem",
-              color: "#f87171",
-              background: "transparent",
-              cursor: "pointer",
-              width: "calc(100% - 1rem)",
-              textAlign: "left",
-            }}
-          >
-            <span>🚪</span>
-            <span>Logout</span>
+            {isSidebarOpen ? <Menu size={20} /> : <ChevronRight size={20} />}
           </button>
         </div>
-      </aside>
 
-      {/* ── MAIN ── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        <div
-          style={{
-            background: "#fff",
-            borderBottom: "1px solid #ede8d8",
-            padding: "0 1.75rem",
-            height: "58px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            position: "sticky",
-            top: 0,
-            zIndex: 10,
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "1.2rem",
-              fontWeight: 700,
-              color: "#1a1200",
-            }}
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1 custom-scrollbar">
+          {ADMIN_NAV.map((item, i) => (
+            item.section ? (
+              isSidebarOpen && (
+                <motion.div
+                  key={`sec-${i}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="px-4 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-slate-500 mt-4"
+                >
+                  {item.section}
+                </motion.div>
+              )
+            ) : (
+              <Link key={item.to} to={item.to}>
+                <motion.div
+                  whileHover={{ x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                    isActive(item.to) 
+                      ? "bg-amber-500/10 text-amber-500 shadow-sm" 
+                      : "hover:bg-slate-800 hover:text-white"
+                  }`}
+                >
+                  <item.icon size={20} className={isActive(item.to) ? "text-amber-500" : "text-slate-400 group-hover:text-white transition-colors"} />
+                  {isSidebarOpen && (
+                    <span className="text-[14px] font-medium tracking-wide">
+                      {item.label}
+                    </span>
+                  )}
+                  {isActive(item.to) && isSidebarOpen && (
+                    <motion.div layoutId="activeTag" className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  )}
+                </motion.div>
+              </Link>
+            )
+          ))}
+        </nav>
+
+        {/* Footer / User Profile */}
+        <div className="p-4 border-t border-slate-800/50 bg-slate-900/50">
+          {isSidebarOpen ? (
+            <div className="flex items-center gap-3 p-2 rounded-xl bg-slate-800/30">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-900 font-bold shadow-lg shadow-amber-500/20">
+                {user?.userName?.[0]?.toUpperCase() || "A"}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-white truncate">{user?.userName || "Administrator"}</p>
+                <p className="text-[10px] text-amber-500 font-bold uppercase tracking-wider">Super Admin</p>
+              </div>
+            </div>
+          ) : (
+            <div className="w-10 h-10 mx-auto rounded-full bg-amber-500 flex items-center justify-center text-slate-900 font-bold">
+              {user?.userName?.[0]?.toUpperCase() || "A"}
+            </div>
+          )}
+          
+          <button
+            onClick={handleLogout}
+            className={`w-full mt-4 flex items-center gap-3 px-4 py-3 rounded-xl text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all group overflow-hidden ${!isSidebarOpen && "justify-center"}`}
           >
-            Luna Admin
-          </div>
-          <div
-            style={{
-              display: "flex",
-              gap: "1.5rem",
-              fontSize: "0.82rem",
-              color: "#999",
-            }}
-          >
-            <span>
-              🟡 Gold{" "}
-              <strong style={{ color: "#c9a84c" }}>
-                ₹{fmt(current.gold?.pricePerGram)}
-              </strong>
-            </span>
-            <span>
-              ⚪ Silver{" "}
-              <strong style={{ color: "#888" }}>
-                ₹{fmt(current.silver?.pricePerGram)}
-              </strong>
-            </span>
-          </div>
+            <LogOut size={20} />
+            {isSidebarOpen && <span className="text-sm font-medium">Sign Out</span>}
+          </button>
         </div>
-        <div style={{ flex: 1, padding: "2rem", overflowY: "auto" }}>
-          {children}
+      </motion.aside>
+
+      {/* --- Main Content --- */}
+      <main 
+        className="flex-1 flex flex-col min-h-screen transition-all duration-300" 
+        style={{ marginLeft: isSidebarOpen ? "260px" : "80px" }}
+      >
+        {/* Header */}
+        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 px-8 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-4 text-slate-400 group">
+             <div className="relative">
+                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input 
+                  type="text" 
+                  placeholder="Universal Search..." 
+                  className="bg-slate-100 border-none rounded-full pl-10 pr-4 py-2 text-sm w-64 focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all outline-none text-slate-600"
+                />
+             </div>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <div className="hidden md:flex items-center gap-8 bg-slate-50 px-6 py-2.5 rounded-full border border-slate-100">
+               <div className="flex flex-col items-end">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-tighter">
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    Spot Gold
+                  </div>
+                  <div className="text-sm font-bold text-slate-800 flex items-center gap-1">
+                    ₹{fmt(current.gold?.pricePerGram)}
+                    <TrendingUp size={14} className="text-emerald-500" />
+                  </div>
+               </div>
+               <div className="w-px h-8 bg-slate-200" />
+               <div className="flex flex-col items-end">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-tighter">
+                    <div className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-pulse" />
+                    Spot Silver
+                  </div>
+                  <div className="text-sm font-bold text-slate-800 flex items-center gap-1">
+                    ₹{fmt(current.silver?.pricePerGram)}
+                    <TrendingDown size={14} className="text-rose-500" />
+                  </div>
+               </div>
+            </div>
+
+            <button className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
+              <Bell size={20} />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
+            </button>
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <div className="p-8 pb-12 flex-1 relative">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </div>
-      </div>
+      </main>
+      
+      {/* Custom Scrollers for Tailwind */}
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+      `}</style>
     </div>
   );
 }

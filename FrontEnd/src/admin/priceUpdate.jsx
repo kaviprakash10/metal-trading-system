@@ -1,5 +1,21 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  RefreshCw, 
+  ShieldCheck, 
+  AlertTriangle,
+  History,
+  CheckCircle2,
+  XCircle,
+  IndianRupee,
+  Clock,
+  ArrowUpRight,
+  ArrowDownRight,
+  Target
+} from "lucide-react";
 import { setGoldPrice, setSilverPrice } from "../slice/Adminslice";
 import { fetchCurrentPrices, fetchPriceHistory } from "../slice/Priceslice";
 import AdminLayout from "./adminLayout";
@@ -28,23 +44,13 @@ export default function PriceManagement() {
   const [silverInput, setSilverInput] = useState("");
   const [goldConfirm, setGoldConfirm] = useState(false);
   const [silverConfirm, setSilverConfirm] = useState(false);
-  const [activeHistory, setActiveHistory] = useState("GOLD"); // GOLD | SILVER
+  const [activeHistory, setActiveHistory] = useState("GOLD");
 
   useEffect(() => {
     dispatch(fetchCurrentPrices());
     dispatch(fetchPriceHistory({ asset: "GOLD", limit: 10 }));
     dispatch(fetchPriceHistory({ asset: "SILVER", limit: 10 }));
   }, [dispatch]);
-
-  // Reset confirm when input changes
-  const handleGoldInput = (v) => {
-    setGoldInput(v);
-    setGoldConfirm(false);
-  };
-  const handleSilverInput = (v) => {
-    setSilverInput(v);
-    setSilverConfirm(false);
-  };
 
   const handleSetGold = () => {
     if (!goldInput || parseFloat(goldInput) <= 0) return;
@@ -63,765 +69,342 @@ export default function PriceManagement() {
   const currentGold = current.gold?.pricePerGram ?? 0;
   const currentSilver = current.silver?.pricePerGram ?? 0;
 
-  // Calculate % change from input vs current
-  const goldChange =
-    goldInput && currentGold
-      ? (((parseFloat(goldInput) - currentGold) / currentGold) * 100).toFixed(2)
-      : null;
-  const silverChange =
-    silverInput && currentSilver
-      ? (
-          ((parseFloat(silverInput) - currentSilver) / currentSilver) *
-          100
-        ).toFixed(2)
-      : null;
+  const goldChange = goldInput && currentGold ? (((parseFloat(goldInput) - currentGold) / currentGold) * 100).toFixed(2) : null;
+  const silverChange = silverInput && currentSilver ? (((parseFloat(silverInput) - currentSilver) / currentSilver) * 100).toFixed(2) : null;
 
-  const historyData =
-    activeHistory === "GOLD" ? history.gold || [] : history.silver || [];
+  const historyData = activeHistory === "GOLD" ? history.gold || [] : history.silver || [];
 
   return (
-    <AdminLayout active="/admin/prices">
-      {/* Header */}
-      <div style={{ marginBottom: "1.75rem" }}>
-        <h1
-          style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontSize: "1.9rem",
-            fontWeight: 700,
-            color: "#1a1200",
-            margin: 0,
-          }}
-        >
-          Price Control
-        </h1>
-        <p
-          style={{ color: "#999", fontSize: "0.875rem", marginTop: "0.25rem" }}
-        >
-          Manually override live gold & silver prices per gram.
-        </p>
-      </div>
-
-      {/* Success / Error */}
-      {successMessage && (
-        <div
-          style={{
-            marginBottom: "1.25rem",
-            padding: "0.9rem 1rem",
-            borderRadius: "10px",
-            background: "#dcfce7",
-            border: "1px solid #86efac",
-            color: "#15803d",
-            fontSize: "0.85rem",
-            fontWeight: 500,
-          }}
-        >
-          ✓ {successMessage}
-        </div>
-      )}
-      {error && (
-        <div
-          style={{
-            marginBottom: "1.25rem",
-            padding: "0.9rem 1rem",
-            borderRadius: "10px",
-            background: "#fee2e2",
-            border: "1px solid #fca5a5",
-            color: "#dc2626",
-            fontSize: "0.85rem",
-          }}
-        >
-          {error}
-        </div>
-      )}
-
-      {/* ── CURRENT PRICE BANNERS ── */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "1.25rem",
-          marginBottom: "1.5rem",
-        }}
-      >
-        {[
-          {
-            label: "Current Gold Price",
-            value: currentGold,
-            color: "#c9a84c",
-            icon: "🟡",
-            sub: current.gold?.updatedAt
-              ? `Updated: ${fmtDate(current.gold.updatedAt)} ${fmtTime(current.gold.updatedAt)}`
-              : "Auto-fetched",
-          },
-          {
-            label: "Current Silver Price",
-            value: currentSilver,
-            color: "#94a3b8",
-            icon: "⚪",
-            sub: current.silver?.updatedAt
-              ? `Updated: ${fmtDate(current.silver.updatedAt)} ${fmtTime(current.silver.updatedAt)}`
-              : "Auto-fetched",
-          },
-        ].map(({ label, value, color, icon, sub }) => (
-          <div
-            key={label}
-            style={{
-              background: "linear-gradient(135deg,#0f0c00,#1a1200)",
-              borderRadius: "20px",
-              padding: "1.75rem",
-              border: "1px solid rgba(201,168,76,0.15)",
-              boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
-            {/* Decorative ring */}
-            <div
-              style={{
-                position: "absolute",
-                right: "-50px",
-                top: "-50px",
-                width: "180px",
-                height: "180px",
-                borderRadius: "50%",
-                border: "1px solid rgba(201,168,76,0.05)",
-                pointerEvents: "none",
-              }}
-            />
-
-            <div
-              style={{
-                color: "rgba(255,255,255,0.35)",
-                fontSize: "0.7rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.12em",
-                marginBottom: "0.5rem",
-              }}
-            >
-              {label}
-            </div>
-            <div
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "2.8rem",
-                fontWeight: 700,
-                color,
-                lineHeight: 1,
-              }}
-            >
-              {icon} ₹{fmt(value)}
-            </div>
-            <div
-              style={{
-                color: "rgba(255,255,255,0.3)",
-                fontSize: "0.72rem",
-                marginTop: "0.75rem",
-              }}
-            >
-              per gram · {sub}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* ── UPDATE PRICE CARDS ── */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "1.25rem",
-          marginBottom: "1.5rem",
-        }}
-      >
-        {/* ── GOLD ── */}
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: "20px",
-            border: "1px solid #ede8d8",
-            boxShadow: "0 2px 16px rgba(0,0,0,0.04)",
-            padding: "1.75rem",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.75rem",
-              marginBottom: "1.25rem",
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "12px",
-                background: "rgba(201,168,76,0.1)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "1.3rem",
-              }}
-            >
-              🟡
-            </div>
-            <div>
-              <div
-                style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: "1.2rem",
-                  fontWeight: 700,
-                  color: "#1a1200",
-                }}
-              >
-                Set Gold Price
+    <AdminLayout>
+      <div className="max-w-[1600px] mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+           <div>
+              <div className="flex items-center gap-2 mb-2">
+                 <RefreshCw className="text-amber-500 animate-spin-slow" size={20} />
+                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Market Control</h3>
               </div>
-              <div style={{ fontSize: "0.72rem", color: "#aaa" }}>
-                Current: ₹{fmt(currentGold)}/g
-              </div>
-            </div>
-          </div>
-
-          {/* Input */}
-          <div style={{ marginBottom: "1rem" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "0.7rem",
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "#aaa",
-                marginBottom: "0.5rem",
-              }}
-            >
-              New Price per Gram (₹)
-            </label>
-            <div style={{ position: "relative" }}>
-              <span
-                style={{
-                  position: "absolute",
-                  left: "1rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: goldInput ? "#c9a84c" : "#ccc",
-                  fontWeight: 600,
-                  fontSize: "1.1rem",
+              <h1 className="text-3xl font-serif font-bold text-slate-900 tracking-tight">Price Propagation</h1>
+           </div>
+           
+           <div className="flex items-center gap-3">
+              <button 
+                onClick={() => {
+                  dispatch(fetchCurrentPrices());
+                  dispatch(fetchPriceHistory({ asset: "GOLD", limit: 10 }));
+                  dispatch(fetchPriceHistory({ asset: "SILVER", limit: 10 }));
                 }}
+                className="bg-white border border-slate-200 p-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all shadow-sm"
               >
-                ₹
-              </span>
-              <input
-                type="number"
-                min="1"
-                value={goldInput}
-                onChange={(e) => handleGoldInput(e.target.value)}
-                placeholder={`e.g. ${Math.round(currentGold)}`}
-                style={{
-                  width: "100%",
-                  padding: "0.9rem 1rem 0.9rem 2.2rem",
-                  borderRadius: "10px",
-                  border: `1.5px solid ${goldInput ? "rgba(201,168,76,0.4)" : "#e5e0d0"}`,
-                  fontSize: "1rem",
-                  color: "#1a1200",
-                  outline: "none",
-                  background: "#fafaf7",
-                  boxSizing: "border-box",
-                  transition: "border-color 0.2s",
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Change preview */}
-          {goldChange !== null && (
-            <div
-              style={{
-                marginBottom: "1rem",
-                padding: "0.75rem 1rem",
-                background: parseFloat(goldChange) >= 0 ? "#f0fdf4" : "#fff1f2",
-                borderRadius: "10px",
-                border: `1px solid ${parseFloat(goldChange) >= 0 ? "#bbf7d0" : "#fecdd3"}`,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <span style={{ fontSize: "0.82rem", color: "#888" }}>
-                Change from current
-              </span>
-              <span
-                style={{
-                  fontWeight: 700,
-                  fontSize: "0.9rem",
-                  color: parseFloat(goldChange) >= 0 ? "#16a34a" : "#dc2626",
-                }}
-              >
-                {parseFloat(goldChange) >= 0 ? "▲ +" : "▼ "}
-                {goldChange}%
-              </span>
-            </div>
-          )}
-
-          {/* Confirm checkbox */}
-          {goldInput && parseFloat(goldInput) > 0 && (
-            <div
-              style={{
-                marginBottom: "1rem",
-                display: "flex",
-                alignItems: "flex-start",
-                gap: "0.6rem",
-              }}
-            >
-              <input
-                type="checkbox"
-                id="goldConfirm"
-                checked={goldConfirm}
-                onChange={(e) => setGoldConfirm(e.target.checked)}
-                style={{
-                  marginTop: "2px",
-                  accentColor: "#c9a84c",
-                  cursor: "pointer",
-                }}
-              />
-              <label
-                htmlFor="goldConfirm"
-                style={{
-                  fontSize: "0.82rem",
-                  color: "#888",
-                  cursor: "pointer",
-                  lineHeight: 1.5,
-                }}
-              >
-                I confirm setting Gold price to{" "}
-                <strong style={{ color: "#c9a84c" }}>
-                  ₹{fmt(parseFloat(goldInput))}/g
-                </strong>
-                . This will affect all future trades immediately.
-              </label>
-            </div>
-          )}
-
-          <button
-            onClick={handleSetGold}
-            disabled={
-              !goldConfirm ||
-              loading ||
-              !goldInput ||
-              parseFloat(goldInput) <= 0
-            }
-            style={{
-              width: "100%",
-              padding: "0.9rem",
-              borderRadius: "10px",
-              border: "none",
-              background:
-                goldConfirm && goldInput
-                  ? "linear-gradient(135deg,#c9a84c,#e2c06a)"
-                  : "#f0ead8",
-              color: goldConfirm && goldInput ? "#0a0800" : "#bbb",
-              fontWeight: 700,
-              fontSize: "0.92rem",
-              cursor: goldConfirm && goldInput ? "pointer" : "not-allowed",
-              transition: "all 0.2s",
-              boxShadow:
-                goldConfirm && goldInput
-                  ? "0 4px 16px rgba(201,168,76,0.3)"
-                  : "none",
-            }}
-          >
-            {loading ? "Updating..." : "Update Gold Price →"}
-          </button>
-        </div>
-
-        {/* ── SILVER ── */}
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: "20px",
-            border: "1px solid #ede8d8",
-            boxShadow: "0 2px 16px rgba(0,0,0,0.04)",
-            padding: "1.75rem",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.75rem",
-              marginBottom: "1.25rem",
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "12px",
-                background: "rgba(148,163,184,0.1)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "1.3rem",
-              }}
-            >
-              ⚪
-            </div>
-            <div>
-              <div
-                style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: "1.2rem",
-                  fontWeight: 700,
-                  color: "#1a1200",
-                }}
-              >
-                Set Silver Price
-              </div>
-              <div style={{ fontSize: "0.72rem", color: "#aaa" }}>
-                Current: ₹{fmt(currentSilver)}/g
-              </div>
-            </div>
-          </div>
-
-          {/* Input */}
-          <div style={{ marginBottom: "1rem" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "0.7rem",
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "#aaa",
-                marginBottom: "0.5rem",
-              }}
-            >
-              New Price per Gram (₹)
-            </label>
-            <div style={{ position: "relative" }}>
-              <span
-                style={{
-                  position: "absolute",
-                  left: "1rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: silverInput ? "#94a3b8" : "#ccc",
-                  fontWeight: 600,
-                  fontSize: "1.1rem",
-                }}
-              >
-                ₹
-              </span>
-              <input
-                type="number"
-                min="1"
-                value={silverInput}
-                onChange={(e) => handleSilverInput(e.target.value)}
-                placeholder={`e.g. ${Math.round(currentSilver)}`}
-                style={{
-                  width: "100%",
-                  padding: "0.9rem 1rem 0.9rem 2.2rem",
-                  borderRadius: "10px",
-                  border: `1.5px solid ${silverInput ? "rgba(148,163,184,0.4)" : "#e5e0d0"}`,
-                  fontSize: "1rem",
-                  color: "#1a1200",
-                  outline: "none",
-                  background: "#fafaf7",
-                  boxSizing: "border-box",
-                  transition: "border-color 0.2s",
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Change preview */}
-          {silverChange !== null && (
-            <div
-              style={{
-                marginBottom: "1rem",
-                padding: "0.75rem 1rem",
-                background:
-                  parseFloat(silverChange) >= 0 ? "#f0fdf4" : "#fff1f2",
-                borderRadius: "10px",
-                border: `1px solid ${parseFloat(silverChange) >= 0 ? "#bbf7d0" : "#fecdd3"}`,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <span style={{ fontSize: "0.82rem", color: "#888" }}>
-                Change from current
-              </span>
-              <span
-                style={{
-                  fontWeight: 700,
-                  fontSize: "0.9rem",
-                  color: parseFloat(silverChange) >= 0 ? "#16a34a" : "#dc2626",
-                }}
-              >
-                {parseFloat(silverChange) >= 0 ? "▲ +" : "▼ "}
-                {silverChange}%
-              </span>
-            </div>
-          )}
-
-          {/* Confirm checkbox */}
-          {silverInput && parseFloat(silverInput) > 0 && (
-            <div
-              style={{
-                marginBottom: "1rem",
-                display: "flex",
-                alignItems: "flex-start",
-                gap: "0.6rem",
-              }}
-            >
-              <input
-                type="checkbox"
-                id="silverConfirm"
-                checked={silverConfirm}
-                onChange={(e) => setSilverConfirm(e.target.checked)}
-                style={{
-                  marginTop: "2px",
-                  accentColor: "#94a3b8",
-                  cursor: "pointer",
-                }}
-              />
-              <label
-                htmlFor="silverConfirm"
-                style={{
-                  fontSize: "0.82rem",
-                  color: "#888",
-                  cursor: "pointer",
-                  lineHeight: 1.5,
-                }}
-              >
-                I confirm setting Silver price to{" "}
-                <strong style={{ color: "#64748b" }}>
-                  ₹{fmt(parseFloat(silverInput))}/g
-                </strong>
-                . This will affect all future trades immediately.
-              </label>
-            </div>
-          )}
-
-          <button
-            onClick={handleSetSilver}
-            disabled={
-              !silverConfirm ||
-              loading ||
-              !silverInput ||
-              parseFloat(silverInput) <= 0
-            }
-            style={{
-              width: "100%",
-              padding: "0.9rem",
-              borderRadius: "10px",
-              border: "none",
-              background:
-                silverConfirm && silverInput
-                  ? "linear-gradient(135deg,#64748b,#94a3b8)"
-                  : "#f0ead8",
-              color: silverConfirm && silverInput ? "#fff" : "#bbb",
-              fontWeight: 700,
-              fontSize: "0.92rem",
-              cursor: silverConfirm && silverInput ? "pointer" : "not-allowed",
-              transition: "all 0.2s",
-              boxShadow:
-                silverConfirm && silverInput
-                  ? "0 4px 16px rgba(100,116,139,0.3)"
-                  : "none",
-            }}
-          >
-            {loading ? "Updating..." : "Update Silver Price →"}
-          </button>
-        </div>
-      </div>
-
-      {/* ── WARNING BOX ── */}
-      <div
-        style={{
-          marginBottom: "1.5rem",
-          padding: "1.1rem 1.25rem",
-          background: "#fff7ed",
-          borderRadius: "14px",
-          border: "1px solid #fed7aa",
-        }}
-      >
-        <div
-          style={{
-            fontWeight: 600,
-            fontSize: "0.85rem",
-            color: "#9a3412",
-            marginBottom: "0.4rem",
-          }}
-        >
-          ⚠️ Important Notice
-        </div>
-        <div style={{ fontSize: "0.8rem", color: "#c2410c", lineHeight: 1.7 }}>
-          Manually set prices{" "}
-          <strong>override the auto-fetched live prices</strong> immediately and
-          affect all new trades. The cron job runs every{" "}
-          <strong>2 hours</strong> and will overwrite this with the latest
-          market price. Use this only when the live price feed is unavailable or
-          incorrect.
-        </div>
-      </div>
-
-      {/* ── PRICE HISTORY ── */}
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: "16px",
-          border: "1px solid #ede8d8",
-          overflow: "hidden",
-          boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
-        }}
-      >
-        {/* History Header with tab toggle */}
-        <div
-          style={{
-            padding: "1rem 1.25rem",
-            borderBottom: "1px solid #f0ead8",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "1.15rem",
-              fontWeight: 700,
-              color: "#1a1200",
-            }}
-          >
-            Price History
-          </div>
-          <div
-            style={{
-              display: "flex",
-              background: "#f0ead8",
-              borderRadius: "8px",
-              padding: "3px",
-            }}
-          >
-            {["GOLD", "SILVER"].map((t) => (
-              <button
-                key={t}
-                onClick={() => setActiveHistory(t)}
-                style={{
-                  padding: "0.35rem 0.9rem",
-                  borderRadius: "6px",
-                  border: "none",
-                  fontSize: "0.78rem",
-                  fontWeight: activeHistory === t ? 600 : 400,
-                  cursor: "pointer",
-                  background: activeHistory === t ? "#fff" : "transparent",
-                  color:
-                    activeHistory === t
-                      ? t === "GOLD"
-                        ? "#c9a84c"
-                        : "#64748b"
-                      : "#999",
-                  boxShadow:
-                    activeHistory === t ? "0 1px 4px rgba(0,0,0,0.06)" : "none",
-                  transition: "all 0.15s",
-                }}
-              >
-                {t === "GOLD" ? "🟡" : "⚪"} {t}
+                 <RefreshCw size={20} />
               </button>
-            ))}
-          </div>
+              <div className="bg-[#0F172A] text-white px-5 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-3 shadow-xl">
+                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                 LIVE MARKET FEED ACTIVE
+              </div>
+           </div>
         </div>
 
-        {/* History Table */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            padding: "0.65rem 1.25rem",
-            background: "#fafaf7",
-            borderBottom: "1px solid #f0ead8",
-          }}
-        >
-          {["Price per Gram", "Date", "Time"].map((h) => (
-            <div
-              key={h}
-              style={{
-                fontSize: "0.62rem",
-                fontWeight: 600,
-                color: "#bbb",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-              }}
-            >
-              {h}
-            </div>
-          ))}
+        {/* Real-time Tickers */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+           {/* Gold Ticker */}
+           <motion.div 
+             initial={{ opacity: 0, x: -20 }}
+             animate={{ opacity: 1, x: 0 }}
+             className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden group shadow-2xl"
+           >
+              <div className="absolute top-0 right-0 p-16 opacity-10 rotate-12 group-hover:rotate-45 transition-transform duration-700">
+                 <Target size={200} className="text-amber-500" />
+              </div>
+              
+              <div className="relative z-10">
+                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Current Trading Rate [AU-24K]</p>
+                 <div className="flex items-baseline gap-4">
+                    <h2 className="text-6xl font-black text-amber-500 tracking-tighter italic">₹{fmt(currentGold)}</h2>
+                    <span className="text-sm font-bold text-slate-400">/ PER GRAM</span>
+                 </div>
+                 
+                 <div className="mt-10 flex items-center gap-6">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/10 backdrop-blur-md">
+                       <Clock size={14} className="text-slate-500" />
+                       <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">{current.gold?.updatedAt ? fmtTime(current.gold.updatedAt) : 'LIVE'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-emerald-400">
+                       <TrendingUp size={16} />
+                       <span className="text-xs font-bold font-mono">+0.24% MARKET AVG</span>
+                    </div>
+                 </div>
+              </div>
+           </motion.div>
+
+           {/* Silver Ticker */}
+           <motion.div 
+             initial={{ opacity: 0, x: 20 }}
+             animate={{ opacity: 1, x: 0 }}
+             className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-[2.5rem] p-10 relative overflow-hidden group shadow-xl border border-white"
+           >
+              <div className="absolute top-0 right-0 p-16 opacity-10 rotate-12 group-hover:rotate-45 transition-transform duration-700">
+                 <Target size={200} className="text-slate-900" />
+              </div>
+              
+              <div className="relative z-10">
+                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4">Current Trading Rate [AG-925]</p>
+                 <div className="flex items-baseline gap-4">
+                    <h2 className="text-6xl font-black text-slate-900 tracking-tighter italic">₹{fmt(currentSilver)}</h2>
+                    <span className="text-sm font-bold text-slate-500">/ PER GRAM</span>
+                 </div>
+                 
+                 <div className="mt-10 flex items-center gap-6">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-black/5 rounded-xl border border-black/5">
+                       <Clock size={14} className="text-slate-400" />
+                       <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">{current.silver?.updatedAt ? fmtTime(current.silver.updatedAt) : 'LIVE'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-rose-500">
+                       <TrendingDown size={16} />
+                       <span className="text-xs font-bold font-mono">-0.12% MARKET AVG</span>
+                    </div>
+                 </div>
+              </div>
+           </motion.div>
         </div>
 
-        {historyData.length === 0 ? (
-          <div
-            style={{
-              padding: "2.5rem",
-              textAlign: "center",
-              color: "#bbb",
-              fontSize: "0.85rem",
-            }}
-          >
-            No price history available yet.
-          </div>
-        ) : (
-          historyData.map((entry, i) => (
-            <div
-              key={entry._id || i}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr 1fr",
-                padding: "0.85rem 1.25rem",
-                borderBottom:
-                  i < historyData.length - 1 ? "1px solid #f5f0e8" : "none",
-                transition: "background 0.15s",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.background = "#fafaf7")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.background = "transparent")
-              }
-            >
-              <div
-                style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: "1.1rem",
-                  fontWeight: 700,
-                  color: activeHistory === "GOLD" ? "#c9a84c" : "#64748b",
-                }}
-              >
-                ₹{fmt(entry.pricePerGram)}/g
+        {/* Update Interface */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+           <div className="lg:col-span-2 space-y-8">
+              {/* Force Adjust Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                 {/* Gold Adjust */}
+                 <div className="bg-white rounded-[2rem] border border-slate-200 p-8 shadow-sm">
+                    <div className="flex items-center gap-3 mb-8">
+                       <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center shadow-inner">
+                          <TrendingUp size={20} />
+                       </div>
+                       <div>
+                          <h4 className="font-bold text-slate-900">Adjust Gold Floor</h4>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Manual Price Override</p>
+                       </div>
+                    </div>
+
+                    <div className="space-y-6">
+                       <div className="relative">
+                          <span className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-black text-slate-300 tracking-tighter">₹</span>
+                          <input 
+                             type="number" 
+                             placeholder="0.00"
+                             value={goldInput}
+                             onChange={(e) => {setGoldInput(e.target.value); setGoldConfirm(false);}}
+                             className="w-full bg-slate-50 border-none rounded-3xl py-6 pl-14 pr-6 text-2xl font-black text-slate-900 focus:ring-4 focus:ring-amber-500/10 transition-all outline-none"
+                          />
+                       </div>
+
+                       {goldChange !== null && (
+                          <div className={`p-4 rounded-2xl border flex items-center justify-between font-bold text-xs ${parseFloat(goldChange) >= 0 ? "bg-emerald-50 border-emerald-100 text-emerald-600" : "bg-rose-50 border-rose-100 text-rose-600"}`}>
+                             <span>Projected Market Shift</span>
+                             <div className="flex items-center gap-1">
+                                {parseFloat(goldChange) >= 0 ? <ArrowUpRight size={14}/> : <ArrowDownRight size={14}/>}
+                                {goldChange}%
+                             </div>
+                          </div>
+                      )}
+
+                       <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                          <input 
+                             type="checkbox" 
+                             checked={goldConfirm}
+                             onChange={(e) => setGoldConfirm(e.target.checked)}
+                             className="mt-1 w-4 h-4 rounded text-slate-900 focus:ring-slate-900 border-slate-300"
+                          />
+                          <p className="text-[10px] font-bold text-slate-500 leading-relaxed uppercase tracking-tight">I authorize the immediate manual override of global gold prices across the entire platform.</p>
+                       </div>
+
+                       <button 
+                          onClick={handleSetGold}
+                          disabled={!goldConfirm || loading || !goldInput}
+                          className={`w-full py-5 rounded-[1.5rem] font-black text-sm tracking-[0.1em] transition-all shadow-xl ${
+                             goldConfirm && goldInput 
+                               ? "bg-[#0F172A] text-white shadow-slate-200 hover:-translate-y-1" 
+                               : "bg-slate-100 text-slate-300 cursor-not-allowed shadow-none"
+                          }`}
+                       >
+                          {loading ? "PROPAGATING..." : "COMMIT GOLD PRICE"}
+                       </button>
+                    </div>
+                 </div>
+
+                 {/* Silver Adjust */}
+                 <div className="bg-white rounded-[2rem] border border-slate-200 p-8 shadow-sm">
+                    <div className="flex items-center gap-3 mb-8">
+                       <div className="w-10 h-10 rounded-2xl bg-slate-50 text-slate-900 flex items-center justify-center shadow-inner">
+                          <TrendingDown size={20} />
+                       </div>
+                       <div>
+                          <h4 className="font-bold text-slate-900">Adjust Silver Floor</h4>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Manual Price Override</p>
+                       </div>
+                    </div>
+
+                    <div className="space-y-6">
+                       <div className="relative">
+                          <span className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-black text-slate-300 tracking-tighter">₹</span>
+                          <input 
+                             type="number" 
+                             placeholder="0.00"
+                             value={silverInput}
+                             onChange={(e) => {setSilverInput(e.target.value); setSilverConfirm(false);}}
+                             className="w-full bg-slate-50 border-none rounded-3xl py-6 pl-14 pr-6 text-2xl font-black text-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none"
+                          />
+                       </div>
+
+                       {silverChange !== null && (
+                          <div className={`p-4 rounded-2xl border flex items-center justify-between font-bold text-xs ${parseFloat(silverChange) >= 0 ? "bg-emerald-50 border-emerald-100 text-emerald-600" : "bg-rose-50 border-rose-100 text-rose-600"}`}>
+                             <span>Projected Market Shift</span>
+                             <div className="flex items-center gap-1">
+                                {parseFloat(silverChange) >= 0 ? <ArrowUpRight size={14}/> : <ArrowDownRight size={14}/>}
+                                {silverChange}%
+                             </div>
+                          </div>
+                      )}
+
+                       <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                          <input 
+                             type="checkbox" 
+                             checked={silverConfirm}
+                             onChange={(e) => setSilverConfirm(e.target.checked)}
+                             className="mt-1 w-4 h-4 rounded text-slate-900 focus:ring-slate-900 border-slate-300"
+                          />
+                          <p className="text-[10px] font-bold text-slate-500 leading-relaxed uppercase tracking-tight">I authorize the immediate manual override of global silver prices across the entire platform.</p>
+                       </div>
+
+                       <button 
+                          onClick={handleSetSilver}
+                          disabled={!silverConfirm || loading || !silverInput}
+                          className={`w-full py-5 rounded-[1.5rem] font-black text-sm tracking-[0.1em] transition-all shadow-xl ${
+                             silverConfirm && silverInput 
+                               ? "bg-[#0F172A] text-white shadow-slate-200 hover:-translate-y-1" 
+                               : "bg-slate-100 text-slate-300 cursor-not-allowed shadow-none"
+                          }`}
+                       >
+                          {loading ? "PROPAGATING..." : "COMMIT SILVER PRICE"}
+                       </button>
+                    </div>
+                 </div>
               </div>
-              <div
-                style={{
-                  fontSize: "0.83rem",
-                  color: "#888",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                {fmtDate(entry.createdAt)}
+
+              {/* Warnings & Messages */}
+              <AnimatePresence>
+                 {(successMessage || error) && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className={`p-6 rounded-3xl border flex items-center gap-5 shadow-lg ${
+                        error ? "bg-rose-50 border-rose-100 text-rose-600 shadow-rose-200/20" : "bg-emerald-50 border-emerald-100 text-emerald-600 shadow-emerald-200/20"
+                      }`}
+                    >
+                       <div className={`p-3 rounded-2xl ${error ? "bg-rose-100" : "bg-emerald-100"}`}>
+                          {error ? <XCircle size={24}/> : <CheckCircle2 size={24}/>}
+                       </div>
+                       <div>
+                          <p className="text-xs font-bold uppercase tracking-widest mb-1">{error ? "Transmission Failed" : "Transmission Successful"}</p>
+                          <h4 className="text-sm font-black italic">{error || successMessage}</h4>
+                       </div>
+                    </motion.div>
+                 )}
+              </AnimatePresence>
+
+              <div className="bg-amber-50 rounded-3xl border border-amber-100 p-8 flex items-start gap-6">
+                 <div className="p-3 bg-amber-100 text-amber-600 rounded-2xl">
+                    <AlertTriangle size={24} />
+                 </div>
+                 <div>
+                    <h4 className="font-bold text-amber-800 text-sm italic mb-2 tracking-tight">Proprietary Override Protocol</h4>
+                    <p className="text-[11px] text-amber-700/70 font-bold uppercase leading-relaxed tracking-tighter">
+                       MANUAL DATA INJECTION WILL SUPERSEDE ALL AUTO-CRON SYNC DATA UNTIL THE NEXT SCHEDULED POLLING CYCLE [EVERY 120 MINUTES]. AUDIT LOGS WILL RECORD ALL USER TERMINAL OVERRIDES.
+                    </p>
+                 </div>
               </div>
-              <div
-                style={{
-                  fontSize: "0.83rem",
-                  color: "#bbb",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                {fmtTime(entry.createdAt)}
+           </div>
+
+           {/* History Column */}
+           <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden flex flex-col min-h-[700px]">
+              <div className="p-8 border-b border-slate-100">
+                 <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-3">
+                       <History className="text-slate-400" size={20} />
+                       <h4 className="font-bold text-slate-900 tracking-tighter italic">Ledger History</h4>
+                    </div>
+                    <div className="flex p-1 bg-slate-50 border border-slate-100 rounded-xl">
+                       <button 
+                         onClick={() => setActiveHistory("GOLD")}
+                         className={`px-4 py-1.5 rounded-lg text-[10px] font-black tracking-widest transition-all ${activeHistory === 'GOLD' ? 'bg-[#0F172A] text-white shadow-lg' : 'text-slate-400'}`}
+                       >
+                          AU
+                       </button>
+                       <button 
+                         onClick={() => setActiveHistory("SILVER")}
+                         className={`px-4 py-1.5 rounded-lg text-[10px] font-black tracking-widest transition-all ${activeHistory === 'SILVER' ? 'bg-[#0F172A] text-white shadow-lg' : 'text-slate-400'}`}
+                       >
+                          AG
+                       </button>
+                    </div>
+                 </div>
+
+                 <div className="grid grid-cols-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-4">
+                    <span>Valuation</span>
+                    <span className="text-right">Timestamp</span>
+                 </div>
               </div>
-            </div>
-          ))
-        )}
+
+              <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                 {historyData.map((entry, i) => (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      key={entry._id || i}
+                      className="group flex items-center justify-between p-5 rounded-[1.5rem] hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100"
+                    >
+                       <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black italic text-xs ${activeHistory === 'GOLD' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-600'}`}>
+                             ₹
+                          </div>
+                          <div>
+                             <h5 className="text-sm font-black text-slate-900 tracking-tight italic">₹{fmt(entry.pricePerGram)}</h5>
+                             <p className="text-[10px] text-slate-400 font-bold uppercase">Rate/Gram</p>
+                          </div>
+                       </div>
+                       <div className="text-right">
+                          <p className="text-xs font-bold text-slate-700 italic tracking-tight">{fmtDate(entry.createdAt)}</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">{fmtTime(entry.createdAt)}</p>
+                       </div>
+                    </motion.div>
+                 ))}
+                 
+                 {historyData.length === 0 && (
+                    <div className="h-full flex flex-col items-center justify-center text-slate-300 py-20">
+                       <History size={48} className="opacity-20 mb-4" />
+                       <p className="text-[10px] font-bold uppercase tracking-[0.2em]">No Ledger Entries Found</p>
+                    </div>
+                 )}
+              </div>
+              
+              <div className="p-8 bg-slate-50 border-t border-slate-100">
+                 <button className="w-full py-4 border-2 border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 hover:border-slate-900 transition-all">
+                    Export Full Historical Audit
+                 </button>
+              </div>
+           </div>
+        </div>
       </div>
+      <style>{`
+        .animate-spin-slow {
+           animation: spin 8s linear infinite;
+        }
+        @keyframes spin {
+           from { transform: rotate(0deg); }
+           to { transform: rotate(360deg); }
+        }
+      `}</style>
     </AdminLayout>
   );
 }

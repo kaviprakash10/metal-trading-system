@@ -1,5 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Search, 
+  Filter, 
+  ArrowLeft, 
+  ChevronRight, 
+  ChevronDown, 
+  ChevronUp,
+  Download,
+  Calendar,
+  User as UserIcon,
+  ShoppingBag,
+  TrendingUp,
+  History,
+  FileText,
+  IndianRupee,
+  BadgeCheck
+} from "lucide-react";
 import { fetchAllTransactions } from "../slice/Adminslice";
 import AdminLayout from "./adminLayout";
 
@@ -20,40 +38,13 @@ const fmtTime = (d) =>
   });
 
 const TYPE_CONFIG = {
-  BUY_GOLD: {
-    label: "Buy Gold",
-    icon: "🟡",
-    buyBg: "#fee2e2",
-    buyColor: "#dc2626",
-  },
-  SELL_GOLD: {
-    label: "Sell Gold",
-    icon: "🟡",
-    buyBg: "#dcfce7",
-    buyColor: "#16a34a",
-  },
-  BUY_SILVER: {
-    label: "Buy Silver",
-    icon: "⚪",
-    buyBg: "#fee2e2",
-    buyColor: "#dc2626",
-  },
-  SELL_SILVER: {
-    label: "Sell Silver",
-    icon: "⚪",
-    buyBg: "#dcfce7",
-    buyColor: "#16a34a",
-  },
+  BUY_GOLD: { label: "Buy Gold", icon: "🟡", color: "text-rose-500", bg: "bg-rose-50" },
+  SELL_GOLD: { label: "Sell Gold", icon: "🟡", color: "text-emerald-500", bg: "bg-emerald-50" },
+  BUY_SILVER: { label: "Buy Silver", icon: "⚪", color: "text-rose-500", bg: "bg-rose-50" },
+  SELL_SILVER: { label: "Sell Silver", icon: "⚪", color: "text-emerald-500", bg: "bg-emerald-50" },
 };
 
 const FILTERS = ["All", "BUY_GOLD", "SELL_GOLD", "BUY_SILVER", "SELL_SILVER"];
-const FILTER_LABELS = {
-  All: "All",
-  BUY_GOLD: "Buy Gold",
-  SELL_GOLD: "Sell Gold",
-  BUY_SILVER: "Buy Silver",
-  SELL_SILVER: "Sell Silver",
-};
 
 export default function AllTransactions() {
   const dispatch = useDispatch();
@@ -63,42 +54,31 @@ export default function AllTransactions() {
   const [typeFilter, setTypeFilter] = useState("All");
   const [assetFilter, setAssetFilter] = useState("All");
   const [sortDesc, setSortDesc] = useState(true);
-  const [selectedUser, setSelectedUser] = useState(null); // New: Tracks active user filter
+  const [selectedUser, setSelectedUser] = useState(null);
   const [expanded, setExpanded] = useState(null);
 
   useEffect(() => {
     dispatch(fetchAllTransactions());
   }, [dispatch]);
 
-  /* ── Get Unique Users for the List ── */
   const uniqueUsers = Array.from(new Set((transactions || []).map(tx => tx.user?._id)))
     .map(id => (transactions || []).find(tx => tx.user?._id === id)?.user)
     .filter(u => u && u.userName)
     .sort((a,b) => a.userName.localeCompare(b.userName));
 
-  /* ── Filter + Search + Sort ── */
   const filtered = (transactions || [])
     .filter((tx) => {
-      // If a user is selected, only show their transactions
       if (selectedUser && tx.user?._id !== selectedUser._id) return false;
-      
       if (typeFilter !== "All" && tx.type !== typeFilter) return false;
       if (assetFilter !== "All" && tx.asset !== assetFilter) return false;
       
       if (search) {
         const s = search.toLowerCase();
-        // If searching users in the list mode
-        if (!selectedUser) {
-           return (
-              tx.user?.userName?.toLowerCase().includes(s) ||
-              tx.user?.email?.toLowerCase().includes(s)
-           );
-        }
         return (
           tx.user?.userName?.toLowerCase().includes(s) ||
           tx.user?.email?.toLowerCase().includes(s) ||
           tx.type?.toLowerCase().includes(s) ||
-          tx.asset?.toLowerCase().includes(s)
+          tx._id?.toLowerCase().includes(s)
         );
       }
       return true;
@@ -109,703 +89,273 @@ export default function AllTransactions() {
         : new Date(a.createdAt) - new Date(b.createdAt),
     );
 
-  /* ── Summary Stats ── */
   const txList = transactions || [];
   const totalBuys = txList.filter((t) => t.type.startsWith("BUY"));
   const totalSells = txList.filter((t) => t.type.startsWith("SELL"));
-  const totalGst = txList.reduce((s, t) => s + (t.gstAmount || 0), 0);
-  const totalVol = txList.reduce(
-    (s, t) => s + (t.totalAmount || t.amount || 0),
-    0,
-  );
+  const totalVol = txList.reduce((s, t) => s + (t.totalAmount || t.amount || 0), 0);
 
   const stats = [
-    {
-      label: "Total Transactions",
-      value: txList.length,
-      icon: "📋",
-      color: "#1a1200",
-    },
-    {
-      label: "Total Buys",
-      value: totalBuys.length,
-      icon: "📥",
-      color: "#dc2626",
-    },
-    {
-      label: "Total Sells",
-      value: totalSells.length,
-      icon: "📤",
-      color: "#16a34a",
-    },
-    {
-      label: "Total Volume",
-      value: `₹${fmt(totalVol)}`,
-      icon: "💰",
-      color: "#c9a84c",
-    },
-    {
-      label: "Total GST Collected",
-      value: `₹${fmt(totalGst)}`,
-      icon: "🏛️",
-      color: "#7c3aed",
-    },
+    { label: "Total Volume", value: `₹${fmt(totalVol)}`, icon: IndianRupee, color: "text-amber-500", bg: "bg-amber-50" },
+    { label: "Total Orders", value: txList.length, icon: ShoppingBag, color: "text-blue-500", bg: "bg-blue-50" },
+    { label: "Buy Orders", value: totalBuys.length, icon: TrendingUp, color: "text-emerald-500", bg: "bg-emerald-50" },
+    { label: "Sell Orders", value: totalSells.length, icon: History, color: "text-rose-500", bg: "bg-rose-50" },
   ];
 
   return (
-    <AdminLayout active="/admin/transactions">
-      {/* Header */}
-      <div style={{ marginBottom: "1.75rem" }}>
-        <h1
-          style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontSize: "1.9rem",
-            fontWeight: 700,
-            color: "#1a1200",
-            margin: 0,
-          }}
-        >
-          All Transactions
-        </h1>
-        <p
-          style={{ color: "#999", fontSize: "0.875rem", marginTop: "0.25rem" }}
-        >
-          {selectedUser 
-            ? `Viewing transactions for ${selectedUser.userName} (${selectedUser.email})` 
-            : "Select a user to view their full transaction history."}
-        </p>
-      </div>
-
-      {selectedUser && (
-        <button
-          onClick={() => setSelectedUser(null)}
-          style={{
-            marginBottom: "1.5rem",
-            padding: "0.5rem 1rem",
-            borderRadius: "8px",
-            background: "#1a1200",
-            color: "#c9a84c",
-            border: "none",
-            fontWeight: 600,
-            cursor: "pointer",
-            fontSize: "0.85rem",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem"
-          }}
-        >
-          ← Back to User List
-        </button>
-      )}
-
-      {/* ── STATS ROW ── */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-          gap: "1rem",
-          marginBottom: "1.5rem",
-        }}
-      >
-        {stats.map(({ label, value, icon, color }) => (
-          <div
-            key={label}
-            style={{
-              background: "#fff",
-              borderRadius: "14px",
-              padding: "1.1rem 1.2rem",
-              border: "1px solid #ede8d8",
-              boxShadow: "0 1px 8px rgba(0,0,0,0.04)",
-            }}
-          >
-            <div style={{ fontSize: "1.2rem", marginBottom: "0.4rem" }}>
-              {icon}
+    <AdminLayout>
+      <div className="max-w-[1600px] mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+               <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Transaction Ledger</h3>
             </div>
-            <div
-              style={{
-                fontSize: "0.65rem",
-                color: "#aaa",
-                textTransform: "uppercase",
-                letterSpacing: "0.07em",
-                marginBottom: "0.2rem",
-              }}
-            >
-              {label}
-            </div>
-            <div
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "1.5rem",
-                fontWeight: 700,
-                color,
-              }}
-            >
-              {value}
-            </div>
+            <h1 className="text-3xl font-serif font-bold text-slate-900 tracking-tight">Financial Records</h1>
           </div>
-        ))}
-      </div>
-
-      {/* Error */}
-      {error && (
-        <div
-          style={{
-            marginBottom: "1rem",
-            padding: "0.85rem 1rem",
-            borderRadius: "10px",
-            background: "#fee2e2",
-            border: "1px solid #fca5a5",
-            color: "#dc2626",
-            fontSize: "0.85rem",
-          }}
-        >
-          {error}
-        </div>
-      )}
-
-      {/* ── FILTERS BAR ── */}
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: "14px",
-          border: "1px solid #ede8d8",
-          padding: "1rem 1.25rem",
-          marginBottom: "1.25rem",
-          display: "flex",
-          gap: "1rem",
-          alignItems: "center",
-          flexWrap: "wrap",
-        }}
-      >
-        {/* Search */}
-        <div style={{ position: "relative", flex: "1", minWidth: "200px" }}>
-          <span
-            style={{
-              position: "absolute",
-              left: "0.75rem",
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "#bbb",
-            }}
-          >
-            🔍
-          </span>
-          <input
-            type="text"
-            placeholder="Search by user, type or asset..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "0.55rem 0.75rem 0.55rem 2.1rem",
-              borderRadius: "8px",
-              border: "1px solid #e5e0d0",
-              fontSize: "0.85rem",
-              color: "#1a1200",
-              outline: "none",
-              background: "#fafaf7",
-              boxSizing: "border-box",
-            }}
-          />
-        </div>
-
-        {/* Type filter */}
-        <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              onClick={() => setTypeFilter(f)}
-              style={{
-                padding: "0.38rem 0.8rem",
-                borderRadius: "100px",
-                border: "none",
-                fontSize: "0.75rem",
-                fontWeight: 500,
-                cursor: "pointer",
-                background: typeFilter === f ? "#1a1200" : "#f5f0e8",
-                color: typeFilter === f ? "#c9a84c" : "#888",
-              }}
-            >
-              {FILTER_LABELS[f]}
-            </button>
-          ))}
-        </div>
-
-        {/* Asset filter */}
-        <div style={{ display: "flex", gap: "0.4rem" }}>
-          {["All", "GOLD", "SILVER"].map((f) => (
-            <button
-              key={f}
-              onClick={() => setAssetFilter(f)}
-              style={{
-                padding: "0.38rem 0.8rem",
-                borderRadius: "100px",
-                border: "none",
-                fontSize: "0.75rem",
-                fontWeight: 500,
-                cursor: "pointer",
-                background: assetFilter === f ? "#0a0a0a" : "#f5f0e8",
-                color: assetFilter === f ? "#fff" : "#888",
-              }}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-
-        {/* Sort */}
-        <button
-          onClick={() => setSortDesc((v) => !v)}
-          style={{
-            padding: "0.4rem 0.85rem",
-            borderRadius: "8px",
-            border: "1px solid #e5e0d0",
-            background: "#fafaf7",
-            color: "#888",
-            fontSize: "0.78rem",
-            cursor: "pointer",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {sortDesc ? "↓ Newest First" : "↑ Oldest First"}
-        </button>
-      </div>
-
-      {/* ── TABLE ── */}
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: "16px",
-          border: "1px solid #ede8d8",
-          overflow: "hidden",
-          boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
-        }}
-      >
-        {/* Head */}
-        {!selectedUser ? (
-           <div
-            style={{
-              padding: "1rem 1.25rem",
-              background: "#fafaf7",
-              borderBottom: "1px solid #f0ead8",
-              fontSize: "0.62rem",
-              fontWeight: 600,
-              color: "#bbb",
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-            }}
-          >
-            Registered Users with Activity
-          </div>
-        ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1.8fr 1.5fr 1fr 1fr 1fr 1fr 1fr 1.2fr",
-              padding: "0.7rem 1.25rem",
-              background: "#fafaf7",
-              borderBottom: "1px solid #f0ead8",
-            }}
-          >
-            {[
-              "User",
-              "Type",
-              "Asset",
-              "Grams",
-              "Base Amt",
-              "GST",
-              "Total",
-              "Date & Time",
-            ].map((h) => (
-              <div
-                key={h}
-                style={{
-                  fontSize: "0.62rem",
-                  fontWeight: 600,
-                  color: "#bbb",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                }}
-              >
-                {h}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Loading */}
-        {loading && (
-          <div style={{ padding: "3rem", textAlign: "center" }}>
-            <div
-              style={{
-                width: "32px",
-                height: "32px",
-                border: "3px solid #c9a84c",
-                borderTopColor: "transparent",
-                borderRadius: "50%",
-                animation: "spin 0.8s linear infinite",
-                margin: "0 auto",
-              }}
-            />
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-          </div>
-        )}
-
-        {/* Empty */}
-        {!loading && filtered.length === 0 && (
-          <div style={{ padding: "3rem", textAlign: "center" }}>
-            <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>
-              📭
-            </div>
-            <div
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "1.2rem",
-                fontWeight: 700,
-                color: "#1a1200",
-                marginBottom: "0.4rem",
-              }}
-            >
-              {search || typeFilter !== "All" || assetFilter !== "All"
-                ? "No matching transactions"
-                : "No transactions yet"}
-            </div>
-            <div style={{ color: "#bbb", fontSize: "0.85rem" }}>
-              Try adjusting your filters.
-            </div>
-          </div>
-        )}
-
-        {/* Rows */}
-        {!loading && !selectedUser && (
-           <div style={{ display: "flex", flexDirection: "column" }}>
-              {uniqueUsers.filter(u => {
-                 if(!search) return true;
-                 const s = search.toLowerCase();
-                 return u.userName.toLowerCase().includes(s) || u.email.toLowerCase().includes(s);
-              }).map(u => (
-                 <div
-                    key={u._id}
-                    onClick={() => setSelectedUser(u)}
-                    style={{
-                       display: "flex",
-                       alignItems: "center",
-                       justifyContent: "space-between",
-                       padding: "1rem 1.5rem",
-                       borderBottom: "1px solid #f5f0e8",
-                       cursor: "pointer",
-                       transition: "background 0.15s"
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = "#fafaf7"}
-                    onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                 >
-                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                       <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "linear-gradient(135deg,#c9a84c,#e2c06a)", display: "flex", alignItems: "center", justifyContent: "center", color: "#0a0800", fontWeight: 700 }}>
-                          {u.userName[0].toUpperCase()}
-                       </div>
-                       <div>
-                          <div style={{ fontWeight: 600, color: "#1a1200" }}>{u.userName}</div>
-                          <div style={{ fontSize: "0.75rem", color: "#bbb" }}>{u.email}</div>
-                       </div>
-                    </div>
-                    <div style={{ color: "#c9a84c", fontWeight: 600, fontSize: "0.85rem" }}>
-                       View Transactions →
-                    </div>
-                 </div>
-              ))}
-              {uniqueUsers.length === 0 && (
-                 <div style={{ padding: "3rem", textAlign: "center", color: "#bbb" }}>No user activity found.</div>
-              )}
-           </div>
-        )}
-
-        {!loading && selectedUser &&
-          filtered.map((tx, i) => {
-            const cfg = TYPE_CONFIG[tx.type] || TYPE_CONFIG.BUY_GOLD;
-            const isBuy = tx.type.startsWith("BUY");
-            const isOpen = expanded === tx._id;
-
-            return (
-              <div key={tx._id}>
-                {/* Main Row */}
-                <div
-                  onClick={() => setExpanded(isOpen ? null : tx._id)}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns:
-                      "1.8fr 1.5fr 1fr 1fr 1fr 1fr 1fr 1.2fr",
-                    padding: "0.9rem 1.25rem",
-                    borderBottom: "1px solid #f5f0e8",
-                    cursor: "pointer",
-                    background: isOpen ? "#fffbeb" : "transparent",
-                    transition: "background 0.15s",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isOpen) e.currentTarget.style.background = "#fafaf7";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = isOpen
-                      ? "#fffbeb"
-                      : "transparent";
-                  }}
+          
+          <div className="flex items-center gap-3">
+             <button className="bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm">
+                <Download size={18} /> Export CSV
+             </button>
+             {selectedUser && (
+                <button 
+                  onClick={() => setSelectedUser(null)}
+                  className="bg-amber-500 text-slate-900 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-amber-600 transition-all flex items-center gap-2 shadow-lg shadow-amber-500/20"
                 >
-                  {/* User */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.6rem",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "28px",
-                        height: "28px",
-                        borderRadius: "50%",
-                        background: "linear-gradient(135deg,#c9a84c,#e2c06a)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "#0a0800",
-                        fontWeight: 700,
-                        fontSize: "0.7rem",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {tx.user?.userName?.[0]?.toUpperCase() || "?"}
-                    </div>
-                    <div>
-                      <div
-                        style={{
-                          fontWeight: 600,
-                          fontSize: "0.82rem",
-                          color: "#1a1200",
-                        }}
-                      >
-                        {tx.user?.userName || "Unknown"}
-                      </div>
-                      <div style={{ fontSize: "0.65rem", color: "#bbb" }}>
-                        {tx.user?.email || "—"}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Type badge */}
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <span
-                      style={{
-                        padding: "0.2rem 0.6rem",
-                        borderRadius: "100px",
-                        fontSize: "0.7rem",
-                        fontWeight: 600,
-                        background: cfg.buyBg,
-                        color: cfg.buyColor,
-                      }}
-                    >
-                      {cfg.icon} {cfg.label}
-                    </span>
-                  </div>
-
-                  {/* Asset */}
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <span
-                      style={{
-                        padding: "0.2rem 0.6rem",
-                        borderRadius: "100px",
-                        fontSize: "0.7rem",
-                        fontWeight: 600,
-                        background: tx.asset === "GOLD" ? "#fffbeb" : "#f8fafc",
-                        color: tx.asset === "GOLD" ? "#c9a84c" : "#64748b",
-                        border: `1px solid ${tx.asset === "GOLD" ? "#fde68a" : "#e2e8f0"}`,
-                      }}
-                    >
-                      {tx.asset}
-                    </span>
-                  </div>
-
-                  {/* Grams */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      fontSize: "0.83rem",
-                      fontWeight: 500,
-                      color: "#444",
-                    }}
-                  >
-                    {fmtG(tx.grams)}g
-                  </div>
-
-                  {/* Base Amount */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      fontSize: "0.83rem",
-                      color: "#444",
-                    }}
-                  >
-                    ₹{fmt(tx.amount)}
-                  </div>
-
-                  {/* GST */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      fontSize: "0.83rem",
-                      color: tx.gstAmount > 0 ? "#f59e0b" : "#bbb",
-                      fontWeight: tx.gstAmount > 0 ? 500 : 400,
-                    }}
-                  >
-                    {tx.gstAmount > 0 ? `₹${fmt(tx.gstAmount)}` : "—"}
-                  </div>
-
-                  {/* Total */}
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <span
-                      style={{
-                        fontWeight: 700,
-                        fontSize: "0.88rem",
-                        color: isBuy ? "#dc2626" : "#16a34a",
-                      }}
-                    >
-                      {isBuy ? "−" : "+"}₹{fmt(tx.totalAmount || tx.amount)}
-                    </span>
-                  </div>
-
-                  {/* Date */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.5rem",
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontSize: "0.75rem", color: "#888" }}>
-                        {fmtDate(tx.createdAt)}
-                      </div>
-                      <div style={{ fontSize: "0.68rem", color: "#bbb" }}>
-                        {fmtTime(tx.createdAt)}
-                      </div>
-                    </div>
-                    <span
-                      style={{
-                        color: "#bbb",
-                        fontSize: "0.7rem",
-                        marginLeft: "auto",
-                      }}
-                    >
-                      {isOpen ? "▲" : "▼"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Expanded Detail Row */}
-                {isOpen && (
-                  <div
-                    style={{
-                      padding: "1rem 1.25rem 1.1rem",
-                      background: "#fffbeb",
-                      borderBottom: "1px solid #f0ead8",
-                      display: "grid",
-                      gridTemplateColumns:
-                        "repeat(auto-fit, minmax(150px, 1fr))",
-                      gap: "0.85rem",
-                    }}
-                  >
-                    {[
-                      { label: "Transaction ID", value: tx._id },
-                      { label: "User", value: tx.user?.userName || "—" },
-                      {
-                        label: "Price per gram",
-                        value: `₹${fmt(tx.pricePerGram)}/g`,
-                      },
-                      { label: "Base Amount", value: `₹${fmt(tx.amount)}` },
-                      {
-                        label: "GST (3%)",
-                        value:
-                          tx.gstAmount > 0
-                            ? `₹${fmt(tx.gstAmount)}`
-                            : "No GST (Sell)",
-                      },
-                      {
-                        label: "Total Deducted",
-                        value: `₹${fmt(tx.totalAmount || tx.amount)}`,
-                      },
-                      { label: "Status", value: tx.status || "SUCCESS" },
-                      {
-                        label: "Date & Time",
-                        value: `${fmtDate(tx.createdAt)} ${fmtTime(tx.createdAt)}`,
-                      },
-                    ].map(({ label, value }) => (
-                      <div key={label}>
-                        <div
-                          style={{
-                            fontSize: "0.62rem",
-                            color: "#bbb",
-                            textTransform: "uppercase",
-                            letterSpacing: "0.07em",
-                            marginBottom: "0.2rem",
-                          }}
-                        >
-                          {label}
-                        </div>
-                        <div
-                          style={{
-                            fontWeight: 500,
-                            fontSize: "0.8rem",
-                            color: "#1a1200",
-                            wordBreak: "break-all",
-                          }}
-                        >
-                          {value}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-        {/* Footer */}
-        {!loading && filtered.length > 0 && (
-          <div
-            style={{
-              padding: "0.7rem 1.25rem",
-              background: "#fafaf7",
-              borderTop: "1px solid #f0ead8",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <span style={{ fontSize: "0.75rem", color: "#bbb" }}>
-              Showing {filtered.length} of {txList.length} transactions
-            </span>
-            {(search || typeFilter !== "All" || assetFilter !== "All") && (
-              <button
-                onClick={() => {
-                  setSearch("");
-                  setTypeFilter("All");
-                  setAssetFilter("All");
-                }}
-                style={{
-                  fontSize: "0.75rem",
-                  color: "#c9a84c",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontWeight: 500,
-                }}
-              >
-                Clear filters
-              </button>
-            )}
+                  <ArrowLeft size={18} /> Exit User View
+                </button>
+             )}
           </div>
-        )}
+        </div>
+
+        {/* Real-time Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+           {stats.map((s, i) => (
+             <motion.div 
+               initial={{ opacity: 0, y: 10 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ delay: i * 0.1 }}
+               key={s.label} 
+               className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-5"
+             >
+                <div className={`${s.bg} ${s.color} p-4 rounded-2xl`}>
+                   <s.icon size={24} />
+                </div>
+                <div>
+                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{s.label}</p>
+                   <h3 className="text-xl font-bold text-slate-900 mt-1">{s.value}</h3>
+                </div>
+             </motion.div>
+           ))}
+        </div>
+
+        {/* Navigation & Filters */}
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center gap-6">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input 
+                type="text" 
+                placeholder="Search txid, email, or username..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-amber-500/20 text-sm font-medium outline-none transition-all"
+              />
+            </div>
+
+            {/* Type Filter */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
+               {FILTERS.map((f) => (
+                 <button
+                   key={f}
+                   onClick={() => setTypeFilter(f)}
+                   className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                     typeFilter === f 
+                       ? "bg-[#0F172A] text-white shadow-lg shadow-slate-200" 
+                       : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                   }`}
+                 >
+                   {f.replace("_", " ")}
+                 </button>
+               ))}
+            </div>
+
+            <div className="w-px h-6 bg-slate-200 hidden lg:block" />
+
+            {/* Sort Toggle */}
+            <button 
+              onClick={() => setSortDesc(!sortDesc)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 text-slate-500 text-xs font-bold hover:bg-slate-100 transition-all ml-auto"
+            >
+              <Calendar size={16} />
+              {sortDesc ? "Newest First" : "Oldest First"}
+            </button>
+          </div>
+
+          {!selectedUser ? (
+            /* User Listing View */
+            <div className="divide-y divide-slate-50">
+               <div className="px-8 py-4 bg-slate-50/50 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  Clients with recorded activity
+               </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 p-8 bg-slate-50/20">
+                  {uniqueUsers.map((u, i) => (
+                    <motion.div
+                      key={u._id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: i * 0.05 }}
+                      whileHover={{ y: -4, shadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)" }}
+                      onClick={() => setSelectedUser(u)}
+                      className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 flex items-center justify-center text-amber-600 font-bold text-xl">
+                          {u.userName[0].toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-slate-900 truncate group-hover:text-amber-600 transition-colors">{u.userName}</h3>
+                          <p className="text-xs text-slate-400 truncate font-medium">{u.email}</p>
+                        </div>
+                        <div className="text-slate-300 group-hover:text-amber-500 transition-all transform group-hover:translate-x-1">
+                          <ChevronRight size={24} />
+                        </div>
+                      </div>
+                      <div className="mt-6 flex items-center justify-between pt-4 border-t border-slate-50">
+                         <div className="px-3 py-1 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-bold uppercase tracking-tight flex items-center gap-1">
+                            <BadgeCheck size={12} /> Verified Client
+                         </div>
+                         <div className="text-[10px] font-bold text-slate-300 uppercase tracking-tighter italic">ID: {u._id.slice(-6)}</div>
+                      </div>
+                    </motion.div>
+                  ))}
+               </div>
+            </div>
+          ) : (
+            /* Transactions Table View */
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50/50">
+                  <tr>
+                    {["Trade details", "Operation", "Asset", "Amount Insights", "Total Value", "Status"].map((h) => (
+                      <th key={h} className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  <AnimatePresence>
+                    {filtered.map((tx) => {
+                      const cfg = TYPE_CONFIG[tx.type] || TYPE_CONFIG.BUY_GOLD;
+                      const isBuy = tx.type.startsWith("BUY");
+                      const isExpanded = expanded === tx._id;
+
+                      return (
+                        <Fragment key={tx._id}>
+                          <motion.tr 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            onClick={() => setExpanded(isExpanded ? null : tx._id)}
+                            className={`group cursor-pointer transition-all ${isExpanded ? "bg-amber-50/30" : "hover:bg-slate-50"}`}
+                          >
+                            <td className="px-8 py-5 whitespace-nowrap">
+                              <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-slate-400 tracking-tighter mb-0.5">#{tx._id.slice(-8).toUpperCase()}</span>
+                                <span className="text-sm font-bold text-slate-800">{fmtDate(tx.createdAt)}</span>
+                                <span className="text-[10px] text-slate-400 font-medium">{fmtTime(tx.createdAt)}</span>
+                              </div>
+                            </td>
+                            <td className="px-8 py-5 whitespace-nowrap">
+                               <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-tight ${cfg.bg} ${cfg.color}`}>
+                                  <span>{cfg.icon}</span>
+                                  {cfg.label}
+                               </div>
+                            </td>
+                            <td className="px-8 py-5 whitespace-nowrap text-sm font-bold text-slate-600">
+                               <div className="flex items-center gap-2">
+                                  <div className={`w-2 h-2 rounded-full ${tx.asset === 'GOLD' ? 'bg-amber-400' : 'bg-slate-300'}`} />
+                                  {tx.asset}
+                               </div>
+                            </td>
+                            <td className="px-8 py-5 whitespace-nowrap">
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-bold text-slate-700">{fmtG(tx.grams)}g @ ₹{fmt(tx.pricePerGram)}</span>
+                                  <span className="text-[10px] text-slate-400 font-medium">Base: ₹{fmt(tx.amount)}</span>
+                                </div>
+                            </td>
+                            <td className="px-8 py-5 whitespace-nowrap text-sm font-black text-slate-900 group-hover:scale-105 transition-transform origin-left">
+                               ₹{fmt(tx.totalAmount || tx.amount)}
+                            </td>
+                            <td className="px-8 py-5 whitespace-nowrap">
+                               <div className="flex items-center gap-4">
+                                  <span className={`text-[10px] font-bold ${tx.status === "SUCCESS" ? "text-emerald-500" : "text-amber-500"}`}>
+                                    ● {tx.status || "SUCCESS"}
+                                  </span>
+                                  {isExpanded ? <ChevronUp size={16} className="text-slate-300" /> : <ChevronDown size={16} className="text-slate-300" />}
+                               </div>
+                            </td>
+                          </motion.tr>
+                          
+                          {isExpanded && (
+                            <tr>
+                              <td colSpan="6" className="px-8 pb-8">
+                                 <motion.div 
+                                   initial={{ height: 0, opacity: 0 }}
+                                   animate={{ height: "auto", opacity: 1 }}
+                                   className="bg-white rounded-2xl border border-amber-100 p-6 shadow-inner"
+                                 >
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                                       <div>
+                                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Transaction Identity</p>
+                                          <p className="text-xs font-mono text-slate-600 font-medium">{tx._id}</p>
+                                       </div>
+                                       <div>
+                                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Taxation Summary</p>
+                                          <p className="text-xs text-slate-700 font-bold">{tx.gstAmount > 0 ? `GST (3%): ₹${fmt(tx.gstAmount)}` : 'N/A (Sell Operation)'}</p>
+                                       </div>
+                                       <div>
+                                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Client Profile</p>
+                                          <p className="text-xs text-slate-700 font-bold">{tx.user?.userName}</p>
+                                          <p className="text-[10px] text-slate-400">{tx.user?.email}</p>
+                                       </div>
+                                       <div className="text-right">
+                                           <button className="text-[10px] font-bold bg-slate-900 text-white px-4 py-2 rounded-xl hover:bg-slate-800 transition-all flex items-center gap-2 ml-auto">
+                                              <FileText size={14} /> Download Invoice
+                                           </button>
+                                       </div>
+                                    </div>
+                                 </motion.div>
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
+                      )
+                    })}
+                  </AnimatePresence>
+                </tbody>
+              </table>
+              {filtered.length === 0 && (
+                <div className="py-20 text-center flex flex-col items-center">
+                   <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-4">
+                      <Search size={32} />
+                   </div>
+                   <h3 className="font-bold text-slate-900">No matching records</h3>
+                   <p className="text-sm text-slate-400 mt-1 font-medium">Try adjusting your filters or search query</p>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Showing {filtered.length} entries of {txList.length}</p>
+             <div className="flex items-center gap-2">
+                <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-900 transition-colors"><ChevronRight className="rotate-180" size={16} /></button>
+                <div className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-900 shadow-sm">1</div>
+                <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-900 transition-colors"><ChevronRight size={16} /></button>
+             </div>
+          </div>
+        </div>
       </div>
     </AdminLayout>
   );

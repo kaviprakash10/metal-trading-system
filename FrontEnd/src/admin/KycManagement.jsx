@@ -1,5 +1,23 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  ShieldCheck, 
+  ShieldAlert, 
+  ShieldQuestion, 
+  Search, 
+  Filter, 
+  User as UserIcon,
+  Mail,
+  Calendar,
+  Wallet,
+  Coins,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  MoreVertical,
+  ChevronRight
+} from "lucide-react";
 import { fetchAllUsers, updateKycStatus } from "../slice/Adminslice";
 import AdminLayout from "./adminLayout";
 
@@ -14,244 +32,132 @@ const fmtDate = (d) =>
 
 const KYC_CONFIG = {
   VERIFIED: {
-    bg: "#dcfce7",
-    color: "#16a34a",
-    border: "#86efac",
+    bg: "bg-emerald-50",
+    color: "text-emerald-600",
+    border: "border-emerald-100",
     label: "Verified",
-    icon: "✅",
+    icon: CheckCircle2,
   },
   PENDING: {
-    bg: "#fef9c3",
-    color: "#854d0e",
-    border: "#fde68a",
+    bg: "bg-amber-50",
+    color: "text-amber-600",
+    border: "border-amber-100",
     label: "Pending",
-    icon: "⏳",
+    icon: Clock,
   },
   REJECTED: {
-    bg: "#fee2e2",
-    color: "#dc2626",
-    border: "#fca5a5",
+    bg: "bg-rose-50",
+    color: "text-rose-600",
+    border: "border-rose-100",
     label: "Rejected",
-    icon: "❌",
+    icon: XCircle,
   },
 };
 
 /* ── Single KYC User Card ── */
 function KycCard({ user, onUpdate, loading }) {
   const [selected, setSelected] = useState(user.kycStatus);
-  const [dirty, setDirty] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleChange = (val) => {
-    setSelected(val);
-    setDirty(val !== user.kycStatus);
-  };
-
-  const handleSave = () => {
-    onUpdate(user._id, selected);
-    setDirty(false);
+  const handleUpdate = async (status) => {
+    setSelected(status);
+    setIsUpdating(true);
+    await onUpdate(user._id, status);
+    setIsUpdating(false);
   };
 
   const cfg = KYC_CONFIG[user.kycStatus];
+  const StatusIcon = cfg.icon;
 
   return (
-    <div
-      style={{
-        background: "#fff",
-        borderRadius: "16px",
-        border: `1px solid ${dirty ? "rgba(201,168,76,0.3)" : "#ede8d8"}`,
-        boxShadow: dirty
-          ? "0 4px 20px rgba(201,168,76,0.1)"
-          : "0 2px 12px rgba(0,0,0,0.04)",
-        overflow: "hidden",
-        transition: "all 0.2s",
-      }}
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group"
     >
-      {/* Top status strip */}
-      <div
-        style={{
-          height: "4px",
-          background: cfg.bg,
-          borderBottom: `1px solid ${cfg.border}`,
-        }}
-      />
-
-      <div style={{ padding: "1.25rem" }}>
-        {/* User info */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.85rem",
-            marginBottom: "1.1rem",
-          }}
-        >
-          <div
-            style={{
-              width: "44px",
-              height: "44px",
-              borderRadius: "50%",
-              background: "linear-gradient(135deg,#c9a84c,#e2c06a)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#0a0800",
-              fontWeight: 700,
-              fontSize: "1rem",
-              flexShrink: 0,
-            }}
-          >
-            {user.userName?.[0]?.toUpperCase()}
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{ fontWeight: 600, fontSize: "0.9rem", color: "#1a1200" }}
-            >
-              {user.userName}
+      {/* Top Status Banner */}
+      <div className={`h-1.5 w-full ${cfg.bg.replace('50', '500')}`} />
+      
+      <div className="p-6">
+        <div className="flex items-start justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-amber-50 group-hover:text-amber-500 transition-colors">
+              <UserIcon size={28} />
             </div>
-            <div
-              style={{
-                fontSize: "0.72rem",
-                color: "#aaa",
-                marginTop: "0.1rem",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {user.email}
+            <div>
+              <h3 className="font-bold text-slate-900 group-hover:text-amber-600 transition-colors">{user.userName}</h3>
+              <p className="text-xs text-slate-400 font-medium flex items-center gap-1.5 mt-0.5">
+                <Mail size={12} /> {user.email}
+              </p>
             </div>
           </div>
-          {/* Current KYC badge */}
-          <span
-            style={{
-              padding: "0.22rem 0.65rem",
-              borderRadius: "100px",
-              fontSize: "0.7rem",
-              fontWeight: 600,
-              background: cfg.bg,
-              color: cfg.color,
-              border: `1px solid ${cfg.border}`,
-              flexShrink: 0,
-            }}
-          >
-            {cfg.icon} {cfg.label}
-          </span>
+          
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-tight ${cfg.bg} ${cfg.color} border ${cfg.border}`}>
+             <StatusIcon size={12} />
+             {cfg.label}
+          </div>
         </div>
 
-        {/* User details */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "0.6rem",
-            marginBottom: "1.1rem",
-            padding: "0.85rem",
-            background: "#fafaf7",
-            borderRadius: "10px",
-            border: "1px solid #f0ead8",
-          }}
-        >
-          {[
-            { label: "Wallet", value: `₹${fmt(user.walletBalance)}` },
-            { label: "Gold", value: `${user.goldBalance || 0}g` },
-            { label: "Silver", value: `${user.silverBalance || 0}g` },
-            { label: "Joined", value: fmtDate(user.createdAt) },
-          ].map(({ label, value }) => (
-            <div key={label}>
-              <div
-                style={{
-                  fontSize: "0.62rem",
-                  color: "#bbb",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.06em",
-                }}
-              >
-                {label}
+        {/* Info Grid */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+           <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center gap-3">
+              <div className="p-2 bg-white rounded-lg text-blue-500 shadow-sm"><Wallet size={14} /></div>
+              <div>
+                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Liquid Cash</p>
+                 <p className="text-xs font-bold text-slate-700">₹{fmt(user.walletBalance)}</p>
               </div>
-              <div
-                style={{
-                  fontWeight: 600,
-                  fontSize: "0.82rem",
-                  color: "#1a1200",
-                  marginTop: "0.1rem",
-                }}
-              >
-                {value}
+           </div>
+           <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center gap-3">
+              <div className="p-2 bg-white rounded-lg text-amber-500 shadow-sm"><Coins size={14} /></div>
+              <div>
+                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Au Balance</p>
+                 <p className="text-xs font-bold text-slate-700">{user.goldBalance || 0}g</p>
               </div>
-            </div>
-          ))}
+           </div>
         </div>
 
-        {/* KYC Action buttons */}
-        <div style={{ marginBottom: "0.85rem" }}>
-          <div
-            style={{
-              fontSize: "0.68rem",
-              color: "#aaa",
-              textTransform: "uppercase",
-              letterSpacing: "0.07em",
-              marginBottom: "0.5rem",
-            }}
-          >
-            Update KYC Status
-          </div>
-          <div style={{ display: "flex", gap: "0.5rem" }}>
-            {["VERIFIED", "PENDING", "REJECTED"].map((status) => {
-              const c = KYC_CONFIG[status];
-              const active = selected === status;
+        <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1 mb-4">
+           <span>Update Verification Status</span>
+           <ShieldQuestion size={14} className="text-slate-300" />
+        </div>
+
+        <div className="flex gap-2">
+           {Object.entries(KYC_CONFIG).map(([status, config]) => {
+              const isActive = user.kycStatus === status;
+              const SIcon = config.icon;
               return (
                 <button
                   key={status}
-                  onClick={() => handleChange(status)}
-                  style={{
-                    flex: 1,
-                    padding: "0.55rem 0.5rem",
-                    borderRadius: "8px",
-                    border: `1px solid ${active ? c.border : "#e5e0d0"}`,
-                    background: active ? c.bg : "#fafaf7",
-                    color: active ? c.color : "#aaa",
-                    fontSize: "0.72rem",
-                    fontWeight: active ? 700 : 400,
-                    cursor: "pointer",
-                    transition: "all 0.15s",
-                  }}
+                  disabled={isActive || isUpdating}
+                  onClick={() => handleUpdate(status)}
+                  className={`flex-1 flex flex-col items-center gap-1.5 p-3 rounded-2xl border transition-all ${
+                    isActive 
+                      ? `${config.bg} ${config.color} ${config.border} shadow-inner cursor-default` 
+                      : "bg-white border-slate-100 text-slate-400 hover:border-slate-300 hover:text-slate-600"
+                  }`}
                 >
-                  {c.icon} {c.label}
+                   <SIcon size={18} />
+                   <span className="text-[10px] font-bold">{config.label}</span>
                 </button>
               );
-            })}
-          </div>
+           })}
         </div>
-
-        {/* Save button — only shows when changed */}
-        {dirty && (
-          <button
-            onClick={handleSave}
-            disabled={loading}
-            style={{
-              width: "100%",
-              padding: "0.65rem",
-              borderRadius: "8px",
-              border: "none",
-              background: "linear-gradient(135deg,#c9a84c,#e2c06a)",
-              color: "#0a0800",
-              fontWeight: 700,
-              fontSize: "0.85rem",
-              cursor: "pointer",
-              boxShadow: "0 2px 12px rgba(201,168,76,0.3)",
-            }}
-          >
-            {loading ? "Saving..." : `Save → ${KYC_CONFIG[selected].label}`}
-          </button>
-        )}
       </div>
-    </div>
+      
+      <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+         <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400">
+            <Calendar size={12} />
+            MEMBER SINCE {fmtDate(user.createdAt).toUpperCase()}
+         </div>
+         <button className="p-1 hover:bg-white rounded-lg transition-all text-slate-300 hover:text-slate-900 shadow-sm">
+            <MoreVertical size={16} />
+         </button>
+      </div>
+    </motion.div>
   );
 }
 
-/* ══════════════════════════════════════════
-   KYC MANAGEMENT PAGE
-══════════════════════════════════════════ */
 export default function KycManagement() {
   const dispatch = useDispatch();
   const { users, loading, error, successMessage } = useSelector((s) => s.admin);
@@ -267,7 +173,6 @@ export default function KycManagement() {
     dispatch(updateKycStatus({ userId, kycStatus }));
   };
 
-  /* ── Filter ── */
   const filtered = (users || [])
     .filter((u) => filter === "ALL" || u.kycStatus === filter)
     .filter((u) => {
@@ -279,296 +184,116 @@ export default function KycManagement() {
       );
     });
 
-  /* ── Stats ── */
-  const total = (users || []).length;
-  const verified = (users || []).filter(
-    (u) => u.kycStatus === "VERIFIED",
-  ).length;
-  const pending = (users || []).filter((u) => u.kycStatus === "PENDING").length;
-  const rejected = (users || []).filter(
-    (u) => u.kycStatus === "REJECTED",
-  ).length;
+  const stats = [
+    { label: "Pending", count: (users || []).filter(u => u.kycStatus === 'PENDING').length, icon: ShieldAlert, color: "text-amber-500", bg: "bg-amber-50", f: "PENDING" },
+    { label: "Verified", count: (users || []).filter(u => u.kycStatus === 'VERIFIED').length, icon: ShieldCheck, color: "text-emerald-500", bg: "bg-emerald-50", f: "VERIFIED" },
+    { label: "Rejected", count: (users || []).filter(u => u.kycStatus === 'REJECTED').length, icon: XCircle, color: "text-rose-500", bg: "bg-rose-50", f: "REJECTED" },
+    { label: "Total Accounts", count: (users || []).length, icon: UserIcon, color: "text-blue-500", bg: "bg-blue-50", f: "ALL" },
+  ];
 
   return (
-    <AdminLayout active="/admin/kyc">
-      {/* Header */}
-      <div style={{ marginBottom: "1.75rem" }}>
-        <h1
-          style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontSize: "1.9rem",
-            fontWeight: 700,
-            color: "#1a1200",
-            margin: 0,
-          }}
-        >
-          KYC Management
-        </h1>
-        <p
-          style={{ color: "#999", fontSize: "0.875rem", marginTop: "0.25rem" }}
-        >
-          Review and update KYC verification status for all users.
-        </p>
-      </div>
-
-      {/* ── STATS ── */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-          gap: "1rem",
-          marginBottom: "1.5rem",
-        }}
-      >
-        {[
-          {
-            label: "Total Users",
-            value: total,
-            icon: "👥",
-            color: "#1a1200",
-            filter: "ALL",
-          },
-          {
-            label: "Verified",
-            value: verified,
-            icon: "✅",
-            color: "#16a34a",
-            filter: "VERIFIED",
-          },
-          {
-            label: "Pending",
-            value: pending,
-            icon: "⏳",
-            color: "#854d0e",
-            filter: "PENDING",
-          },
-          {
-            label: "Rejected",
-            value: rejected,
-            icon: "❌",
-            color: "#dc2626",
-            filter: "REJECTED",
-          },
-        ].map(({ label, value, icon, color, filter: f }) => (
-          <button
-            key={label}
-            onClick={() => setFilter(f)}
-            style={{
-              background: filter === f ? "#1a1200" : "#fff",
-              borderRadius: "14px",
-              padding: "1.1rem 1.2rem",
-              border: `1px solid ${filter === f ? "#1a1200" : "#ede8d8"}`,
-              boxShadow: "0 1px 8px rgba(0,0,0,0.04)",
-              cursor: "pointer",
-              textAlign: "left",
-              transition: "all 0.15s",
-            }}
-          >
-            <div style={{ fontSize: "1.2rem", marginBottom: "0.4rem" }}>
-              {icon}
-            </div>
-            <div
-              style={{
-                fontSize: "0.65rem",
-                color: filter === f ? "rgba(255,255,255,0.5)" : "#aaa",
-                textTransform: "uppercase",
-                letterSpacing: "0.07em",
-                marginBottom: "0.2rem",
-              }}
-            >
-              {label}
-            </div>
-            <div
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "1.6rem",
-                fontWeight: 700,
-                color: filter === f ? (f === "ALL" ? "#c9a84c" : color) : color,
-              }}
-            >
-              {value}
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {/* Success / Error */}
-      {successMessage && (
-        <div
-          style={{
-            marginBottom: "1rem",
-            padding: "0.85rem 1rem",
-            borderRadius: "10px",
-            background: "#dcfce7",
-            border: "1px solid #86efac",
-            color: "#15803d",
-            fontSize: "0.85rem",
-            fontWeight: 500,
-          }}
-        >
-          ✓ {successMessage}
-        </div>
-      )}
-      {error && (
-        <div
-          style={{
-            marginBottom: "1rem",
-            padding: "0.85rem 1rem",
-            borderRadius: "10px",
-            background: "#fee2e2",
-            border: "1px solid #fca5a5",
-            color: "#dc2626",
-            fontSize: "0.85rem",
-          }}
-        >
-          {error}
-        </div>
-      )}
-
-      {/* ── FILTERS BAR ── */}
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: "14px",
-          border: "1px solid #ede8d8",
-          padding: "0.85rem 1.1rem",
-          marginBottom: "1.25rem",
-          display: "flex",
-          gap: "1rem",
-          alignItems: "center",
-          flexWrap: "wrap",
-        }}
-      >
-        {/* Search */}
-        <div style={{ position: "relative", flex: 1, minWidth: "200px" }}>
-          <span
-            style={{
-              position: "absolute",
-              left: "0.75rem",
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "#bbb",
-            }}
-          >
-            🔍
-          </span>
-          <input
-            type="text"
-            placeholder="Search by name or email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "0.52rem 0.75rem 0.52rem 2.1rem",
-              borderRadius: "8px",
-              border: "1px solid #e5e0d0",
-              fontSize: "0.85rem",
-              color: "#1a1200",
-              outline: "none",
-              background: "#fafaf7",
-              boxSizing: "border-box",
-            }}
-          />
+    <AdminLayout>
+      <div className="max-w-[1600px] mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+           <div>
+              <div className="flex items-center gap-2 mb-2">
+                 <ShieldCheck className="text-amber-500" size={20} />
+                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Compliance Center</h3>
+              </div>
+              <h1 className="text-3xl font-serif font-bold text-slate-900 tracking-tight">Identity Verification</h1>
+           </div>
+           
+           <div className="relative w-full md:w-80">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input 
+                 type="text" 
+                 placeholder="Find users by name or email..."
+                 value={search}
+                 onChange={(e) => setSearch(e.target.value)}
+                 className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 text-sm font-medium outline-none transition-all shadow-sm"
+              />
+           </div>
         </div>
 
-        {/* Status filter pills */}
-        <div style={{ display: "flex", gap: "0.4rem" }}>
-          {["ALL", "VERIFIED", "PENDING", "REJECTED"].map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              style={{
-                padding: "0.38rem 0.85rem",
-                borderRadius: "100px",
-                border: "none",
-                fontSize: "0.75rem",
-                fontWeight: 500,
-                cursor: "pointer",
-                background: filter === f ? "#1a1200" : "#f5f0e8",
-                color: filter === f ? "#c9a84c" : "#888",
-                transition: "all 0.15s",
-              }}
-            >
-              {f === "ALL"
-                ? "All"
-                : `${KYC_CONFIG[f].icon} ${KYC_CONFIG[f].label}`}
-            </button>
-          ))}
+        {/* Stats Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+           {stats.map((s) => (
+             <button
+               key={s.label}
+               onClick={() => setFilter(s.f)}
+               className={`flex items-center gap-5 p-6 rounded-3xl border transition-all text-left ${
+                 filter === s.f 
+                   ? "bg-[#0F172A] border-slate-900 shadow-xl" 
+                   : "bg-white border-slate-200 shadow-sm hover:border-amber-200 hover:shadow-md"
+               }`}
+             >
+                <div className={`${s.bg} ${s.color} p-4 rounded-2xl`}>
+                   <s.icon size={24} />
+                </div>
+                <div>
+                   <p className={`text-[10px] font-bold uppercase tracking-widest ${filter === s.f ? "text-slate-400" : "text-slate-400"}`}>{s.label}</p>
+                   <h3 className={`text-2xl font-black mt-1 ${filter === s.f ? "text-white" : "text-slate-900"}`}>{s.count}</h3>
+                </div>
+             </button>
+           ))}
         </div>
 
-        <span
-          style={{ fontSize: "0.75rem", color: "#bbb", marginLeft: "auto" }}
-        >
-          {filtered.length} of {total} users
-        </span>
-      </div>
+        {(successMessage || error) && (
+           <motion.div 
+             initial={{ opacity: 0, y: -10 }}
+             animate={{ opacity: 1, y: 0 }}
+             className={`p-4 rounded-2xl border text-sm font-bold flex items-center gap-3 ${
+               error ? "bg-rose-50 border-rose-100 text-rose-600" : "bg-emerald-50 border-emerald-100 text-emerald-600"
+             }`}
+           >
+              <div className={`w-2 h-2 rounded-full ${error ? "bg-rose-500" : "bg-emerald-500"} animate-pulse`} />
+              {error || successMessage}
+           </motion.div>
+        )}
 
-      {/* ── LOADING ── */}
-      {loading && !users.length && (
-        <div style={{ padding: "3rem", textAlign: "center" }}>
-          <div
-            style={{
-              width: "32px",
-              height: "32px",
-              border: "3px solid #c9a84c",
-              borderTopColor: "transparent",
-              borderRadius: "50%",
-              animation: "spin 0.8s linear infinite",
-              margin: "0 auto",
-            }}
-          />
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </div>
-      )}
-
-      {/* ── EMPTY STATE ── */}
-      {!loading && filtered.length === 0 && (
-        <div
-          style={{
-            textAlign: "center",
-            padding: "3rem",
-            background: "#fff",
-            borderRadius: "20px",
-            border: "1px solid #ede8d8",
-          }}
-        >
-          <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>🔍</div>
-          <div
-            style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "1.2rem",
-              fontWeight: 700,
-              color: "#1a1200",
-              marginBottom: "0.4rem",
-            }}
-          >
-            No users found
+        {loading && !users.length ? (
+          <div className="h-96 flex flex-col items-center justify-center gap-4">
+             <motion.div 
+               animate={{ rotate: 360 }}
+               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+               className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full shadow-lg"
+             />
+             <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Loading Records...</p>
           </div>
-          <div style={{ color: "#bbb", fontSize: "0.85rem" }}>
-            Try adjusting your search or filter.
-          </div>
-        </div>
-      )}
-
-      {/* ── KYC CARDS GRID ── */}
-      {!loading && filtered.length > 0 && (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-            gap: "1.1rem",
-          }}
-        >
-          {filtered.map((user) => (
-            <KycCard
-              key={user._id}
-              user={user}
-              onUpdate={handleUpdate}
-              loading={loading}
-            />
-          ))}
-        </div>
-      )}
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+               <AnimatePresence mode="popLayout">
+                 {filtered.map((user) => (
+                   <KycCard
+                     key={user._id}
+                     user={user}
+                     onUpdate={handleUpdate}
+                     loading={loading}
+                   />
+                 ))}
+               </AnimatePresence>
+            </div>
+            
+            {filtered.length === 0 && (
+               <div className="py-24 text-center">
+                  <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mx-auto mb-6">
+                     <ShieldQuestion size={48} />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900">No Applications Found</h3>
+                  <p className="text-sm text-slate-400 font-medium mt-1">There are no users matching the current search or filter.</p>
+                  <button 
+                    onClick={() => {setFilter('ALL'); setSearch('');}}
+                    className="mt-6 text-amber-600 font-bold hover:underline py-2 px-4 rounded-xl hover:bg-amber-50 transition-all"
+                  >
+                    Reset all filters
+                  </button>
+               </div>
+            )}
+          </>
+        )}
+      </div>
     </AdminLayout>
   );
 }

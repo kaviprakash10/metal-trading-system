@@ -1,5 +1,26 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Users, 
+  Search, 
+  Filter, 
+  UserPlus, 
+  ShieldCheck, 
+  ShieldAlert, 
+  ShieldClose,
+  ChevronDown,
+  ChevronUp,
+  MoreVertical,
+  Mail,
+  Wallet,
+  Coins,
+  History,
+  Trash2,
+  Edit,
+  BadgeCheck,
+  Briefcase
+} from "lucide-react";
 import {
   fetchAllUsers,
   updateKycStatus,
@@ -17,19 +38,15 @@ const fmtDate = (d) =>
   });
 
 const KYC_CONFIG = {
-  VERIFIED: { bg: "#dcfce7", color: "#16a34a" },
-  PENDING: { bg: "#fef9c3", color: "#854d0e" },
-  REJECTED: { bg: "#fee2e2", color: "#dc2626" },
+  VERIFIED: { bg: "bg-emerald-50", color: "text-emerald-600", border: "border-emerald-100", icon: ShieldCheck },
+  PENDING: { bg: "bg-amber-50", color: "text-amber-600", border: "border-amber-100", icon: ShieldAlert },
+  REJECTED: { bg: "bg-rose-50", color: "text-rose-600", border: "border-rose-100", icon: ShieldClose },
 };
 
 const ROLE_CONFIG = {
-  admin: {
-    bg: "rgba(201,168,76,0.12)",
-    color: "#c9a84c",
-    border: "rgba(201,168,76,0.3)",
-  },
-  user: { bg: "#f5f5f5", color: "#666", border: "#e5e5e5" },
-  staff: { bg: "#eff6ff", color: "#3b82f6", border: "#bfdbfe" },
+  admin: { bg: "bg-amber-500", color: "text-white", label: "Master Admin" },
+  user: { bg: "bg-slate-100", color: "text-slate-600", label: "General User" },
+  staff: { bg: "bg-blue-500", color: "text-white", label: "Staff Support" },
 };
 
 export default function ManageUsers() {
@@ -40,7 +57,7 @@ export default function ManageUsers() {
   const [kycFilter, setKycFilter] = useState("All");
   const [roleFilter, setRoleFilter] = useState("All");
   const [sortBy, setSortBy] = useState("newest");
-  const [selected, setSelected] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
     dispatch(fetchAllUsers());
@@ -54,681 +71,326 @@ export default function ManageUsers() {
         const s = search.toLowerCase();
         return (
           u.userName?.toLowerCase().includes(s) ||
-          u.email?.toLowerCase().includes(s)
+          u.email?.toLowerCase().includes(s) ||
+          u._id?.toLowerCase().includes(s)
         );
       }
       return true;
     })
     .sort((a, b) => {
-      if (sortBy === "newest")
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      if (sortBy === "oldest")
-        return new Date(a.createdAt) - new Date(b.createdAt);
-      if (sortBy === "wallet")
-        return (b.walletBalance || 0) - (a.walletBalance || 0);
+      if (sortBy === "newest") return new Date(b.createdAt) - new Date(a.createdAt);
+      if (sortBy === "oldest") return new Date(a.createdAt) - new Date(b.createdAt);
+      if (sortBy === "wallet") return (b.walletBalance || 0) - (a.walletBalance || 0);
       if (sortBy === "name") return a.userName?.localeCompare(b.userName);
       return 0;
     });
 
-  const totalUsers = (users || []).length;
-  const verified = (users || []).filter(
-    (u) => u.kycStatus === "VERIFIED",
-  ).length;
-  const pending = (users || []).filter((u) => u.kycStatus === "PENDING").length;
-  const admins = (users || []).filter((u) => u.role === "admin").length;
+  const stats = [
+    { label: "Total Accounts", value: (users || []).length, icon: Users, color: "text-blue-500", bg: "bg-blue-50" },
+    { label: "Verified Users", value: (users || []).filter(u => u.kycStatus === 'VERIFIED').length, icon: BadgeCheck, color: "text-emerald-500", bg: "bg-emerald-50" },
+    { label: "Staff Panel", value: (users || []).filter(u => u.role === 'staff' || u.role === 'admin').length, icon: Briefcase, color: "text-amber-500", bg: "bg-amber-50" },
+  ];
 
   return (
-    <AdminLayout active="/admin/users">
-      {/* Header */}
-      <div style={{ marginBottom: "1.75rem" }}>
-        <h1
-          style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontSize: "1.9rem",
-            fontWeight: 700,
-            color: "#1a1200",
-            margin: 0,
-          }}
-        >
-          Manage Users
-        </h1>
-        <p
-          style={{ color: "#999", fontSize: "0.875rem", marginTop: "0.25rem" }}
-        >
-          View all users, update KYC status and roles.
-        </p>
-      </div>
-
-      {/* Stats Row */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-          gap: "1rem",
-          marginBottom: "1.5rem",
-        }}
-      >
-        {[
-          {
-            label: "Total Users",
-            value: totalUsers,
-            icon: "👥",
-            color: "#1a1200",
-          },
-          { label: "Verified", value: verified, icon: "✅", color: "#16a34a" },
-          {
-            label: "Pending KYC",
-            value: pending,
-            icon: "⏳",
-            color: "#854d0e",
-          },
-          { label: "Admins", value: admins, icon: "🛡️", color: "#c9a84c" },
-        ].map(({ label, value, icon, color }) => (
-          <div
-            key={label}
-            style={{
-              background: "#fff",
-              borderRadius: "14px",
-              padding: "1.1rem 1.2rem",
-              border: "1px solid #ede8d8",
-              boxShadow: "0 1px 8px rgba(0,0,0,0.04)",
-            }}
-          >
-            <div style={{ fontSize: "1.2rem", marginBottom: "0.4rem" }}>
-              {icon}
+    <AdminLayout>
+      <div className="max-w-[1600px] mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+               <ShieldCheck className="text-amber-500" size={20} />
+               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">User Governance</h3>
             </div>
-            <div
-              style={{
-                fontSize: "0.65rem",
-                color: "#aaa",
-                textTransform: "uppercase",
-                letterSpacing: "0.07em",
-                marginBottom: "0.2rem",
-              }}
-            >
-              {label}
-            </div>
-            <div
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "1.6rem",
-                fontWeight: 700,
-                color,
-              }}
-            >
-              {value}
-            </div>
+            <h1 className="text-3xl font-serif font-bold text-slate-900 tracking-tight">Account Directory</h1>
           </div>
-        ))}
-      </div>
-
-      {/* Success / Error */}
-      {successMessage && (
-        <div
-          style={{
-            marginBottom: "1rem",
-            padding: "0.85rem 1rem",
-            borderRadius: "10px",
-            background: "#dcfce7",
-            border: "1px solid #86efac",
-            color: "#15803d",
-            fontSize: "0.85rem",
-            fontWeight: 500,
-          }}
-        >
-          ✓ {successMessage}
-        </div>
-      )}
-      {error && (
-        <div
-          style={{
-            marginBottom: "1rem",
-            padding: "0.85rem 1rem",
-            borderRadius: "10px",
-            background: "#fee2e2",
-            border: "1px solid #fca5a5",
-            color: "#dc2626",
-            fontSize: "0.85rem",
-          }}
-        >
-          {error}
-        </div>
-      )}
-
-      {/* Filters Bar */}
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: "14px",
-          border: "1px solid #ede8d8",
-          padding: "1rem 1.25rem",
-          marginBottom: "1.25rem",
-          display: "flex",
-          gap: "1rem",
-          alignItems: "center",
-          flexWrap: "wrap",
-        }}
-      >
-        {/* Search */}
-        <div style={{ position: "relative", flex: "1", minWidth: "200px" }}>
-          <span
-            style={{
-              position: "absolute",
-              left: "0.75rem",
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "#bbb",
-            }}
-          >
-            🔍
-          </span>
-          <input
-            type="text"
-            placeholder="Search by name or email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "0.55rem 0.75rem 0.55rem 2.1rem",
-              borderRadius: "8px",
-              border: "1px solid #e5e0d0",
-              fontSize: "0.85rem",
-              color: "#1a1200",
-              outline: "none",
-              background: "#fafaf7",
-              boxSizing: "border-box",
-            }}
-          />
+          <button className="bg-[#0F172A] text-white px-6 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 hover:bg-slate-800 transition-all shadow-xl shadow-slate-200">
+             <UserPlus size={18} /> Provision New Account
+          </button>
         </div>
 
-        {/* KYC filter */}
-        <div style={{ display: "flex", gap: "0.4rem" }}>
-          {["All", "VERIFIED", "PENDING", "REJECTED"].map((f) => (
-            <button
-              key={f}
-              onClick={() => setKycFilter(f)}
-              style={{
-                padding: "0.38rem 0.8rem",
-                borderRadius: "100px",
-                border: "none",
-                fontSize: "0.75rem",
-                fontWeight: 500,
-                cursor: "pointer",
-                background: kycFilter === f ? "#1a1200" : "#f5f0e8",
-                color: kycFilter === f ? "#c9a84c" : "#888",
-              }}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-
-        {/* Role filter */}
-        <div style={{ display: "flex", gap: "0.4rem" }}>
-          {["All", "user", "admin", "staff"].map((f) => (
-            <button
-              key={f}
-              onClick={() => setRoleFilter(f)}
-              style={{
-                padding: "0.38rem 0.8rem",
-                borderRadius: "100px",
-                border: "none",
-                fontSize: "0.75rem",
-                fontWeight: 500,
-                cursor: "pointer",
-                background: roleFilter === f ? "#0a0a0a" : "#f5f0e8",
-                color: roleFilter === f ? "#fff" : "#888",
-              }}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-
-        {/* Sort */}
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          style={{
-            padding: "0.42rem 0.8rem",
-            borderRadius: "8px",
-            border: "1px solid #e5e0d0",
-            background: "#fafaf7",
-            color: "#888",
-            fontSize: "0.78rem",
-            outline: "none",
-            cursor: "pointer",
-          }}
-        >
-          <option value="newest">Newest First</option>
-          <option value="oldest">Oldest First</option>
-          <option value="wallet">Highest Wallet</option>
-          <option value="name">Name A–Z</option>
-        </select>
-      </div>
-
-      {/* User Table */}
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: "16px",
-          border: "1px solid #ede8d8",
-          overflow: "hidden",
-          boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
-        }}
-      >
-        {/* Table Head */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "2.5fr 2fr 1.2fr 1.4fr 1.2fr 1.2fr",
-            padding: "0.7rem 1.25rem",
-            background: "#fafaf7",
-            borderBottom: "1px solid #f0ead8",
-          }}
-        >
-          {["User", "Email", "Wallet", "KYC Status", "Role", "Joined"].map(
-            (h) => (
-              <div
-                key={h}
-                style={{
-                  fontSize: "0.62rem",
-                  fontWeight: 600,
-                  color: "#bbb",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                }}
-              >
-                {h}
-              </div>
-            ),
-          )}
-        </div>
-
-        {/* Loading */}
-        {loading && (
-          <div style={{ padding: "3rem", textAlign: "center" }}>
-            <div
-              style={{
-                width: "32px",
-                height: "32px",
-                border: "3px solid #c9a84c",
-                borderTopColor: "transparent",
-                borderRadius: "50%",
-                animation: "spin 0.8s linear infinite",
-                margin: "0 auto",
-              }}
-            />
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-          </div>
-        )}
-
-        {/* Empty */}
-        {!loading && filtered.length === 0 && (
-          <div style={{ padding: "3rem", textAlign: "center" }}>
-            <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>
-              👤
-            </div>
-            <div
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "1.2rem",
-                fontWeight: 700,
-                color: "#1a1200",
-                marginBottom: "0.4rem",
-              }}
-            >
-              {search || kycFilter !== "All" || roleFilter !== "All"
-                ? "No matching users"
-                : "No users yet"}
-            </div>
-            <div style={{ color: "#bbb", fontSize: "0.85rem" }}>
-              Try adjusting your filters.
-            </div>
-          </div>
-        )}
-
-        {/* ── ROWS ── */}
-        {!loading &&
-          filtered.map((u, i) => (
-            <div
-              key={u._id}
-              onClick={() => setSelected(selected?._id === u._id ? null : u)}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "2.5fr 2fr 1.2fr 1.4fr 1.2fr 1.2fr",
-                padding: "0.9rem 1.25rem",
-                borderBottom:
-                  i < filtered.length - 1 ? "1px solid #f5f0e8" : "none",
-                cursor: "pointer",
-                background: selected?._id === u._id ? "#fffbeb" : "transparent",
-                transition: "background 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                if (selected?._id !== u._id)
-                  e.currentTarget.style.background = "#fafaf7";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background =
-                  selected?._id === u._id ? "#fffbeb" : "transparent";
-              }}
-            >
-              {/* Avatar + Name */}
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "0.7rem" }}
-              >
-                <div
-                  style={{
-                    width: "34px",
-                    height: "34px",
-                    borderRadius: "50%",
-                    background: "linear-gradient(135deg,#c9a84c,#e2c06a)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#0a0800",
-                    fontWeight: 700,
-                    fontSize: "0.82rem",
-                    flexShrink: 0,
-                  }}
-                >
-                  {u.userName?.[0]?.toUpperCase()}
+        {/* Dynamic Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+           {stats.map((s, i) => (
+             <motion.div 
+               initial={{ opacity: 0, y: 10 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ delay: i * 0.1 }}
+               key={s.label} 
+               className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-5"
+             >
+                <div className={`${s.bg} ${s.color} p-4 rounded-2xl`}>
+                   <s.icon size={26} />
                 </div>
                 <div>
-                  <div
-                    style={{
-                      fontWeight: 600,
-                      fontSize: "0.85rem",
-                      color: "#1a1200",
-                    }}
-                  >
-                    {u.userName}
-                  </div>
-                  <div style={{ fontSize: "0.68rem", color: "#bbb" }}>
-                    ID: {u._id?.slice(-6)}
-                  </div>
+                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{s.label}</p>
+                   <h3 className="text-2xl font-black text-slate-900 mt-1">{s.value}</h3>
                 </div>
-              </div>
+             </motion.div>
+           ))}
+        </div>
 
-              {/* Email */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  fontSize: "0.83rem",
-                  color: "#666",
-                }}
-              >
-                {u.email}
-              </div>
-
-              {/* Wallet */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  fontWeight: 600,
-                  fontSize: "0.85rem",
-                  color: "#1a1200",
-                }}
-              >
-                ₹{fmt(u.walletBalance)}
-              </div>
-
-              {/* KYC Dropdown */}
-              <div
-                style={{ display: "flex", alignItems: "center" }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <select
-                  value={u.kycStatus}
-                  onChange={(e) =>
-                    dispatch(
-                      updateKycStatus({
-                        userId: u._id,
-                        kycStatus: e.target.value,
-                      }),
-                    )
-                  }
-                  style={{
-                    padding: "0.3rem 0.65rem",
-                    borderRadius: "8px",
-                    border: `1px solid ${KYC_CONFIG[u.kycStatus]?.color}33`,
-                    background: KYC_CONFIG[u.kycStatus]?.bg,
-                    color: KYC_CONFIG[u.kycStatus]?.color,
-                    fontSize: "0.75rem",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    outline: "none",
-                  }}
-                >
-                  {["PENDING", "VERIFIED", "REJECTED"].map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Role Dropdown */}
-              <div
-                style={{ display: "flex", alignItems: "center" }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <select
-                  value={u.role}
-                  onChange={(e) =>
-                    dispatch(
-                      updateUserRole({ userId: u._id, role: e.target.value }),
-                    )
-                  }
-                  style={{
-                    padding: "0.3rem 0.65rem",
-                    borderRadius: "8px",
-                    border: `1px solid ${ROLE_CONFIG[u.role]?.border}`,
-                    background: ROLE_CONFIG[u.role]?.bg,
-                    color: ROLE_CONFIG[u.role]?.color,
-                    fontSize: "0.75rem",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    outline: "none",
-                  }}
-                >
-                  {["user", "admin", "staff"].map((r) => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Joined */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  fontSize: "0.78rem",
-                  color: "#bbb",
-                }}
-              >
-                {fmtDate(u.createdAt)}
-              </div>
+        {/* Filters & Control Bar */}
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden min-h-[600px]">
+          <div className="p-6 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center gap-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input 
+                type="text" 
+                placeholder="Find by name, email, or id..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-amber-500/20 text-sm font-medium outline-none transition-all"
+              />
             </div>
-          ))}
 
-        {/* Footer */}
-        {!loading && filtered.length > 0 && (
-          <div
-            style={{
-              padding: "0.7rem 1.25rem",
-              background: "#fafaf7",
-              borderTop: "1px solid #f0ead8",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <span style={{ fontSize: "0.75rem", color: "#bbb" }}>
-              Showing {filtered.length} of {totalUsers} users
-            </span>
-            {(search || kycFilter !== "All" || roleFilter !== "All") && (
-              <button
-                onClick={() => {
-                  setSearch("");
-                  setKycFilter("All");
-                  setRoleFilter("All");
-                }}
-                style={{
-                  fontSize: "0.75rem",
-                  color: "#c9a84c",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontWeight: 500,
-                }}
-              >
-                Clear filters
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-      {/* ── END TABLE ── */}
+            <div className="flex flex-wrap items-center gap-3">
+               <select 
+                 value={kycFilter}
+                 onChange={(e) => setKycFilter(e.target.value)}
+                 className="bg-slate-50 border-none rounded-xl px-4 py-2 text-xs font-bold text-slate-600 outline-none hover:bg-slate-100 transition-all"
+               >
+                  <option value="All">All Statuses</option>
+                  <option value="VERIFIED">Verified</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="REJECTED">Rejected</option>
+               </select>
 
-      {/* User Detail Panel */}
-      {selected && (
-        <div
-          style={{
-            marginTop: "1.25rem",
-            background: "#fff",
-            borderRadius: "16px",
-            border: "1px solid rgba(201,168,76,0.2)",
-            boxShadow: "0 4px 24px rgba(201,168,76,0.08)",
-            padding: "1.5rem",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              marginBottom: "1.25rem",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-              <div
-                style={{
-                  width: "50px",
-                  height: "50px",
-                  borderRadius: "50%",
-                  background: "linear-gradient(135deg,#c9a84c,#e2c06a)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#0a0800",
-                  fontWeight: 700,
-                  fontSize: "1.1rem",
-                }}
-              >
-                {selected.userName?.[0]?.toUpperCase()}
-              </div>
-              <div>
-                <div
-                  style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: "1.3rem",
-                    fontWeight: 700,
-                    color: "#1a1200",
-                  }}
-                >
-                  {selected.userName}
-                </div>
-                <div style={{ fontSize: "0.78rem", color: "#aaa" }}>
-                  {selected.email}
-                </div>
-              </div>
+               <select 
+                 value={roleFilter}
+                 onChange={(e) => setRoleFilter(e.target.value)}
+                 className="bg-slate-50 border-none rounded-xl px-4 py-2 text-xs font-bold text-slate-600 outline-none hover:bg-slate-100 transition-all"
+               >
+                  <option value="All">All Roles</option>
+                  <option value="user">Users</option>
+                  <option value="staff">Staff</option>
+                  <option value="admin">Admins</option>
+               </select>
+
+               <div className="w-px h-6 bg-slate-200 hidden lg:block mx-2" />
+
+               <select 
+                 value={sortBy}
+                 onChange={(e) => setSortBy(e.target.value)}
+                 className="bg-slate-50 border-none rounded-xl px-4 py-2 text-xs font-bold text-slate-600 outline-none hover:bg-slate-100 transition-all"
+               >
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                  <option value="wallet">Highest Balance</option>
+                  <option value="name">Alpha A-Z</option>
+               </select>
             </div>
-            <button
-              onClick={() => setSelected(null)}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#bbb",
-                fontSize: "1.2rem",
-                cursor: "pointer",
-              }}
-            >
-              ✕
-            </button>
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-              gap: "1rem",
-            }}
-          >
-            {[
-              {
-                label: "Wallet Balance",
-                value: `₹${fmt(selected.walletBalance)}`,
-                color: "#c9a84c",
-              },
-              {
-                label: "Gold Balance",
-                value: `${selected.goldBalance || 0}g`,
-                color: "#c9a84c",
-              },
-              {
-                label: "Silver Balance",
-                value: `${selected.silverBalance || 0}g`,
-                color: "#94a3b8",
-              },
-              {
-                label: "KYC Status",
-                value: selected.kycStatus,
-                color: KYC_CONFIG[selected.kycStatus]?.color,
-              },
-              {
-                label: "Role",
-                value: selected.role?.toUpperCase(),
-                color: ROLE_CONFIG[selected.role]?.color,
-              },
-              {
-                label: "Joined",
-                value: fmtDate(selected.createdAt),
-                color: "#888",
-              },
-            ].map(({ label, value, color }) => (
-              <div
-                key={label}
-                style={{
-                  padding: "0.85rem 1rem",
-                  background: "#fafaf7",
-                  borderRadius: "10px",
-                  border: "1px solid #f0ead8",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "0.65rem",
-                    color: "#bbb",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.07em",
-                    marginBottom: "0.3rem",
-                  }}
-                >
-                  {label}
+          {(successMessage || error) && (
+            <div className={`mx-6 mt-6 p-4 rounded-2xl border text-sm font-bold flex items-center gap-3 ${
+              error ? "bg-rose-50 border-rose-100 text-rose-600" : "bg-emerald-50 border-emerald-100 text-emerald-600"
+            }`}>
+               <div className={`w-2 h-2 rounded-full ${error ? "bg-rose-500" : "bg-emerald-500"} animate-pulse`} />
+               {error || successMessage}
+            </div>
+          )}
+
+          {loading && !users.length ? (
+            <div className="h-96 flex flex-col items-center justify-center gap-4">
+              <motion.div 
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full"
+              />
+              <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Compiling Records...</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50/50">
+                  <tr>
+                    {["Client Identity", "Financial State", "Verification", "Permission", "Activity", "Actions"].map((h) => (
+                      <th key={h} className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  <AnimatePresence>
+                    {filtered.map((u) => {
+                      const kyc = KYC_CONFIG[u.kycStatus];
+                      const role = ROLE_CONFIG[u.role] || ROLE_CONFIG.user;
+                      const isExpanded = expandedId === u._id;
+
+                      return (
+                        <Fragment key={u._id}>
+                          <motion.tr 
+                            layout
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className={`group transition-all ${isExpanded ? "bg-amber-50/20" : "hover:bg-slate-50"}`}
+                          >
+                            <td className="px-8 py-5">
+                               <div className="flex items-center gap-4">
+                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-slate-500 font-bold text-sm border border-slate-200">
+                                     {u.userName?.[0]?.toUpperCase()}
+                                  </div>
+                                  <div>
+                                     <h4 className="text-sm font-bold text-slate-900 leading-tight">{u.userName}</h4>
+                                     <p className="text-[11px] text-slate-400 font-medium">{u.email}</p>
+                                  </div>
+                               </div>
+                            </td>
+                            <td className="px-8 py-5">
+                               <div className="flex items-center gap-1.5 font-bold text-slate-800">
+                                  <IndianRupee size={14} className="text-slate-400" />
+                                  {fmt(u.walletBalance)}
+                               </div>
+                            </td>
+                            <td className="px-8 py-5">
+                               <div className="relative group/select">
+                                  <select 
+                                    value={u.kycStatus}
+                                    onChange={(e) => dispatch(updateKycStatus({ userId: u._id, kycStatus: e.target.value }))}
+                                    className={`appearance-none font-bold text-[10px] uppercase tracking-tight py-1.5 px-4 pr-8 rounded-xl border outline-none transition-all cursor-pointer ${kyc.bg} ${kyc.color} ${kyc.border}`}
+                                  >
+                                     <option value="VERIFIED">Verified</option>
+                                     <option value="PENDING">Pending</option>
+                                     <option value="REJECTED">Rejected</option>
+                                  </select>
+                                  <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-50" />
+                               </div>
+                            </td>
+                            <td className="px-8 py-5 text-[10px] font-bold text-slate-600">
+                               <select 
+                                  value={u.role}
+                                  onChange={(e) => dispatch(updateUserRole({ userId: u._id, role: e.target.value }))}
+                                  className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-[10px] font-bold uppercase tracking-tight outline-none focus:ring-2 focus:ring-slate-100 cursor-pointer"
+                               >
+                                  <option value="user">User</option>
+                                  <option value="staff">Staff</option>
+                                  <option value="admin">Admin</option>
+                               </select>
+                            </td>
+                            <td className="px-8 py-5">
+                               <div className="text-[11px] font-bold text-slate-500 whitespace-nowrap">
+                                  {fmtDate(u.createdAt)}
+                               </div>
+                            </td>
+                            <td className="px-8 py-5">
+                               <div className="flex items-center gap-2">
+                                  <button 
+                                    onClick={() => setExpandedId(isExpanded ? null : u._id)}
+                                    className="p-2 rounded-lg bg-slate-50 text-slate-400 hover:text-slate-900 transition-all border border-transparent hover:border-slate-200"
+                                  >
+                                     {isExpanded ? <ChevronUp size={16} /> : <Edit size={16} />}
+                                  </button>
+                                  <button className="p-2 rounded-lg text-rose-300 hover:text-rose-600 hover:bg-rose-50 transition-all">
+                                     <Trash2 size={16} />
+                                  </button>
+                               </div>
+                            </td>
+                          </motion.tr>
+
+                          {isExpanded && (
+                            <tr>
+                              <td colSpan="6" className="px-8 pb-8 pt-0">
+                                 <motion.div 
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: "auto", opacity: 1 }}
+                                    className="bg-slate-900 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden"
+                                 >
+                                    <div className="absolute top-0 right-0 p-12 opacity-5">
+                                       <Users size={180} />
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
+                                       <div className="space-y-4">
+                                          <div>
+                                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Portfolio Appraisal</p>
+                                             <div className="flex items-center gap-4">
+                                                <div className="bg-amber-500/10 p-3 rounded-2xl text-amber-500 border border-amber-500/20">
+                                                   <Coins size={20} />
+                                                </div>
+                                                <div>
+                                                   <p className="text-xl font-bold">{u.goldBalance || 0}g Gold</p>
+                                                   <p className="text-xs text-slate-400">{u.silverBalance || 0}g Silver</p>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </div>
+                                       
+                                       <div className="space-y-4">
+                                          <div>
+                                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Financial State</p>
+                                             <p className="text-xl font-bold text-emerald-400">₹{fmt(u.walletBalance)}</p>
+                                             <p className="text-xs text-slate-400">Available Liquid Funds</p>
+                                          </div>
+                                       </div>
+
+                                       <div className="space-y-4">
+                                          <div>
+                                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Identification</p>
+                                             <p className="text-xs font-mono text-amber-500">{u._id}</p>
+                                             <p className="text-xs text-slate-400 mt-1">Unique Global ID</p>
+                                          </div>
+                                       </div>
+
+                                       <div className="flex flex-col justify-center items-end gap-3">
+                                          <button className="w-full bg-white text-slate-900 py-2.5 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all flex items-center justify-center gap-2">
+                                             <History size={14} /> Full Audit Log
+                                          </button>
+                                          <button className="w-full bg-amber-500/10 text-amber-500 py-2.5 rounded-xl text-xs font-bold border border-amber-500/20 hover:bg-amber-500/20 transition-all flex items-center justify-center gap-2">
+                                             <Edit size={14} /> Adjust Balances
+                                          </button>
+                                       </div>
+                                    </div>
+                                 </motion.div>
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
+                      )
+                    })}
+                  </AnimatePresence>
+                </tbody>
+              </table>
+              
+              {filtered.length === 0 && (
+                <div className="py-32 text-center flex flex-col items-center">
+                   <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mb-6 border border-slate-100 shadow-inner">
+                      <Users size={40} />
+                   </div>
+                   <h3 className="text-lg font-bold text-slate-900">Catalogue Empty</h3>
+                   <p className="text-sm text-slate-400 mt-1 font-medium max-w-xs">No user accounts found matching your selected criteria.</p>
                 </div>
-                <div style={{ fontWeight: 700, fontSize: "0.95rem", color }}>
-                  {value}
-                </div>
-              </div>
-            ))}
+              )}
+            </div>
+          )}
+          
+          <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between mt-auto">
+             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">Luna Identity Registry v2.0</p>
+             <div className="flex items-center gap-4 text-xs font-bold text-slate-400">
+                <span>Total Reach: {filtered.length} Clients</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+             </div>
           </div>
         </div>
-      )}
+      </div>
     </AdminLayout>
   );
 }
+
+const IndianRupee = ({ size, className }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2.5" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M6 3h12" />
+    <path d="M6 8h12" />
+    <path d="m6 13 8.5 8" />
+    <path d="M6 13h3" />
+    <path d="M9 13c6.667 0 6.667-10 0-10" />
+  </svg>
+);
