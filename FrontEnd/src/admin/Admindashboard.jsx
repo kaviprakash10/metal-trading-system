@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
-import { 
-  Users, 
-  ArrowUpRight, 
-  ArrowDownRight, 
-  Wallet, 
-  TrendingUp, 
-  Clock, 
+import {
+  Users,
+  ArrowUpRight,
+  ArrowDownRight,
+  Wallet,
+  TrendingUp,
+  Clock,
   ShieldCheck,
   Zap,
   Activity,
@@ -70,12 +70,12 @@ export default function AdminDashboard() {
             <p className="text-slate-500 mt-1 font-medium">Real-time performance metrics and platform activities</p>
           </div>
           <div className="flex items-center gap-3">
-             <button className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors shadow-sm">
-                Export Data
-             </button>
-             <button className="bg-[#0F172A] text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200">
-                Refresh Stats
-             </button>
+            <button className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors shadow-sm">
+              Export Data
+            </button>
+            <button className="bg-[#0F172A] text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200">
+              Refresh Stats
+            </button>
           </div>
         </div>
 
@@ -88,16 +88,16 @@ export default function AdminDashboard() {
 
         {loading ? (
           <div className="h-96 flex items-center justify-center">
-             <motion.div 
-               animate={{ rotate: 360 }}
-               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-               className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full"
-             />
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full"
+            />
           </div>
         ) : (
           <>
             {/* Stats Cards */}
-            <motion.div 
+            <motion.div
               variants={containerVariants}
               initial="hidden"
               animate="show"
@@ -128,24 +128,24 @@ export default function AdminDashboard() {
             {/* Main Grid: Transactions and Performance */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
               {/* Transactions Table */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="xl:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden"
               >
                 <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                   <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white">
-                        <HistoryIcon size={20} />
-                      </div>
-                      <div>
-                        <h2 className="text-lg font-bold text-slate-900">Recent Trades</h2>
-                        <p className="text-xs text-slate-400 font-medium tracking-tight">Last 10 platform activities</p>
-                      </div>
-                   </div>
-                   <button className="text-amber-600 text-xs font-bold hover:underline">View All</button>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white">
+                      <HistoryIcon size={20} />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-slate-900">Recent Trades</h2>
+                      <p className="text-xs text-slate-400 font-medium tracking-tight">Last 10 platform activities</p>
+                    </div>
+                  </div>
+                  <button className="text-amber-600 text-xs font-bold hover:underline">View All</button>
                 </div>
-                
+
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead className="bg-slate-50/50">
@@ -157,14 +157,14 @@ export default function AdminDashboard() {
                     </thead>
                     <tbody className="divide-y divide-slate-50">
                       {recentTrades?.length === 0 ? (
-                         <tr>
-                           <td colSpan="6" className="px-6 py-12 text-center text-slate-400 font-medium italic">No recent activities available.</td>
-                         </tr>
+                        <tr>
+                          <td colSpan="6" className="px-6 py-12 text-center text-slate-400 font-medium italic">No recent activities available.</td>
+                        </tr>
                       ) : (
                         recentTrades?.map((tx) => (
-                          <motion.tr 
+                          <motion.tr
                             whileHover={{ backgroundColor: "rgba(248,250,252,0.5)" }}
-                            key={tx._id} 
+                            key={tx._id}
                             className="group transition-colors"
                           >
                             <td className="px-6 py-5 whitespace-nowrap">
@@ -182,11 +182,10 @@ export default function AdminDashboard() {
                               </div>
                             </td>
                             <td className="px-6 py-5 whitespace-nowrap">
-                              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-tight uppercase ${
-                                tx.type.startsWith("BUY") 
-                                  ? "bg-rose-50 text-rose-600 border border-rose-100" 
-                                  : "bg-emerald-50 text-emerald-600 border border-emerald-100"
-                              }`}>
+                              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-tight uppercase ${tx.type.startsWith("BUY")
+                                ? "bg-rose-50 text-rose-600 border border-rose-100"
+                                : "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                                }`}>
                                 <div className={`w-1 h-1 rounded-full ${tx.type.startsWith("BUY") ? "bg-rose-500" : "bg-emerald-500"}`} />
                                 {tx.type}
                               </span>
@@ -214,7 +213,7 @@ export default function AdminDashboard() {
               </motion.div>
 
               {/* Sidebar Cards: KYC/Prices info */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
@@ -225,42 +224,42 @@ export default function AdminDashboard() {
                   </div>
                   <h3 className="text-lg font-bold relative z-10">Pending Verifications</h3>
                   <p className="text-slate-400 text-sm mt-1 relative z-10">KYC requests requiring attention</p>
-                  
+
                   <div className="mt-8 flex items-end justify-between relative z-10">
-                     <span className="text-5xl font-serif font-bold text-amber-500">{stats?.pendingKyc || 0}</span>
-                     <button className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-xs font-bold transition-colors">
-                        Review Now
-                     </button>
+                    <span className="text-5xl font-serif font-bold text-amber-500">{stats?.pendingKyc || 0}</span>
+                    <button className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-xs font-bold transition-colors">
+                      Review Now
+                    </button>
                   </div>
                 </div>
 
                 <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
-                   <div className="flex items-center justify-between mb-6">
-                      <h3 className="font-bold text-slate-900">Asset Valuation</h3>
-                      <TrendingUp size={18} className="text-slate-400" />
-                   </div>
-                   <div className="space-y-4">
-                      <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
-                         <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-amber-400" />
-                            <span className="text-sm font-bold text-slate-700">Gold (24K)</span>
-                         </div>
-                         <div className="text-right">
-                            <p className="text-sm font-bold text-slate-900">₹{fmt(64500)}</p>
-                            <p className="text-[10px] text-emerald-500 font-bold">+1.5%</p>
-                         </div>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-bold text-slate-900">Asset Valuation</h3>
+                    <TrendingUp size={18} className="text-slate-400" />
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-amber-400" />
+                        <span className="text-sm font-bold text-slate-700">Gold (24K)</span>
                       </div>
-                      <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
-                         <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-slate-400" />
-                            <span className="text-sm font-bold text-slate-700">Silver (Fine)</span>
-                         </div>
-                         <div className="text-right">
-                            <p className="text-sm font-bold text-slate-900">₹{fmt(78200)}</p>
-                            <p className="text-[10px] text-rose-500 font-bold">-0.2%</p>
-                         </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-slate-900">₹{fmt(64500)}</p>
+                        <p className="text-[10px] text-emerald-500 font-bold">+1.5%</p>
                       </div>
-                   </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-slate-400" />
+                        <span className="text-sm font-bold text-slate-700">Silver (Fine)</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-slate-900">₹{fmt(78200)}</p>
+                        <p className="text-[10px] text-rose-500 font-bold">-0.2%</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             </div>

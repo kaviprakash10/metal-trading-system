@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  LayoutDashboard, 
-  Users, 
-  History, 
-  Banknote, 
-  ShieldCheck, 
-  Globe, 
+import {
+  LayoutDashboard,
+  Users,
+  History,
+  Banknote,
+  ShieldCheck,
+  Globe,
   LogOut,
   ChevronRight,
   TrendingUp,
@@ -83,7 +83,7 @@ export default function AdminLayout({ children }) {
               </motion.div>
             )}
           </AnimatePresence>
-          <button 
+          <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="p-1.5 hover:bg-slate-800 rounded-lg transition-colors text-slate-400"
           >
@@ -110,11 +110,10 @@ export default function AdminLayout({ children }) {
                 <motion.div
                   whileHover={{ x: 4 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                    isActive(item.to) 
-                      ? "bg-amber-500/10 text-amber-500 shadow-sm" 
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${isActive(item.to)
+                      ? "bg-amber-500/10 text-amber-500 shadow-sm"
                       : "hover:bg-slate-800 hover:text-white"
-                  }`}
+                    }`}
                 >
                   <item.icon size={20} className={isActive(item.to) ? "text-amber-500" : "text-slate-400 group-hover:text-white transition-colors"} />
                   {isSidebarOpen && (
@@ -148,7 +147,7 @@ export default function AdminLayout({ children }) {
               {user?.userName?.[0]?.toUpperCase() || "A"}
             </div>
           )}
-          
+
           <button
             onClick={handleLogout}
             className={`w-full mt-4 flex items-center gap-3 px-4 py-3 rounded-xl text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all group overflow-hidden ${!isSidebarOpen && "justify-center"}`}
@@ -160,46 +159,46 @@ export default function AdminLayout({ children }) {
       </motion.aside>
 
       {/* --- Main Content --- */}
-      <main 
-        className="flex-1 flex flex-col min-h-screen transition-all duration-300" 
+      <main
+        className="flex-1 flex flex-col min-h-screen transition-all duration-300"
         style={{ marginLeft: isSidebarOpen ? "260px" : "80px" }}
       >
         {/* Header */}
         <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4 text-slate-400 group">
-             <div className="relative">
-                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input 
-                  type="text" 
-                  placeholder="Universal Search..." 
-                  className="bg-slate-100 border-none rounded-full pl-10 pr-4 py-2 text-sm w-64 focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all outline-none text-slate-600"
-                />
-             </div>
+            <div className="relative">
+              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Universal Search..."
+                className="bg-slate-100 border-none rounded-full pl-10 pr-4 py-2 text-sm w-64 focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all outline-none text-slate-600"
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-6">
             <div className="hidden md:flex items-center gap-8 bg-slate-50 px-6 py-2.5 rounded-full border border-slate-100">
-               <div className="flex flex-col items-end">
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-tighter">
-                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                    Spot Gold
-                  </div>
-                  <div className="text-sm font-bold text-slate-800 flex items-center gap-1">
-                    ₹{fmt(current.gold?.pricePerGram)}
-                    <TrendingUp size={14} className="text-emerald-500" />
-                  </div>
-               </div>
-               <div className="w-px h-8 bg-slate-200" />
-               <div className="flex flex-col items-end">
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-tighter">
-                    <div className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-pulse" />
-                    Spot Silver
-                  </div>
-                  <div className="text-sm font-bold text-slate-800 flex items-center gap-1">
-                    ₹{fmt(current.silver?.pricePerGram)}
-                    <TrendingDown size={14} className="text-rose-500" />
-                  </div>
-               </div>
+              <div className="flex flex-col items-end">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-tighter">
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  Spot Gold
+                </div>
+                <div className="text-sm font-bold text-slate-800 flex items-center gap-1">
+                  ₹{fmt(current.gold?.pricePerGram)}
+                  <TrendingUp size={14} className="text-emerald-500" />
+                </div>
+              </div>
+              <div className="w-px h-8 bg-slate-200" />
+              <div className="flex flex-col items-end">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-tighter">
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-pulse" />
+                  Spot Silver
+                </div>
+                <div className="text-sm font-bold text-slate-800 flex items-center gap-1">
+                  ₹{fmt(current.silver?.pricePerGram)}
+                  <TrendingDown size={14} className="text-rose-500" />
+                </div>
+              </div>
             </div>
 
             <button className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
@@ -224,7 +223,7 @@ export default function AdminLayout({ children }) {
           </AnimatePresence>
         </div>
       </main>
-      
+
       {/* Custom Scrollers for Tailwind */}
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }

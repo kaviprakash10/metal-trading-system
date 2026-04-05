@@ -117,6 +117,22 @@ export const setSilverPrice = createAsyncThunk(
   }
 );
 
+export const updateUserBalance = createAsyncThunk(
+  "admin/updateUserBalance",
+  async ({ userId, balances }, { rejectWithValue }) => {
+    try {
+      const response = await axios.patch(
+        `/admin/users/${userId}/balance`,
+        balances,
+        { headers: adminHeaders() }
+      );
+      return response.data.user;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to update balance");
+    }
+  }
+);
+
 /* ================= SLICE ================= */
 
 const adminSlice = createSlice({
@@ -227,6 +243,15 @@ const adminSlice = createSlice({
       state.successMessage = `Silver price updated to ₹${action.payload.pricePerGram}/g`;
     });
     builder.addCase(setSilverPrice.rejected, (state, action) => {
+      state.error = action.payload;
+    });
+    // Update Balance
+    builder.addCase(updateUserBalance.fulfilled, (state, action) => {
+      const index = state.users.findIndex((u) => u._id === action.payload._id);
+      if (index !== -1) state.users[index] = action.payload;
+      state.successMessage = "User balance updated successfully";
+    });
+    builder.addCase(updateUserBalance.rejected, (state, action) => {
       state.error = action.payload;
     });
   },
