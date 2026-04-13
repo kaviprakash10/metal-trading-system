@@ -73,41 +73,41 @@ export default function AccountPage() {
   const { user, loading, error } = useSelector((s) => s.auth);
 
   const [paymentTab, setPaymentTab] = useState("UPI"); // UPI | BANK
-  const [saved,      setSaved]      = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const [form, setForm] = useState({
-    userName:    "",
-    email:       "",
-    phone:       "",
-    address:     "",
-    city:        "",
-    state:       "",
-    pincode:     "",
+    userName: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
     // UPI
-    upiId:       "",
+    upiId: "",
     // Bank
-    accountName:   "",
+    accountName: "",
     accountNumber: "",
-    ifscCode:      "",
-    bankName:      "",
+    ifscCode: "",
+    bankName: "",
   });
 
   // Pre-fill from Redux user
   useEffect(() => {
     if (user) {
       setForm({
-        userName:      user.userName      || "",
-        email:         user.email         || "",
-        phone:         user.phone         || "",
-        address:       user.address       || "",
-        city:          user.city          || "",
-        state:         user.state         || "",
-        pincode:       user.pincode       || "",
-        upiId:         user.upiId         || "",
-        accountName:   user.accountName   || "",
+        userName: user.userName || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        address: user.address || "",
+        city: user.city || "",
+        state: user.state || "",
+        pincode: user.pincode || "",
+        upiId: user.upiId || "",
+        accountName: user.accountName || "",
         accountNumber: user.accountNumber || "",
-        ifscCode:      user.ifscCode      || "",
-        bankName:      user.bankName      || "",
+        ifscCode: user.ifscCode || "",
+        bankName: user.bankName || "",
       });
     }
   }, [user]);
@@ -128,7 +128,7 @@ export default function AccountPage() {
 
   const kycColor = {
     VERIFIED: { bg: "#dcfce7", color: "#16a34a", label: "Verified ✅" },
-    PENDING:  { bg: "#fef9c3", color: "#854d0e", label: "Pending ⏳"  },
+    PENDING: { bg: "#fef9c3", color: "#854d0e", label: "Pending ⏳" },
     REJECTED: { bg: "#fee2e2", color: "#dc2626", label: "Rejected ❌" },
   }[user?.kycStatus || "PENDING"];
 
@@ -196,9 +196,9 @@ export default function AccountPage() {
           {/* ── PERSONAL INFORMATION ── */}
           <Section title="Personal Information" subtitle="Your basic account details" icon="👤">
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 1rem" }}>
-              <Field label="Username"      icon="👤" name="userName" value={form.userName} onChange={handleChange} placeholder="Your display name" />
-              <Field label="Email Address" icon="📧" name="email"    value={form.email}    onChange={handleChange} type="email" placeholder="your@email.com" disabled hint="Contact support to change email" />
-              <Field label="Phone Number"  icon="📱" name="phone"    value={form.phone}    onChange={handleChange} type="tel"  placeholder="+91 98765 43210" />
+              <Field label="Username" icon="👤" name="userName" value={form.userName} onChange={handleChange} placeholder="Your display name" />
+              <Field label="Email Address" icon="📧" name="email" value={form.email} onChange={handleChange} type="email" placeholder="your@email.com" disabled hint="Contact support to change email" />
+              <Field label="Phone Number" icon="📱" name="phone" value={form.phone} onChange={handleChange} type="tel" placeholder="+91 98765 43210" />
             </div>
           </Section>
 
@@ -206,9 +206,9 @@ export default function AccountPage() {
           <Section title="Address" subtitle="Your residential address" icon="🏠">
             <Field label="Street Address" icon="📍" name="address" value={form.address} onChange={handleChange} placeholder="House No, Street, Area" />
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0 1rem" }}>
-              <Field label="City"    name="city"    value={form.city}    onChange={handleChange} placeholder="Chennai"    icon="🏙️" />
-              <Field label="State"   name="state"   value={form.state}   onChange={handleChange} placeholder="Tamil Nadu" icon="🗺️" />
-              <Field label="Pincode" name="pincode" value={form.pincode} onChange={handleChange} placeholder="600001"    icon="📮" type="number" />
+              <Field label="City" name="city" value={form.city} onChange={handleChange} placeholder="Chennai" icon="🏙️" />
+              <Field label="State" name="state" value={form.state} onChange={handleChange} placeholder="Tamil Nadu" icon="🗺️" />
+              <Field label="Pincode" name="pincode" value={form.pincode} onChange={handleChange} placeholder="600001" icon="📮" type="number" />
             </div>
           </Section>
 
@@ -218,8 +218,8 @@ export default function AccountPage() {
             {/* UPI / Bank Toggle */}
             <div style={{ display: "flex", background: "#f0ead8", borderRadius: "10px", padding: "3px", marginBottom: "1.25rem" }}>
               {[
-                { id: "UPI",  label: "UPI ID",       icon: "📲" },
-                { id: "BANK", label: "Bank Account",  icon: "🏦" },
+                { id: "UPI", label: "UPI ID", icon: "📲" },
+                { id: "BANK", label: "Bank Account", icon: "🏦" },
               ].map(({ id, label, icon }) => (
                 <button key={id} type="button" onClick={() => setPaymentTab(id)}
                   style={{ flex: 1, padding: "0.55rem", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: paymentTab === id ? 600 : 400, fontSize: "0.85rem", transition: "all 0.15s", background: paymentTab === id ? "#fff" : "transparent", color: paymentTab === id ? "#c9a84c" : "#999", boxShadow: paymentTab === id ? "0 1px 4px rgba(0,0,0,0.06)" : "none" }}>
@@ -252,10 +252,10 @@ export default function AccountPage() {
             {paymentTab === "BANK" && (
               <div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 1rem" }}>
-                  <Field label="Account Holder Name" icon="👤" name="accountName"   value={form.accountName}   onChange={handleChange} placeholder="Full name as per bank" />
-                  <Field label="Bank Name"           icon="🏦" name="bankName"      value={form.bankName}      onChange={handleChange} placeholder="Name of your bank" />
-                  <Field label="Account Number"      icon="🔢" name="accountNumber" value={form.accountNumber} onChange={handleChange} placeholder="Account Number" type="password" hint="Stored securely" />
-                  <Field label="IFSC Code"           icon="🔑" name="ifscCode"      value={form.ifscCode}      onChange={handleChange} placeholder="IFSC Code" />
+                  <Field label="Account Holder Name" icon="👤" name="accountName" value={form.accountName} onChange={handleChange} placeholder="Full name as per bank" />
+                  <Field label="Bank Name" icon="🏦" name="bankName" value={form.bankName} onChange={handleChange} placeholder="Name of your bank" />
+                  <Field label="Account Number" icon="🔢" name="accountNumber" value={form.accountNumber} onChange={handleChange} placeholder="Account Number" type="password" hint="Stored securely" />
+                  <Field label="IFSC Code" icon="🔑" name="ifscCode" value={form.ifscCode} onChange={handleChange} placeholder="IFSC Code" />
                 </div>
                 <div style={{ padding: "0.75rem 1rem", background: "#f0f9ff", borderRadius: "10px", border: "1px solid #bae6fd", fontSize: "0.78rem", color: "#0369a1", lineHeight: 1.6 }}>
                   🔒 Your bank details are encrypted and stored securely. They are only used for withdrawal processing.

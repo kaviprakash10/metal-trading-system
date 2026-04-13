@@ -184,7 +184,7 @@ export default function Calculator() {
 
           {/* Results Card */}
           <div className="lg:col-span-5 animate-slide-up [animation-delay:400ms]">
-            <div className="bg-gradient-to-br from-amber-600 via-amber-650 to-amber-700 text-white rounded-[44px] p-10 md:p-14 h-full flex flex-col relative overflow-hidden shadow-2xl shadow-amber-950/20">
+            <div className="bg-gradient-to-br from-amber-500 via-amber-550 to-amber-600 text-white rounded-[44px] p-10 md:p-14 h-full flex flex-col relative overflow-hidden shadow-2xl shadow-amber-950/20">
               {/* Decorative background element */}
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
 
