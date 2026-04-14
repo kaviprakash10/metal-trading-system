@@ -136,10 +136,16 @@ export default function UserLayout({ children }) {
 
         {/* Right: Buy / Sell CTAs + Trade dropdown + user */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginLeft: "auto" }}>
+
           {/* Gallery Button */}
           <Link to="/user/gallery" className="topnav-btn" style={{ background: "linear-gradient(135deg,#c9a84c,#e2c06a)", color: "#0a0800", boxShadow: "0 3px 12px rgba(201,168,76,0.28)" }}>
             <GalleryHorizontalEnd size={14} />
             <span>Gallery</span>
+          </Link> 
+          {/* SIP */}
+          <Link to="/user/sip" className="topnav-btn" style={{ background: "linear-gradient(135deg,#c9a84c,#e2c06a)", color: "#0a0800", boxShadow: "0 3px 12px rgba(201,168,76,0.28)" }}>
+            <GalleryHorizontalEnd size={14} />
+            <span>SIP</span>
           </Link>
           {/* Buy Gold */}
           <Link to="/user/buy/gold" className="topnav-btn" style={{ background: "linear-gradient(135deg,#c9a84c,#e2c06a)", color: "#0a0800", boxShadow: "0 3px 12px rgba(201,168,76,0.28)" }}>
@@ -178,10 +184,7 @@ export default function UserLayout({ children }) {
                 </Link>
                 <div style={{ height: "1px", background: "#f5f0e8", margin: "4px 0" }} />
                 <div style={{ padding: "4px 12px 8px", fontSize: "10px", fontWeight: 700, color: "#bbb", letterSpacing: "0.1em", textTransform: "uppercase" }}>Other</div>
-                <Link to="/user/sip" className="trade-item" onClick={() => setTradeDropdown(false)}>
-                  <RefreshCcw size={16} style={{ color: "#6366f1", flexShrink: 0 }} />
-                  Setup SIP
-                </Link>
+                
                 <Link to="/user/wallet" className="trade-item" onClick={() => setTradeDropdown(false)}>
                   <Wallet size={16} style={{ color: "#f97316", flexShrink: 0 }} />
                   Add Money
@@ -190,19 +193,6 @@ export default function UserLayout({ children }) {
             )}
           </div>
 
-          {/* User avatar */}
-          <Link to="/user/account" style={{ textDecoration: "none" }}>
-            <div style={{
-              width: "36px", height: "36px", borderRadius: "10px",
-              background: "linear-gradient(135deg,#c9a84c,#e2c06a)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#0a0800", fontWeight: 700, fontSize: "14px",
-              border: "2px solid rgba(201,168,76,0.25)",
-              cursor: "pointer",
-            }}>
-              {user?.userName?.[0]?.toUpperCase() || "U"}
-            </div>
-          </Link>
         </div>
       </header>
 

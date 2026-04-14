@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchCurrentPrices } from "../slice/Priceslice";
 import UserLayout from "./userLayout";
 import { TrendingUp, TrendingDown, Info, ChevronRight, Sparkles } from "lucide-react";
 
@@ -321,9 +322,14 @@ function MetalDetail({ metal, price }) {
    GALLERY PAGE
 ───────────────────────────────────────────── */
 export default function GalleryPage() {
+    const dispatch = useDispatch();
     const { current: currentPrices } = useSelector((s) => s.price);
     const [selected, setSelected] = useState("gold");
     const selectedMetal = METALS.find(m => m.id === selected);
+
+    useEffect(() => {
+        dispatch(fetchCurrentPrices());
+    }, [dispatch]);
 
     return (
         <UserLayout active="/user/gallery">

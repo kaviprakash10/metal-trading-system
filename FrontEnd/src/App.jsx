@@ -15,6 +15,8 @@ import WalletPage from "./user/walletPage";
 import TransactionsPage from "./user/transactionsPage";
 import SIPPage from "./user/SIPpage";
 import AccountPage from "./user/Accountpage";
+import GalleryPage from "./user/Gallerypage";
+
 
 // Admin Pages
 import AdminDashboard from "./admin/Admindashboard";
@@ -156,6 +158,14 @@ function App() {
         element={
           <ProtectedRoute>
             <AccountPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/user/gallery"
+        element={
+          <ProtectedRoute>
+            <GalleryPage />
           </ProtectedRoute>
         }
       />
