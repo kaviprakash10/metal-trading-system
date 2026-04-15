@@ -30,6 +30,7 @@ import {
   updateKycStatus,
   updateUserRole,
   updateUserBalance,
+  provisionUser
 } from "../slice/Adminslice";
 import AdminLayout from "./adminLayout";
 
@@ -72,6 +73,24 @@ export default function ManageUsers() {
     goldBalance: 0,
     silverBalance: 0,
   });
+
+  const [showProvisionModal, setShowProvisionModal] = useState(false);
+  const [provisionForm, setProvisionForm] = useState({
+    userName: "",
+    email: "",
+    mobile: "",
+    password: "",
+    role: "user"
+  });
+
+  const handleProvision = async (e) => {
+    e.preventDefault();
+    const res = await dispatch(provisionUser(provisionForm));
+    if (res.meta.requestStatus === 'fulfilled') {
+      setShowProvisionModal(false);
+      setProvisionForm({ userName: "", email: "", mobile: "", password: "", role: "user" });
+    }
+  };
 
   useEffect(() => {
     dispatch(fetchAllUsers());
@@ -137,8 +156,11 @@ export default function ManageUsers() {
             </div>
             <h1 className="text-3xl font-serif font-bold text-slate-900 tracking-tight">Account Directory</h1>
           </div>
-          <button className="bg-[#0F172A] text-white px-6 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 hover:bg-slate-800 transition-all shadow-xl shadow-slate-200">
-            <UserPlus size={18} /> Provision New Account
+          <button 
+            onClick={() => setShowProvisionModal(true)}
+            className="bg-[#0F172A] text-white px-6 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 active:scale-95"
+          >
+            <UserPlus size={18} /> New Account
           </button>
         </div>
 
@@ -502,6 +524,7 @@ export default function ManageUsers() {
                   </div>
                 </div>
 
+                {/* Action Buttons  to create new account*/}
                 <div className="flex flex-col md:flex-row gap-4 pt-6">
                   {!isEditing ? (
                     <>
@@ -544,6 +567,127 @@ export default function ManageUsers() {
                     </>
                   )}
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Provision New Account Modal */}
+      <AnimatePresence>
+        {showProvisionModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowProvisionModal(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden pointer-events-auto"
+            >
+              <div className="absolute top-6 right-6 z-10">
+                <button
+                  onClick={() => setShowProvisionModal(false)}
+                  className="w-10 h-10 bg-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-200 rounded-full flex items-center justify-center transition-all"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-10">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center shadow-inner">
+                    <UserPlus size={24} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-serif font-bold text-slate-900">Provision Account</h2>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Authority Control Protocol</p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleProvision} className="space-y-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Username</label>
+                      <input
+                        required
+                        type="text"
+                        value={provisionForm.userName}
+                        onChange={(e) => setProvisionForm({ ...provisionForm, userName: e.target.value })}
+                        placeholder="e.g. alex_stone"
+                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-slate-900/5 outline-none transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Email Address</label>
+                      <input
+                        required
+                        type="email"
+                        value={provisionForm.email}
+                        onChange={(e) => setProvisionForm({ ...provisionForm, email: e.target.value })}
+                        placeholder="alex@example.com"
+                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-slate-900/5 outline-none transition-all"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Mobile</label>
+                        <input
+                          required
+                          type="text"
+                          value={provisionForm.mobile}
+                          onChange={(e) => setProvisionForm({ ...provisionForm, mobile: e.target.value })}
+                          placeholder="9876543210"
+                          className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-slate-900/5 outline-none transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Access Role</label>
+                        <select
+                          value={provisionForm.role}
+                          onChange={(e) => setProvisionForm({ ...provisionForm, role: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-slate-900/5 outline-none transition-all appearance-none cursor-pointer"
+                        >
+                          <option value="user">USER</option>
+                          <option value="staff">STAFF</option>
+                          <option value="admin">ADMIN</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Temporary Password</label>
+                      <input
+                        required
+                        type="password"
+                        value={provisionForm.password}
+                        onChange={(e) => setProvisionForm({ ...provisionForm, password: e.target.value })}
+                        placeholder="••••••••"
+                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-slate-900/5 outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-[#0F172A] text-white py-5 rounded-3xl text-sm font-black tracking-widest shadow-2xl shadow-slate-200 hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <ShieldCheck size={20} />
+                    )}
+                    {loading ? "Creating..." : "Create Account"}
+                  </button>
+                </form>
               </div>
             </motion.div>
           </div>

@@ -133,6 +133,20 @@ export const updateUserBalance = createAsyncThunk(
   }
 );
 
+export const provisionUser = createAsyncThunk(
+  "admin/provisionUser",
+  async (userData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post("/admin/users", userData, {
+        headers: adminHeaders(),
+      });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.error || "Failed to provision user");
+    }
+  }
+);
+
 /* ================= SLICE ================= */
 
 const adminSlice = createSlice({
@@ -252,6 +266,20 @@ const adminSlice = createSlice({
       state.successMessage = "User balance updated successfully";
     });
     builder.addCase(updateUserBalance.rejected, (state, action) => {
+      state.error = action.payload;
+    });
+
+    // Provision User
+    builder.addCase(provisionUser.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(provisionUser.fulfilled, (state, action) => {
+      state.loading = false;
+      state.users = [action.payload.user, ...state.users];
+      state.successMessage = action.payload.message;
+    });
+    builder.addCase(provisionUser.rejected, (state, action) => {
+      state.loading = false;
       state.error = action.payload;
     });
   },

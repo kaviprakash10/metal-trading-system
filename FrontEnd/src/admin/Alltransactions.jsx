@@ -94,12 +94,39 @@ export default function AllTransactions() {
   const totalSells = txList.filter((t) => t.type.startsWith("SELL"));
   const totalVol = txList.reduce((s, t) => s + (t.totalAmount || t.amount || 0), 0);
 
-  const stats = [
+  const stats = [ 
     { label: "Total Volume", value: `₹${fmt(totalVol)}`, icon: IndianRupee, color: "text-amber-500", bg: "bg-amber-50" },
     { label: "Total Orders", value: txList.length, icon: ShoppingBag, color: "text-blue-500", bg: "bg-blue-50" },
     { label: "Buy Orders", value: totalBuys.length, icon: TrendingUp, color: "text-emerald-500", bg: "bg-emerald-50" },
     { label: "Sell Orders", value: totalSells.length, icon: HistoryIcon, color: "text-rose-500", bg: "bg-rose-50" },
   ];
+
+  const handleExportCSV = () => {
+    if (!filtered || filtered.length === 0) return;
+    const headers = ["Order ID", "Date", "User", "Email", "Type", "Asset", "Weight(g)", "Rate", "Base Amount", "GST(3%)", "Total", "Status"];
+    const rows = filtered.map(tx => [
+      tx._id,
+      new Date(tx.createdAt).toLocaleString(),
+      tx.user?.userName || "N/A",
+      tx.user?.email || "N/A",
+      tx.type,
+      tx.asset,
+      tx.grams,
+      tx.pricePerGram,
+      tx.amount,
+      tx.gstAmount || 0,
+      tx.totalAmount || tx.amount,
+      tx.status || "SUCCESS"
+    ]);
+
+    const csvContent = [headers.join(","), ...rows.map(r => r.map(cell => `"${cell}"`).join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Metal_Transactions_${new Date().toISOString().split('T')[0]}.csv`);
+    link.click();
+  };
 
   return (
     <AdminLayout>
@@ -115,7 +142,10 @@ export default function AllTransactions() {
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm">
+            <button 
+              onClick={handleExportCSV}
+              className="bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm active:scale-95"
+            >
               <Download size={18} /> Export CSV
             </button>
             {selectedUser && (

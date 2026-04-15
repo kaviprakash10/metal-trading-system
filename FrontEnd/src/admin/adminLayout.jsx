@@ -111,8 +111,8 @@ export default function AdminLayout({ children }) {
                   whileHover={{ x: 4 }}
                   whileTap={{ scale: 0.98 }}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${isActive(item.to)
-                      ? "bg-amber-500/10 text-amber-500 shadow-sm"
-                      : "hover:bg-slate-800 hover:text-white"
+                    ? "bg-amber-500/10 text-amber-500 shadow-sm"
+                    : "hover:bg-slate-800 hover:text-white"
                     }`}
                 >
                   <item.icon size={20} className={isActive(item.to) ? "text-amber-500" : "text-slate-400 group-hover:text-white transition-colors"} />
@@ -167,7 +167,9 @@ export default function AdminLayout({ children }) {
         <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200 px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4 text-slate-400 group">
             <div className="relative">
+
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              {/* Search Bar */}
               <input
                 type="text"
                 placeholder="Universal Search..."
@@ -201,10 +203,11 @@ export default function AdminLayout({ children }) {
               </div>
             </div>
 
-            <button className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
+            {/* Notification */}
+            {/* <button className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
               <Bell size={20} />
               <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
-            </button>
+            </button> */}
           </div>
         </header>
 

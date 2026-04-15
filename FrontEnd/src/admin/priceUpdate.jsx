@@ -45,6 +45,7 @@ export default function PriceManagement() {
    const [goldConfirm, setGoldConfirm] = useState(false);
    const [silverConfirm, setSilverConfirm] = useState(false);
    const [activeHistory, setActiveHistory] = useState("GOLD");
+   const [isRefreshing, setIsRefreshing] = useState(false);
 
    useEffect(() => {
       dispatch(fetchCurrentPrices());
@@ -74,6 +75,11 @@ export default function PriceManagement() {
 
    const historyData = activeHistory === "GOLD" ? history.gold || [] : history.silver || [];
 
+   const auditLog = [
+      ...(history.gold || []).map(e => ({ ...e, type: 'GOLD' })),
+      ...(history.silver || []).map(e => ({ ...e, type: 'SILVER' }))
+   ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 15);
+
    return (
       <AdminLayout>
          <div className="max-w-[1600px] mx-auto space-y-8">
@@ -90,13 +96,19 @@ export default function PriceManagement() {
                <div className="flex items-center gap-3">
                   <button
                      onClick={() => {
+                        setIsRefreshing(true);
                         dispatch(fetchCurrentPrices());
                         dispatch(fetchPriceHistory({ asset: "GOLD", limit: 10 }));
                         dispatch(fetchPriceHistory({ asset: "SILVER", limit: 10 }));
+                        setTimeout(() => setIsRefreshing(false), 1000);
                      }}
-                     className="bg-white border border-slate-200 p-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all shadow-sm"
+                     className="bg-white border border-slate-200 p-3 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all shadow-sm group active:scale-95"
+                     title="Refresh Market Data"
                   >
-                     <RefreshCw size={20} />
+                     <RefreshCw 
+                        size={20} 
+                        className={`${isRefreshing ? "animate-spin" : "group-hover:rotate-180"} transition-all duration-700 ease-in-out`} 
+                     />
                   </button>
                   <div className="bg-[#0F172A] text-white px-5 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-3 shadow-xl">
                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
