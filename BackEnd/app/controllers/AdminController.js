@@ -2,6 +2,7 @@ import User from "../models/UserModel.js";
 import Transaction from "../models/Transaction.js";
 import GoldPrice from "../models/GoldPriceModel.js";
 import SilverPrice from "../models/SilverPriceModel.js";
+import bcryptjs from "bcryptjs";
 
 const AdminController = {};
 
@@ -288,6 +289,62 @@ AdminController.setSilverPrice = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to update silver price" });
+  }
+};
+
+AdminController.updateUserBalance = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { walletBalance, goldBalance, silverBalance } = req.body;
+
+    const targetUser = await User.findById(userId);
+    if (!targetUser) return res.status(404).json({ message: "User not found" });
+
+    // Protect admin accounts from balance changes by non-admins or other admins (except self)
+    if (targetUser.role === "admin" && req.user._id.toString() !== targetUser._id.toString()) {
+      return res.status(403).json({ message: "Only the admin themselves can modify their own balances." });
+    }
+
+    const updates = {};
+    if (walletBalance !== undefined) updates.walletBalance = Number(walletBalance);
+    if (goldBalance !== undefined) updates.goldBalance = Number(goldBalance);
+    if (silverBalance !== undefined) updates.silverBalance = Number(silverBalance);
+
+    const user = await User.findByIdAndUpdate(userId, updates, { new: true }).select("-password");
+
+    res.status(200).json({ message: "User balance updated successfully", user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update balance" });
+  }
+};
+
+AdminController.provisionUser = async (req, res) => {
+  try {
+    const { userName, email, password, mobile, role } = req.body;
+
+    if (!userName || !email || !password || !mobile) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const existingUser = await User.findOne({ $or: [{ email }, { userName }] });
+    if (existingUser) {
+      return res.status(400).json({ error: "User already exists with this email or username" });
+    }
+
+    const user = new User({ userName, email, mobile, role: role || "user" });
+    const salt = await bcryptjs.genSalt();
+    user.password = await bcryptjs.hash(password, salt);
+
+    await user.save();
+
+    const userData = user.toObject();
+    delete userData.password;
+
+    res.status(201).json({ message: "User provisioned successfully", user: userData });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to provision user" });
   }
 };
 

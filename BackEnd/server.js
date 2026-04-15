@@ -85,6 +85,7 @@ app.get("/api/wallet/checkAmount", auth, Wallet.getWallet);
 // ── Admin Routes (auth + adminOnly/staffOnly middleware) ──
 app.get("/api/admin/stats", auth, staff, AdminController.getStats);
 app.get("/api/admin/users", auth, staff, AdminController.getAllUsers);
+app.post("/api/admin/users", auth, admin, AdminController.provisionUser);
 app.patch(
   "/api/admin/users/:userId/kyc",
   auth,
@@ -96,6 +97,12 @@ app.patch(
   auth,
   admin,
   AdminController.updateUserRole,
+);
+app.patch(
+  "/api/admin/users/:userId/balance",
+  auth,
+  admin,
+  AdminController.updateUserBalance,
 );
 app.get(
   "/api/admin/transactions",
