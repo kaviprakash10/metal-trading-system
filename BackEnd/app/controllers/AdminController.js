@@ -186,12 +186,19 @@ AdminController.getAllTransactions = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
-    const { search, type, asset, userId, sort = "-createdAt" } = req.query;
+    const { search, type, asset, userId, sort } = req.query;
+
 
     const query = {};
     if (userId) query.user = userId;
-    if (type && type !== "All") query.type = type;
+    
+    // Improved type matching (exact or prefix like BUY, SELL)
+    if (type && type !== "All") {
+      query.type = { $regex: `^${type}`, $options: "i" };
+    }
+    
     if (asset && asset !== "All") query.asset = asset;
+
     
     if (search) {
       // Find users matching search first if search is by name/email
@@ -227,8 +234,13 @@ AdminController.getAllTransactions = async (req, res) => {
     const totalVolume = statsResult[0]?.totalVol || 0;
     const totalGst = statsResult[0]?.totalGst || 0;
 
+    const sortQuery = (sort === "oldest" || sort === "createdAt") 
+      ? { createdAt: 1 } 
+      : { createdAt: -1 };
+
     const transactions = await Transaction.find(query)
-      .sort(sort)
+      .sort(sortQuery)
+
       .populate("user", "userName email")
       .skip(skip)
       .limit(limit);

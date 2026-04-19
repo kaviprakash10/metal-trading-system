@@ -1,5 +1,5 @@
-import dotenv from "dotenv";
-dotenv.config();
+import "./config/env.js";
+
 
 import express from "express";
 import morgan from "morgan";
@@ -32,7 +32,8 @@ import GoldPrice from "./app/models/GoldPriceModel.js";
 import SilverPrice from "./app/models/SilverPriceModel.js";
 
 // SIP controlers
-import SipController from "./app/controllers/Sipcontroller.js";
+import SipController, { executeSips } from "./app/controllers/Sipcontroller.js";
+
 import Sip from "./app/models/Sipmodel.js";
 
 // PortfolioController
@@ -132,9 +133,10 @@ app.get("/api/prices/current", PublicPrice.getCurrentPrices);
 app.get("/api/prices/history", PublicPrice.getPriceHistory);
 app.get("/api/prices/summary", PublicPrice.getPriceSummary);
 
-// ── Razorpay Routes ──
-app.post("/api/razorpay/create-order", auth, RazorpayController.createOrder);
-app.post("/api/razorpay/verify-payment", auth, RazorpayController.verifyPayment);
+// ── Razorpay / Wallet Routes ──
+app.post("/api/wallet/create-order", auth, RazorpayController.createOrder);
+app.post("/api/wallet/verify-payment", auth, RazorpayController.verifyPayment);
+
 
 // To fetch the price
 app.get("/api/prices", async (req, res) => {
