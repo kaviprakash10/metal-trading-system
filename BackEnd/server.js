@@ -38,6 +38,9 @@ import Sip from "./app/models/Sipmodel.js";
 // PortfolioController
 import Portfolio from "./app/controllers/PortfolioController.js";
 
+// Razorpay
+import RazorpayController from "./app/controllers/razorpayController.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -128,6 +131,10 @@ app.delete("/api/sip/:sipId", auth, SipController.deleteSip);
 app.get("/api/prices/current", PublicPrice.getCurrentPrices);
 app.get("/api/prices/history", PublicPrice.getPriceHistory);
 app.get("/api/prices/summary", PublicPrice.getPriceSummary);
+
+// ── Razorpay Routes ──
+app.post("/api/razorpay/create-order", auth, RazorpayController.createOrder);
+app.post("/api/razorpay/verify-payment", auth, RazorpayController.verifyPayment);
 
 // To fetch the price
 app.get("/api/prices", async (req, res) => {
