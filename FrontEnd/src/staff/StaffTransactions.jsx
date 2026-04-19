@@ -16,7 +16,9 @@ import {
   Package,
   Coins,
   ReceiptText,
+  IndianRupee,
 } from "lucide-react";
+
 import { motion, AnimatePresence } from "framer-motion";
 
 const TYPE_CONFIG = {
@@ -44,13 +46,22 @@ const TYPE_CONFIG = {
     bg: "bg-slate-50",
     border: "border-slate-100",
   },
+  WALLET_ADD: {
+    label: "Wallet Deposit",
+    icon: <IndianRupee className="text-indigo-600" size={18} />,
+    bg: "bg-indigo-50",
+    border: "border-indigo-100",
+  },
 };
+
 
 const FILTERS = {
   All: "All Operations",
   Buy: "Acquisitions",
   Sell: "Liquidations",
+  WALLET_ADD: "Wallet Deposits",
 };
+
 
 export default function StaffTransactions() {
   const dispatch = useDispatch();
@@ -69,9 +80,10 @@ export default function StaffTransactions() {
   const [typeFilter, setTypeFilter] = useState("All");
   const [assetFilter, setAssetFilter] = useState("All");
   const [page, setPage] = useState(1);
-  const [sortDesc, setSortDesc] = useState(true);
-  const [expanded, setExpanded] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [expanded, setExpanded] = useState(null);
+  const [sortDesc, setSortDesc] = useState(true);
+
 
   // Thunk Dispatch Sync
   useEffect(() => {
@@ -79,9 +91,10 @@ export default function StaffTransactions() {
       page,
       limit: 20,
       search,
-      filter: typeFilter !== "All" ? typeFilter.toUpperCase() : "",
+      type: typeFilter !== "All" ? typeFilter : "",
       sort: sortDesc ? "newest" : "oldest",
     };
+
     if (selectedUser) params.userId = selectedUser._id;
 
     dispatch(fetchAllTransactions(params));
@@ -105,6 +118,19 @@ export default function StaffTransactions() {
   };
 
   const txList = transactions || [];
+
+  const uniqueUsers = useMemo(() => {
+    const usersMap = new Map();
+    txList.forEach(tx => {
+      if (tx.user && !usersMap.has(tx.user._id)) {
+        usersMap.set(tx.user._id, tx.user);
+      }
+    });
+    return Array.from(usersMap.values()).sort((a, b) => 
+      (a.userName || "").localeCompare(b.userName || "")
+    );
+  }, [txList]);
+
 
   // Formatter Utilities
   const fmt = (v) =>
@@ -255,13 +281,50 @@ export default function StaffTransactions() {
         <div className="bg-white rounded-[3rem] border border-slate-200/80 shadow-sm overflow-hidden relative">
           <div className="overflow-x-auto">
             {loading ? (
+
               <div className="py-32 flex flex-col items-center justify-center gap-6">
                 <div className="w-16 h-16 border-[5px] border-indigo-500/10 border-t-indigo-600 rounded-full animate-spin" />
                 <p className="text-slate-400 font-black text-xs uppercase tracking-[0.2em] animate-pulse">
                   Accessing Core Ledger Database...
                 </p>
               </div>
+            ) : !selectedUser ? (
+              /* User Directory View */
+              <div className="bg-slate-50/30 p-10">
+                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                  {uniqueUsers.map((u, i) => (
+                    <motion.div
+                      key={u._id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: i * 0.05 }}
+                      onClick={() => handleUserSelect(u)}
+                      className="group bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm cursor-pointer hover:shadow-xl hover:shadow-indigo-500/5 transition-all hover:-translate-y-1"
+                    >
+                      <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 rounded-3xl bg-slate-900 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-slate-900/20 group-hover:bg-indigo-600 transition-colors">
+                          {u.userName ? u.userName[0].toUpperCase() : "?"}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg font-serif font-black text-slate-900 truncate tracking-tight">{u.userName}</h3>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate mt-1">{u.email}</p>
+                        </div>
+                        <div className="p-3 rounded-2xl bg-slate-50 text-slate-300 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-all">
+                          <ChevronRight size={20} />
+                        </div>
+                      </div>
+                      <div className="mt-8 pt-6 border-t border-slate-50 flex items-center justify-between">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[9px] font-black uppercase tracking-widest border border-emerald-100">
+                           <Zap size={10} /> Active Partner
+                        </div>
+                        <span className="text-[9px] font-black text-slate-300 uppercase tracking-tighter">UID: {u._id?.slice(-6)}</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
             ) : (
+              /* Ledger Table View */
               <table className="w-full text-left border-collapse min-w-[1100px]">
                 <thead className="bg-slate-50/50">
                   <tr>
@@ -278,9 +341,11 @@ export default function StaffTransactions() {
                       Displacement
                     </th>
                     <th className="px-10 py-6 text-[10px] uppercase tracking-[0.3em] font-black text-slate-400">
+                      Status
+                    </th>
+                    <th className="px-10 py-6 text-[10px] uppercase tracking-[0.3em] font-black text-slate-400 text-right">
                       Timestamp
                     </th>
-                    <th className="px-10 py-6"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100/50">
@@ -293,45 +358,48 @@ export default function StaffTransactions() {
                         <tr className={`group hover:bg-slate-50/80 cursor-pointer transition-colors ${isOpen ? "bg-slate-50/80" : ""}`}>
                           <td className="px-10 py-6">
                             <div className="flex items-center gap-4">
-                              <div
-                                onClick={(e) => { e.stopPropagation(); handleUserSelect(tx.user); }}
-                                className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-white text-[10px] font-black hover:bg-indigo-600 transition-all shadow-sm"
-                                title={`Drill into ${tx.user?.userName}`}
-                              >
-                                {tx.user?.userName ? tx.user.userName[0].toUpperCase() : "?"}
-                              </div>
-                              <div onClick={() => setExpanded(isOpen ? null : tx._id)} className="flex items-center gap-4 flex-1">
                                 <div className={`w-10 h-10 rounded-xl ${cfg.bg} flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform`}>
                                   {cfg.icon}
                                 </div>
-                                <div className="space-y-1">
+                                <div className="space-y-1" onClick={() => setExpanded(isOpen ? null : tx._id)}>
                                   <p className="text-[13px] font-black text-slate-900 tracking-tight">{cfg.label}</p>
                                   <div className="flex items-center gap-2">
-                                    <div className={`w-2 h-2 rounded-full ${tx.asset === "GOLD" ? "bg-amber-400" : "bg-slate-400"} shadow-sm`} />
+                                    <div className={`w-2 h-2 rounded-full ${tx.asset === "GOLD" ? "bg-amber-400" : tx.asset === "SILVER" ? "bg-slate-400" : "bg-indigo-400"} shadow-sm`} />
                                     <span className="text-[10px] font-black text-slate-400 tracking-[0.1em] uppercase">
-                                      {tx.asset} (99.9) {selectedUser ? "" : `• ${tx.user?.userName}`}
+                                      {tx.asset} (99.9)
                                     </span>
                                   </div>
                                 </div>
-                              </div>
                             </div>
                           </td>
                           <td className="px-10 py-6" onClick={() => setExpanded(isOpen ? null : tx._id)}>
                             <div className="flex items-center gap-2.5 font-serif font-black text-slate-900 text-lg">
-                              <Package size={16} className="text-slate-300" />
-                              {fmtG(tx.grams)}
+                              {tx.type === "WALLET_ADD" ? (
+                                <span className="text-xs font-black text-slate-400 uppercase tracking-widest italic opacity-50">N/A</span>
+                              ) : (
+                                <>
+                                  <Package size={16} className="text-slate-300" />
+                                  {fmtG(tx.grams || 0)}
+                                </>
+                              )}
                             </div>
                           </td>
                           <td className="px-10 py-6" onClick={() => setExpanded(isOpen ? null : tx._id)}>
                             <div className="space-y-1.5">
-                              <div className="flex items-center gap-3 text-[11px] font-extrabold text-slate-700 uppercase tracking-tight">
-                                <span className="text-slate-300 w-10 text-[9px] font-black tracking-widest">Base:</span>
-                                ₹{fmt(tx.amount)}
-                              </div>
-                              <div className="flex items-center gap-3 text-[11px] font-extrabold text-slate-700 uppercase tracking-tight">
-                                <span className="text-slate-300 w-10 text-[9px] font-black tracking-widest">Tax (3%):</span>
-                                {tx.gstAmount > 0 ? `₹${fmt(tx.gstAmount)}` : "—"}
-                              </div>
+                              {tx.type === "WALLET_ADD" ? (
+                                <div className="text-[11px] font-black text-indigo-600/60 uppercase tracking-widest underline decoration-indigo-200 underline-offset-4">Fiat Deposit</div>
+                              ) : (
+                                <>
+                                  <div className="flex items-center gap-3 text-[11px] font-extrabold text-slate-700 uppercase tracking-tight">
+                                    <span className="text-slate-300 w-10 text-[9px] font-black tracking-widest">Base:</span>
+                                    ₹{fmt(tx.amount)}
+                                  </div>
+                                  <div className="flex items-center gap-3 text-[11px] font-extrabold text-slate-700 uppercase tracking-tight">
+                                    <span className="text-slate-300 w-10 text-[9px] font-black tracking-widest">Tax:</span>
+                                    {tx.gstAmount > 0 ? `₹${fmt(tx.gstAmount)}` : "—"}
+                                  </div>
+                                </>
+                              )}
                             </div>
                           </td>
                           <td className="px-10 py-6" onClick={() => setExpanded(isOpen ? null : tx._id)}>
@@ -340,30 +408,19 @@ export default function StaffTransactions() {
                             </div>
                           </td>
                           <td className="px-10 py-6" onClick={() => setExpanded(isOpen ? null : tx._id)}>
-                            <div className="flex flex-col gap-1.5">
-                              <div className="flex items-center gap-2.5 text-[11px] font-black text-slate-900 uppercase tracking-tight">
-                                <Calendar size={14} className="text-slate-300" />
-                                {fmtDate(tx.createdAt)}
-                              </div>
-                              <div className="flex items-center gap-2.5 text-[10px] font-bold text-slate-400">
-                                <Clock size={14} className="text-slate-300 opacity-50" />
-                                {fmtTime(tx.createdAt)}
-                              </div>
-                            </div>
+                             <div className={`inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-lg text-[9px] font-black uppercase tracking-widest ${tx.status === 'SUCCESS' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                {tx.status || 'CONFIRMED'}
+                             </div>
                           </td>
-                          <td className="px-10 py-6 text-right">
-                            <div
-                              onClick={() => setExpanded(isOpen ? null : tx._id)}
-                              className={`p-2.5 rounded-xl transition-all border ${isOpen ? "bg-slate-900 text-white border-slate-900 rotate-180" : "bg-white text-slate-200 border-slate-100 group-hover:text-slate-400"}`}
-                            >
-                              <ChevronDown size={18} />
-                            </div>
+                          <td className="px-10 py-6 text-right" onClick={() => setExpanded(isOpen ? null : tx._id)}>
+                             <div className="text-[12px] font-black text-slate-900">{fmtDate(tx.createdAt)}</div>
+                             <div className="text-[10px] font-bold text-slate-400 mt-0.5">{fmtTime(tx.createdAt)}</div>
                           </td>
                         </tr>
                         <AnimatePresence>
                           {isOpen && (
                             <tr>
-                              <td colSpan="6" className="px-10 py-0">
+                              <td colSpan="6" className="px-10 py-0 text-left">
                                 <motion.div
                                   initial={{ height: 0, opacity: 0 }}
                                   animate={{ height: "auto", opacity: 1 }}
@@ -373,8 +430,8 @@ export default function StaffTransactions() {
                                   <div className="p-10 grid grid-cols-2 lg:grid-cols-4 gap-10">
                                     {[
                                       { label: "Operation System Reference", value: tx._id, full: true },
-                                      { label: "Market Quote / Unit", value: `₹${fmt(tx.pricePerGram)}`, icon: <TrendingUp size={14} /> },
-                                      { label: "Asset Classification", value: tx.asset === "GOLD" ? "MCX AU High Grade" : "MCX AG Pure Grade", icon: <Coins size={14} /> },
+                                      { label: "Market Quote / Unit", value: tx.type === "WALLET_ADD" ? "N/A" : `₹${fmt(tx.pricePerGram)}`, icon: <TrendingUp size={14} /> },
+                                      { label: "Asset Classification", value: tx.type === "WALLET_ADD" ? "Fiat Currency" : tx.asset === "GOLD" ? "MCX AU High Grade" : "MCX AG Pure Grade", icon: <Coins size={14} /> },
                                       { label: "Node Verification", value: tx.status || "CONFIRMED", icon: <Zap size={14} />, color: "text-emerald-600" },
                                       { label: "Compliance UUID", value: `AU-LEDGER-${tx._id?.slice(-8).toUpperCase()}`, icon: <ReceiptText size={14} /> },
                                     ].map((item, idx) => (
@@ -400,6 +457,7 @@ export default function StaffTransactions() {
                 </tbody>
               </table>
             )}
+
           </div>
 
           {/* Pagination Intelligence */}

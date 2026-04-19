@@ -42,9 +42,12 @@ const TYPE_CONFIG = {
   SELL_GOLD: { label: "Sell Gold", icon: "🟡", color: "text-emerald-500", bg: "bg-emerald-50" },
   BUY_SILVER: { label: "Buy Silver", icon: "⚪", color: "text-rose-500", bg: "bg-rose-50" },
   SELL_SILVER: { label: "Sell Silver", icon: "⚪", color: "text-emerald-500", bg: "bg-emerald-50" },
+  WALLET_ADD: { label: "Add Money", icon: "💳", color: "text-blue-600", bg: "bg-blue-50" },
 };
 
-const FILTERS = ["All", "BUY_GOLD", "SELL_GOLD", "BUY_SILVER", "SELL_SILVER"];
+
+const FILTERS = ["All", "BUY_GOLD", "SELL_GOLD", "BUY_SILVER", "SELL_SILVER", "WALLET_ADD"];
+
 
 export default function AllTransactions() {
   const dispatch = useDispatch();
@@ -94,7 +97,7 @@ export default function AllTransactions() {
   const totalSells = txList.filter((t) => t.type.startsWith("SELL"));
   const totalVol = txList.reduce((s, t) => s + (t.totalAmount || t.amount || 0), 0);
 
-  const stats = [ 
+  const stats = [
     { label: "Total Volume", value: `₹${fmt(totalVol)}`, icon: IndianRupee, color: "text-amber-500", bg: "bg-amber-50" },
     { label: "Total Orders", value: txList.length, icon: ShoppingBag, color: "text-blue-500", bg: "bg-blue-50" },
     { label: "Buy Orders", value: totalBuys.length, icon: TrendingUp, color: "text-emerald-500", bg: "bg-emerald-50" },
@@ -142,7 +145,7 @@ export default function AllTransactions() {
           </div>
 
           <div className="flex items-center gap-3">
-            <button 
+            <button
               onClick={handleExportCSV}
               className="bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm active:scale-95"
             >
@@ -202,8 +205,8 @@ export default function AllTransactions() {
                   key={f}
                   onClick={() => setTypeFilter(f)}
                   className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition-all ${typeFilter === f
-                      ? "bg-[#0F172A] text-white shadow-lg shadow-slate-200"
-                      : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                    ? "bg-[#0F172A] text-white shadow-lg shadow-slate-200"
+                    : "bg-slate-50 text-slate-500 hover:bg-slate-100"
                     }`}
                 >
                   {f.replace("_", " ")}
@@ -309,10 +312,17 @@ export default function AllTransactions() {
                             </td>
                             <td className="px-8 py-5 whitespace-nowrap">
                               <div className="flex flex-col">
-                                <span className="text-xs font-bold text-slate-700">{fmtG(tx.grams)}g @ ₹{fmt(tx.pricePerGram)}</span>
-                                <span className="text-[10px] text-slate-400 font-medium">Base: ₹{fmt(tx.amount)}</span>
+                                {tx.type === "WALLET_ADD" ? (
+                                  <span className="text-xs font-bold text-slate-700">Cash Deposit</span>
+                                ) : (
+                                  <>
+                                    <span className="text-xs font-bold text-slate-700">{fmtG(tx.grams || 0)}g @ ₹{fmt(tx.pricePerGram || 0)}</span>
+                                    <span className="text-[10px] text-slate-400 font-medium">Base: ₹{fmt(tx.amount)}</span>
+                                  </>
+                                )}
                               </div>
                             </td>
+
                             <td className="px-8 py-5 whitespace-nowrap text-sm font-black text-slate-900 group-hover:scale-105 transition-transform origin-left">
                               ₹{fmt(tx.totalAmount || tx.amount)}
                             </td>
