@@ -42,6 +42,9 @@ import Portfolio from "./app/controllers/PortfolioController.js";
 // Razorpay
 import RazorpayController from "./app/controllers/razorpayController.js";
 
+// Product controller
+import productController from "./app/controllers/productController.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -136,6 +139,17 @@ app.get("/api/prices/summary", PublicPrice.getPriceSummary);
 // ── Razorpay / Wallet Routes ──
 app.post("/api/wallet/create-order", auth, RazorpayController.createOrder);
 app.post("/api/wallet/verify-payment", auth, RazorpayController.verifyPayment);
+
+// ── Physical Gold / Silver Coin Routes ──
+// Public: all products with live price
+app.get("/api/products", auth, productController.getAll);
+app.get("/api/products/:id", auth, productController.getOne);
+
+// Admin only
+app.post("/api/products", auth, admin, productController.create);
+app.put("/api/products/:id", auth, admin, productController.update);
+app.delete("/api/products/:id", auth, admin, productController.delete);
+app.patch("/api/products/:id/stock", auth, admin, productController.toggleStock);
 
 
 // To fetch the price
