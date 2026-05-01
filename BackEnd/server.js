@@ -1,6 +1,5 @@
 import "./config/env.js";
 
-
 import express from "express";
 import morgan from "morgan";
 import fs from "fs";
@@ -44,6 +43,7 @@ import RazorpayController from "./app/controllers/razorpayController.js";
 
 // Product controller
 import productController from "./app/controllers/productController.js";
+import { upload } from "./app/middlewares/upload.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -140,17 +140,32 @@ app.get("/api/prices/summary", PublicPrice.getPriceSummary);
 app.post("/api/wallet/create-order", auth, RazorpayController.createOrder);
 app.post("/api/wallet/verify-payment", auth, RazorpayController.verifyPayment);
 
-// ── Physical Gold / Silver Coin Routes ──
-// Public: all products with live price
-app.get("/api/products", auth, productController.getAll);
+// ── Physical Gold / Silver Coin & Jewellery Routes ──
+
+// Public Route - Anyone can view products (Gallery)
+app.get("/api/products", productController.getAll); // ← No auth needed for gallery
+
+// Protected single product
 app.get("/api/products/:id", auth, productController.getOne);
 
-// Admin only
-app.post("/api/products", auth, admin, productController.create);
-app.put("/api/products/:id", auth, admin, productController.update);
-app.delete("/api/products/:id", auth, admin, productController.delete);
-app.patch("/api/products/:id/stock", auth, admin, productController.toggleStock);
+// Staff + Admin can CREATE products (with image upload)
+app.post(
+  "/api/products",
+  auth,
+  staff, // staff middleware
+  upload.array("images", 5),
+  productController.create,
+);
 
+// Staff Product Management Routes
+app.put("/api/products/:id", auth, staff, upload.array("images", 5), productController.update);
+app.delete("/api/products/:id", auth, staff, productController.delete);
+app.patch(
+  "/api/products/:id/stock",
+  auth,
+  staff,
+  productController.toggleStock,
+);
 
 // To fetch the price
 app.get("/api/prices", async (req, res) => {

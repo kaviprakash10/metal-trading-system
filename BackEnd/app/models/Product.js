@@ -9,6 +9,7 @@ const productSchema = new mongoose.Schema({
   purity:      { type: String, default: "999.9" },
   imageUrl:    { type: String, required: true },     // Cloudinary URL
   imagePublicId: { type: String },                   // Cloudinary public_id
+  additionalImages: [{ url: String, publicId: String }], // extra images
   inStock:     { type: Boolean, default: true },
   isLimited:   { type: Boolean, default: false },    // LIMITED EDITION badge
   category:    { type: String, default: "standard" }, // coin | bar | special   
