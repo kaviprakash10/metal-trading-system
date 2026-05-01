@@ -16,7 +16,9 @@ import {
   Bell,
   Search,
   Menu,
-  X
+  X,
+  Package,
+  Image
 } from "lucide-react";
 import { logout } from "../slice/Authslice";
 import { fetchCurrentPrices } from "../slice/Priceslice";
@@ -31,7 +33,9 @@ const ADMIN_NAV = [
   { icon: History, label: "Transactions", to: "/admin/transactions" },
   { icon: Banknote, label: "Price Control", to: "/admin/prices" },
   { icon: ShieldCheck, label: "KYC Verification", to: "/admin/kyc" },
+  { icon: Package, label: "Product Management", to: "/staff/add-product" },
   { section: "Portals" },
+  { icon: Image, label: "Metal Gallery", to: "/user/gallery" },
   { icon: Globe, label: "Go to User Portal", to: "/user/dashboard" },
 ];
 

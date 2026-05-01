@@ -30,6 +30,7 @@ import StaffDashboard from "./staff/StaffDashboard";
 import StaffUsers from "./staff/StaffUsers";
 import StaffTransactions from "./staff/StaffTransactions";
 import StaffKyc from "./staff/StaffKyc";
+import StaffAddProduct from "./staff/StaffAddProduct";
 
 /* ── Protected Route: logged-in users only ── */
 const ProtectedRoute = ({ children }) => {
@@ -242,6 +243,14 @@ function App() {
         element={
           <StaffRoute>
             <StaffKyc />
+          </StaffRoute>
+        }
+      />
+      <Route
+        path="/staff/add-product"
+        element={
+          <StaffRoute>
+            <StaffAddProduct />
           </StaffRoute>
         }
       />

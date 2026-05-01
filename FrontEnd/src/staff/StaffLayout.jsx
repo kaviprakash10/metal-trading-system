@@ -29,6 +29,8 @@ const STAFF_NAV = [
   { icon: Users, label: "User Registry", to: "/staff/users" },
   { icon: UserRoundCheck, label: "KYC Verification", to: "/staff/kyc" },
   { icon: ReceiptText, label: "Transactions", to: "/staff/transactions" },
+  { icon: Coins, label: "Metal Gallery", to: "/user/gallery" },
+  { icon: Coins, label: "Add Product", to: "/staff/add-product" },
   { section: "Systems" },
   { icon: ExternalLink, label: "Customer Portal", to: "/user/dashboard" },
 ];
