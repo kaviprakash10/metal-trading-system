@@ -80,6 +80,8 @@ app.post("/api/gold/buy", auth, asset.buyGold);
 app.post("/api/silver/buy", auth, asset.buySilver);
 app.post("/api/gold/sell", auth, asset.sellGold);
 app.post("/api/silver/sell", auth, asset.sellSilver);
+app.post("/api/gold/redeem", auth, asset.redeemGold);
+app.post("/api/silver/redeem", auth, asset.redeemSilver);
 
 // Portfolio API
 app.get("/api/Portfolio", auth, Portfolio.getPortfolio);

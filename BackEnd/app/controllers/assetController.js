@@ -309,4 +309,84 @@ assetController.sellSilver = async (req, res) => {
   }
 };
 
+/* ================= REDEEM GOLD FOR PRODUCT ================= */
+
+assetController.redeemGold = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { grams } = req.body;
+
+    if (!grams || grams <= 0) return res.status(400).json({ message: "Invalid grams" });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.goldBalance < grams) return res.status(400).json({ message: "Not enough gold" });
+
+    user.goldBalance -= grams;
+    await user.save();
+
+    await Transaction.create({
+      user: user._id,
+      type: "REDEEM_GOLD",
+      asset: "GOLD",
+      grams,
+      amount: 0,
+      gstAmount: 0,
+      totalAmount: 0,
+      pricePerGram: 0,
+      status: "SUCCESS",
+    });
+
+    res.json({
+      message: "Product ordered successfully using gold balance!",
+      grams,
+      goldBalance: user.goldBalance,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+/* ================= REDEEM SILVER FOR PRODUCT ================= */
+
+assetController.redeemSilver = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { grams } = req.body;
+
+    if (!grams || grams <= 0) return res.status(400).json({ message: "Invalid grams" });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.silverBalance < grams) return res.status(400).json({ message: "Not enough silver" });
+
+    user.silverBalance -= grams;
+    await user.save();
+
+    await Transaction.create({
+      user: user._id,
+      type: "REDEEM_SILVER",
+      asset: "SILVER",
+      grams,
+      amount: 0,
+      gstAmount: 0,
+      totalAmount: 0,
+      pricePerGram: 0,
+      status: "SUCCESS",
+    });
+
+    res.json({
+      message: "Product ordered successfully using silver balance!",
+      grams,
+      silverBalance: user.silverBalance,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 export default assetController;

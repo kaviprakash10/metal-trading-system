@@ -5,7 +5,8 @@ const productSchema = new mongoose.Schema({
   name:        { type: String, required: true },   
   description: { type: String, default: "" },
   metal:       { type: String, enum: ["GOLD", "SILVER"], required: true },
-  weightGrams: { type: Number, required: true },     // 2, 5, 10, 20, 50
+  weightGrams: { type: Number, required: true },     // Base weight
+  availableWeights: { type: [Number], default: [] }, // Allowed weights for coins and bars
   purity:      { type: String, default: "999.9" },
   imageUrl:    { type: String, required: true },     // Cloudinary URL
   imagePublicId: { type: String },                   // Cloudinary public_id

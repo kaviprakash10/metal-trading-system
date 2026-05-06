@@ -9,15 +9,25 @@ const productController = {};
 // Get all products with live pricing
 productController.getAll = async (req, res) => {
   try {
-    const products = await Product.find({ inStock: true }).sort({ sortOrder: 1 });
+    const products = await Product.find({ inStock: true }).sort({
+      sortOrder: 1,
+    });
 
     const goldPrice = await GoldPrice.findOne().sort({ createdAt: -1 });
     const silverPrice = await SilverPrice.findOne().sort({ createdAt: -1 });
 
     const withPrices = products.map((p) => ({
       ...p.toObject(),
-      pricePerGram: p.metal === "GOLD" ? goldPrice?.pricePerGram : silverPrice?.pricePerGram,
-      totalPrice: (p.weightGrams * (p.metal === "GOLD" ? goldPrice?.pricePerGram : silverPrice?.pricePerGram || 0)).toFixed(2),
+      pricePerGram:
+        p.metal === "GOLD"
+          ? goldPrice?.pricePerGram
+          : silverPrice?.pricePerGram,
+      totalPrice: (
+        p.weightGrams *
+        (p.metal === "GOLD"
+          ? goldPrice?.pricePerGram
+          : silverPrice?.pricePerGram || 0)
+      ).toFixed(2),
     }));
 
     res.json({ success: true, products: withPrices });
@@ -29,23 +39,50 @@ productController.getAll = async (req, res) => {
 // Create Product (Staff + Admin)
 productController.create = async (req, res) => {
   try {
-    const { name, description, metal, weightGrams, purity, category, isLimited, sortOrder } = req.body;
+    const {
+      name,
+      description,
+      metal,
+      weightGrams,
+      availableWeights,
+      purity,
+      category,
+      isLimited,
+      sortOrder,
+    } = req.body;
 
     if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ success: false, message: "At least one product image is required" });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "At least one product image is required",
+        });
     }
 
     const mainImage = req.files[0];
-    const additionalImages = req.files.slice(1).map(f => ({ url: f.path, publicId: f.filename }));
+    const additionalImages = req.files
+      .slice(1)
+      .map((f) => ({ url: f.path, publicId: f.filename }));
+
+    let weightsArray = [];
+    if (availableWeights) {
+      weightsArray = availableWeights
+        .split(",")
+        .map((w) => Number(w.trim()))
+        .filter((w) => !isNaN(w) && w > 0);
+    }
 
     const product = new Product({
       name,
       description: description || "",
       metal: metal.toUpperCase(),
-      weightGrams: Number(weightGrams),
+      weightGrams:
+        Number(weightGrams) || (weightsArray.length > 0 ? weightsArray[0] : 0),
+      availableWeights: weightsArray,
       purity: purity || (metal.toUpperCase() === "GOLD" ? "22K" : "999"),
-      imageUrl: mainImage.path,           // Cloudinary secure URL
-      imagePublicId: mainImage.filename,  // Cloudinary public_id
+      imageUrl: mainImage.path, // Cloudinary secure URL
+      imagePublicId: mainImage.filename, // Cloudinary public_id
       additionalImages,
       category: category || "standard",
       isLimited: isLimited === "true" || false,
@@ -69,7 +106,10 @@ productController.create = async (req, res) => {
 productController.getOne = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+    if (!product)
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
     res.json({ success: true, product });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -78,18 +118,37 @@ productController.getOne = async (req, res) => {
 
 productController.update = async (req, res) => {
   try {
-    const { name, description, metal, weightGrams, purity, category, isLimited, sortOrder, retainedImages } = req.body;
-    
+    const {
+      name,
+      description,
+      metal,
+      weightGrams,
+      availableWeights,
+      purity,
+      category,
+      isLimited,
+      sortOrder,
+      retainedImages,
+    } = req.body;
+
     let parsedRetained = [];
     try {
       if (retainedImages) parsedRetained = JSON.parse(retainedImages);
-    } catch(e) {}
+    } catch (e) {}
 
-    const newUploaded = (req.files || []).map(f => ({ url: f.path, publicId: f.filename }));
+    const newUploaded = (req.files || []).map((f) => ({
+      url: f.path,
+      publicId: f.filename,
+    }));
     const finalImages = [...parsedRetained, ...newUploaded];
 
     if (finalImages.length === 0) {
-      return res.status(400).json({ success: false, message: "At least one product image is required" });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "At least one product image is required",
+        });
     }
 
     const mainImage = finalImages[0];
@@ -97,14 +156,31 @@ productController.update = async (req, res) => {
 
     // Optional: Find which ones were deleted and remove from Cloudinary
     const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+    if (!product)
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
 
-    const oldImages = [{url: product.imageUrl, publicId: product.imagePublicId}, ...(product.additionalImages || [])];
-    oldImages.forEach(img => {
-      if (img.publicId && !finalImages.find(f => f.publicId === img.publicId)) {
+    const oldImages = [
+      { url: product.imageUrl, publicId: product.imagePublicId },
+      ...(product.additionalImages || []),
+    ];
+    oldImages.forEach((img) => {
+      if (
+        img.publicId &&
+        !finalImages.find((f) => f.publicId === img.publicId)
+      ) {
         cloudinary.uploader.destroy(img.publicId).catch(console.error);
       }
     });
+
+    let weightsArray = [];
+    if (availableWeights) {
+      weightsArray = availableWeights
+        .split(",")
+        .map((w) => Number(w.trim()))
+        .filter((w) => !isNaN(w) && w > 0);
+    }
 
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
@@ -112,18 +188,25 @@ productController.update = async (req, res) => {
         name,
         description: description || "",
         metal: metal?.toUpperCase(),
-        weightGrams: Number(weightGrams),
+        weightGrams:
+          Number(weightGrams) ||
+          (weightsArray.length > 0 ? weightsArray[0] : 0),
+        availableWeights: weightsArray,
         purity: purity || (metal?.toUpperCase() === "GOLD" ? "22K" : "999"),
         category: category || "standard",
         isLimited: isLimited === "true" || false,
         sortOrder: Number(sortOrder) || 0,
         imageUrl: mainImage.url,
         imagePublicId: mainImage.publicId,
-        additionalImages
+        additionalImages,
       },
-      { new: true }
+      { new: true },
     );
-    res.json({ success: true, message: "Product updated", product: updatedProduct });
+    res.json({
+      success: true,
+      message: "Product updated",
+      product: updatedProduct,
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -132,7 +215,10 @@ productController.update = async (req, res) => {
 productController.toggleStock = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+    if (!product)
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
 
     product.inStock = !product.inStock;
     await product.save();
