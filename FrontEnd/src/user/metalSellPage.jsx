@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import {
   sellGold,
   sellSilver,
@@ -9,6 +10,22 @@ import { fetchCurrentPrices } from "../slice/Priceslice";
 import { fetchWallet } from "../slice/Walletslice";
 import { fetchPortfolio } from "../slice/Portfolioslice";
 import UserLayout from "./userLayout";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  TrendingDown, 
+  Wallet, 
+  ArrowRight, 
+  CheckCircle2, 
+  AlertCircle, 
+  Info,
+  ShieldCheck,
+  RefreshCcw,
+  Minus,
+  ArrowLeft,
+  ChevronRight,
+  TrendingUp,
+  LayoutGrid
+} from "lucide-react";
 
 const fmt = (n) =>
   Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 4 });
@@ -37,12 +54,7 @@ export default function SellPage() {
   const insufficient = parseFloat(grams) > maxGrams;
 
   const isGold = tab === "GOLD";
-  const accent = isGold ? "#c9a84c" : "#94a3b8";
-  const accentLight = isGold ? "rgba(201,168,76,0.1)" : "rgba(148,163,184,0.1)";
-  const accentBorder = isGold
-    ? "rgba(201,168,76,0.25)"
-    : "rgba(148,163,184,0.25)";
-
+  
   useEffect(() => {
     dispatch(fetchCurrentPrices());
     dispatch(fetchPortfolio());
@@ -70,426 +82,200 @@ export default function SellPage() {
     dispatch(action({ grams: parseFloat(grams), pricePerGram }));
   };
 
+  const canSubmit = confirmed && !insufficient && grams && parseFloat(grams) > 0;
+
   return (
     <UserLayout active={isGold ? "/user/sell/gold" : "/user/sell/silver"}>
-      <div style={{ maxWidth: "560px", margin: "0 auto" }}>
-        {/* Title */}
-        <div style={{ marginBottom: "1.75rem" }}>
-          <h1
-            style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "1.9rem",
-              fontWeight: 700,
-              color: "#1a1200",
-              margin: 0,
-            }}
-          >
-            Sell Metals
-          </h1>
-          <p
-            style={{
-              color: "#999",
-              fontSize: "0.875rem",
-              marginTop: "0.25rem",
-            }}
-          >
-            Sell your holdings at live market rates. Credited to wallet
-            instantly.
-          </p>
-        </div>
-
-        {/* Tab */}
-        <div
-          style={{
-            display: "flex",
-            background: "#f0ead8",
-            borderRadius: "12px",
-            padding: "4px",
-            marginBottom: "1.75rem",
-          }}
-        >
-          {["GOLD", "SILVER"].map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              style={{
-                flex: 1,
-                padding: "0.6rem",
-                borderRadius: "9px",
-                border: "none",
-                cursor: "pointer",
-                fontWeight: 600,
-                fontSize: "0.88rem",
-                transition: "all 0.2s",
-                background: tab === t ? "#fff" : "transparent",
-                color:
-                  tab === t ? (t === "GOLD" ? "#c9a84c" : "#64748b") : "#999",
-                boxShadow: tab === t ? "0 1px 6px rgba(0,0,0,0.08)" : "none",
-              }}
-            >
-              {t === "GOLD" ? "🟡" : "⚪"} {t}
-            </button>
-          ))}
-        </div>
-
-        {/* Card */}
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: "20px",
-            border: `1px solid ${accentBorder}`,
-            boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
-            overflow: "hidden",
-          }}
-        >
-          {/* Header */}
-          <div
-            style={{
-              background: isGold
-                ? "linear-gradient(135deg, #0f0c00, #1a1200)"
-                : "linear-gradient(135deg, #0f1117, #1e2433)",
-              padding: "1.5rem",
-              borderBottom: `1px solid ${accentBorder}`,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <div>
-                <div
-                  style={{
-                    color: "rgba(255,255,255,0.4)",
-                    fontSize: "0.7rem",
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    marginBottom: "0.3rem",
-                  }}
-                >
-                  Sell Price
-                </div>
-                <div
-                  style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: "2rem",
-                    fontWeight: 700,
-                    color: accent,
-                  }}
-                >
-                  ₹{fmtCur(pricePerGram)}
-                  <span
-                    style={{ fontSize: "1rem", color: "rgba(255,255,255,0.3)" }}
-                  >
-                    /g
-                  </span>
-                </div>
-              </div>
-              <div
-                style={{
-                  width: "52px",
-                  height: "52px",
-                  borderRadius: "14px",
-                  background: accentLight,
-                  border: `1px solid ${accentBorder}`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "1.6rem",
-                }}
-              >
-                {isGold ? "🟡" : "⚪"}
-              </div>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingDown className={isGold ? "text-[#c9a84c]" : "text-[#94a3b8]"} size={20} />
+              <span className={`${isGold ? "text-[#c9a84c]" : "text-[#94a3b8]"} font-bold text-xs uppercase tracking-[0.2em]`}>Asset Liquidation</span>
             </div>
-            <div
-              style={{
-                marginTop: "1rem",
-                paddingTop: "1rem",
-                borderTop: "1px solid rgba(255,255,255,0.06)",
-                display: "flex",
-                justifyContent: "space-between",
-              }}
-            >
-              <span
-                style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.78rem" }}
-              >
-                Available to Sell
-              </span>
-              <span
-                style={{ color: "#fff", fontWeight: 600, fontSize: "0.9rem" }}
-              >
-                {fmt(maxGrams)} g
-              </span>
+            <h1 className="font-serif text-5xl font-bold text-[#1a1200] tracking-tight">Sell {isGold ? "Gold" : "Silver"}</h1>
+            <p className="text-[#88857F] text-lg font-medium opacity-80 mt-2">Liquidate your digital holdings instantly into your wallet.</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          {/* Main Controls */}
+          <div className="lg:col-span-7 space-y-8">
+            {/* Metal Selector */}
+            <div className="bg-white p-2 rounded-3xl border border-[#ede8d8] shadow-sm flex">
+              {["GOLD", "SILVER"].map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={`flex-1 py-4 rounded-2xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-3
+                    ${tab === t 
+                      ? (t === "GOLD" ? "bg-[#c9a84c] text-white shadow-xl shadow-yellow-500/20" : "bg-[#94a3b8] text-white shadow-xl shadow-slate-500/20") 
+                      : "text-[#A3A09A] hover:text-[#1a1200]"}`}
+                >
+                  <span className="text-xl">{t === "GOLD" ? "🟡" : "⚪"}</span>
+                  {t}
+                </button>
+              ))}
+            </div>
+
+            {/* Input Card */}
+            <div className="bg-white rounded-[3rem] border border-[#ede8d8] shadow-sm overflow-hidden">
+              <div className="p-1.5 bg-[#FDFBF7] flex border-b border-[#F7F5F0]">
+                <div className="flex-1 py-4 flex items-center justify-center gap-2 text-[#1a1200] font-bold text-xs uppercase tracking-widest">
+                  <LayoutGrid size={14} /> Sell Quantity (Grams)
+                </div>
+              </div>
+
+              <div className="p-8 lg:p-10 space-y-8">
+                <div className="relative">
+                  <div className={`absolute left-0 top-1/2 -translate-y-1/2 font-serif text-5xl font-bold opacity-20 ${isGold ? "text-[#c9a84c]" : "text-[#94a3b8]"}`}>
+                    g
+                  </div>
+                  <input
+                    type="number"
+                    value={grams}
+                    onChange={(e) => {
+                      setGrams(e.target.value);
+                      setConfirmed(false);
+                    }}
+                    placeholder="0.0000"
+                    className="w-full bg-transparent border-none py-10 pl-12 pr-4 font-serif text-6xl font-bold text-[#14120D] outline-none placeholder:opacity-10"
+                  />
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <button
+                    onClick={() => {
+                      setGrams(String(maxGrams));
+                      setConfirmed(false);
+                    }}
+                    className={`px-6 py-3 rounded-2xl text-xs font-bold border transition-all duration-300
+                      ${Number(grams) === maxGrams && maxGrams > 0
+                        ? "bg-[#1a1200] text-white border-[#1a1200] shadow-lg" 
+                        : "bg-white text-[#BA943A] border-[#BA943A]/20 hover:bg-yellow-50"}`}
+                  >
+                    Sell Maximum ({fmt(maxGrams)}g)
+                  </button>
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold text-[#A3A09A] uppercase tracking-widest">Total Available</p>
+                    <p className="font-serif text-xl font-bold text-[#14120D]">{fmt(maxGrams)} g</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4 p-6 bg-blue-50/50 rounded-3xl border border-blue-100/50">
+                  <ShieldCheck className="text-blue-500 shrink-0" size={24} />
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Secure Liquidation</p>
+                    <p className="text-sm font-medium text-[#88857F] leading-relaxed">
+                      Funds will be instantly credited to your wallet balance. You can withdraw these funds to your bank account anytime.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Form */}
-          <div style={{ padding: "1.5rem" }}>
-            {successMessage && (
-              <div
-                style={{
-                  marginBottom: "1.25rem",
-                  padding: "0.9rem 1rem",
-                  borderRadius: "10px",
-                  background: "#dcfce7",
-                  border: "1px solid #86efac",
-                  color: "#15803d",
-                  fontSize: "0.85rem",
-                  fontWeight: 500,
-                }}
-              >
-                ✓ {successMessage}
+          {/* Checkout Side */}
+          <div className="lg:col-span-5">
+            <div className="sticky top-24 space-y-6">
+              {/* Live Price Widget */}
+              <div className={`rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl ${isGold ? "bg-[#100C04]" : "bg-[#1e2433]"}`}>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full translate-x-1/4 -translate-y-1/4 blur-3xl" />
+                <div className="relative z-10">
+                  <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">Sell Valuation Rate</p>
+                  <div className="flex items-baseline gap-2 mb-8">
+                    <span className={`font-serif text-5xl font-bold ${isGold ? "text-[#c9a84c]" : "text-[#94a3b8]"}`}>₹{fmtCur(pricePerGram)}</span>
+                    <span className="text-xl text-white/30 font-medium">/gram</span>
+                  </div>
+                  <div className="flex justify-between items-center py-4 border-t border-white/5">
+                    <span className="text-white/40 text-xs font-medium">Available to Sell</span>
+                    <span className="text-white font-bold">{fmt(maxGrams)} g</span>
+                  </div>
+                </div>
               </div>
-            )}
-            {error && (
-              <div
-                style={{
-                  marginBottom: "1.25rem",
-                  padding: "0.9rem 1rem",
-                  borderRadius: "10px",
-                  background: "#fee2e2",
-                  border: "1px solid #fca5a5",
-                  color: "#dc2626",
-                  fontSize: "0.85rem",
-                }}
-              >
-                {error}
-              </div>
-            )}
 
-            {/* Grams input */}
-            <div style={{ marginBottom: "1.25rem" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "0.72rem",
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: "#aaa",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                Quantity (grams)
-              </label>
-              <div style={{ position: "relative" }}>
-                <input
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  value={grams}
-                  onChange={(e) => {
-                    setGrams(e.target.value);
-                    setConfirmed(false);
-                  }}
-                  placeholder={`Max ${fmt(maxGrams)}g`}
-                  style={{
-                    width: "100%",
-                    padding: "0.9rem 3.5rem 0.9rem 1rem",
-                    borderRadius: "10px",
-                    border: `1px solid ${grams ? accentBorder : "#e5e0d0"}`,
-                    fontSize: "1rem",
-                    color: "#1a1200",
-                    outline: "none",
-                    background: "#fafaf7",
-                    boxSizing: "border-box",
-                  }}
-                />
-                <span
-                  style={{
-                    position: "absolute",
-                    right: "1rem",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    color: "#aaa",
-                    fontSize: "0.8rem",
-                  }}
-                >
-                  g
-                </span>
+              {/* Order Summary Card */}
+              <AnimatePresence>
+                {grams && parseFloat(grams) > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="bg-white rounded-[2.5rem] border border-[#ede8d8] shadow-sm p-8"
+                  >
+                    <h3 className="font-serif text-xl font-bold text-[#1a1200] mb-6">Valuation Summary</h3>
+                    
+                    <div className="space-y-4 mb-8">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-[#A3A09A] font-medium">Sell Quantity</span>
+                        <span className="text-[#1a1200] font-bold">{grams} g</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-[#A3A09A] font-medium">Market Rate</span>
+                        <span className="text-[#1a1200] font-bold">₹{fmtCur(pricePerGram)}/g</span>
+                      </div>
+                      <div className="pt-4 border-t border-[#F7F5F0] flex justify-between items-end">
+                        <span className="text-[#1a1200] font-bold text-base">You Receive</span>
+                        <span className="font-serif text-3xl font-bold text-green-600">₹{fmtCur(totalEarnings)}</span>
+                      </div>
+                    </div>
+
+                    {insufficient ? (
+                      <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-2xl border border-red-100 flex items-center gap-3 text-[11px] font-bold animate-shake">
+                        <AlertCircle size={16} />
+                        You only have {fmt(maxGrams)}g available to sell.
+                      </div>
+                    ) : (
+                      <div className="mb-6 flex items-start gap-3 group cursor-pointer" onClick={() => setConfirmed(!confirmed)}>
+                        <div className={`mt-0.5 w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center shrink-0
+                          ${confirmed ? "bg-green-600 border-green-600" : "border-[#ede8d8]"}`}>
+                          {confirmed && <CheckCircle2 size={12} className="text-white" />}
+                        </div>
+                        <p className="text-xs text-[#88857F] font-medium leading-relaxed group-hover:text-[#1a1200]">
+                          I confirm selling {grams}g of {isGold ? "24K Gold" : "999 Silver"} at the current market rate for instant wallet credit.
+                        </p>
+                      </div>
+                    )}
+
+                    {successMessage && (
+                      <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-2xl border border-green-100 flex items-center gap-3 text-[11px] font-bold">
+                        <CheckCircle2 size={16} />
+                        {successMessage}
+                      </div>
+                    )}
+                    {error && (
+                      <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-2xl border border-red-100 flex items-center gap-3 text-[11px] font-bold">
+                        <AlertCircle size={16} />
+                        {error}
+                      </div>
+                    )}
+
+                    <button
+                      onClick={handleSell}
+                      disabled={!canSubmit || loading}
+                      className={`w-full py-5 rounded-[2rem] font-bold text-lg shadow-2xl transition-all duration-300 flex items-center justify-center gap-3 active:scale-[0.98]
+                        ${canSubmit 
+                          ? "bg-green-600 text-white shadow-green-500/20" 
+                          : "bg-gray-100 text-[#bbb] shadow-none cursor-not-allowed"}`}
+                    >
+                      {loading ? <RefreshCcw size={22} className="animate-spin" /> : <>Liquidate Assets <ChevronRight size={20} /></>}
+                    </button>
+
+                    <p className="mt-4 text-center text-[10px] text-[#A3A09A] font-bold uppercase tracking-widest">
+                      Live Valuation valid for 30s
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Back Link */}
+              <div className="flex flex-col gap-4">
+                <Link to="/user/dashboard" className="flex items-center justify-center gap-2 text-[#A3A09A] hover:text-[#BA943A] transition-colors text-sm font-bold">
+                  <ArrowLeft size={16} /> Back to Dashboard
+                </Link>
               </div>
             </div>
-
-            {/* Sell All button */}
-            {maxGrams > 0 && (
-              <button
-                onClick={() => {
-                  setGrams(String(maxGrams));
-                  setConfirmed(false);
-                }}
-                style={{
-                  marginBottom: "1.25rem",
-                  padding: "0.4rem 0.9rem",
-                  borderRadius: "8px",
-                  border: `1px solid ${accentBorder}`,
-                  background: accentLight,
-                  color: accent,
-                  fontSize: "0.8rem",
-                  fontWeight: 500,
-                  cursor: "pointer",
-                }}
-              >
-                Sell All ({fmt(maxGrams)}g)
-              </button>
-            )}
-
-            {/* Summary */}
-            {grams && parseFloat(grams) > 0 && (
-              <div
-                style={{
-                  marginBottom: "1.25rem",
-                  padding: "1rem",
-                  background: "#fafaf7",
-                  borderRadius: "12px",
-                  border: "1px solid #f0ead8",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "0.72rem",
-                    color: "#aaa",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
-                    marginBottom: "0.75rem",
-                  }}
-                >
-                  Order Summary
-                </div>
-                {[
-                  ["Quantity", `${grams} grams`],
-                  ["Price per gram", `₹${fmtCur(pricePerGram)}`],
-                  ["You will receive", `₹${fmtCur(totalEarnings)}`],
-                ].map(([k, v], i) => (
-                  <div
-                    key={k}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      padding: "0.3rem 0",
-                      borderTop: i === 2 ? "1px solid #ede8d8" : "none",
-                      marginTop: i === 2 ? "0.4rem" : 0,
-                      paddingTop: i === 2 ? "0.6rem" : "0.3rem",
-                    }}
-                  >
-                    <span style={{ fontSize: "0.82rem", color: "#888" }}>
-                      {k}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "0.82rem",
-                        fontWeight: i === 2 ? 700 : 500,
-                        color: i === 2 ? "#16a34a" : "#1a1200",
-                      }}
-                    >
-                      {v}
-                    </span>
-                  </div>
-                ))}
-                {insufficient && (
-                  <div
-                    style={{
-                      marginTop: "0.6rem",
-                      padding: "0.5rem 0.75rem",
-                      background: "#fee2e2",
-                      borderRadius: "8px",
-                      color: "#dc2626",
-                      fontSize: "0.78rem",
-                    }}
-                  >
-                    ⚠ You only have {fmt(maxGrams)}g available
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Confirm */}
-            {grams && parseFloat(grams) > 0 && !insufficient && (
-              <div
-                style={{
-                  marginBottom: "1.25rem",
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "0.6rem",
-                }}
-              >
-                <input
-                  type="checkbox"
-                  id="confirm"
-                  checked={confirmed}
-                  onChange={(e) => setConfirmed(e.target.checked)}
-                  style={{
-                    marginTop: "2px",
-                    accentColor: accent,
-                    cursor: "pointer",
-                  }}
-                />
-                <label
-                  htmlFor="confirm"
-                  style={{
-                    fontSize: "0.82rem",
-                    color: "#888",
-                    cursor: "pointer",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  I confirm selling{" "}
-                  <strong style={{ color: "#1a1200" }}>
-                    {grams}g of {tab}
-                  </strong>{" "}
-                  at{" "}
-                  <strong style={{ color: "#1a1200" }}>
-                    ₹{fmtCur(pricePerGram)}/g
-                  </strong>{" "}
-                  to receive{" "}
-                  <strong style={{ color: "#16a34a" }}>
-                    ₹{fmtCur(totalEarnings)}
-                  </strong>
-                  .
-                </label>
-              </div>
-            )}
-
-            {/* Sell Button */}
-            <button
-              onClick={handleSell}
-              disabled={!confirmed || loading || insufficient || !grams}
-              style={{
-                width: "100%",
-                padding: "0.95rem",
-                borderRadius: "10px",
-                border: "none",
-                background:
-                  confirmed && !insufficient && grams
-                    ? "linear-gradient(135deg, #16a34a, #22c55e)"
-                    : "#f0ead8",
-                color: confirmed && !insufficient && grams ? "#fff" : "#bbb",
-                fontWeight: 700,
-                fontSize: "0.95rem",
-                cursor:
-                  confirmed && !insufficient && grams
-                    ? "pointer"
-                    : "not-allowed",
-                transition: "all 0.2s",
-                boxShadow:
-                  confirmed && !insufficient && grams
-                    ? "0 4px 16px rgba(22,163,74,0.3)"
-                    : "none",
-              }}
-            >
-              {loading ? "Processing..." : `Sell ${tab} →`}
-            </button>
-
-            <p
-              style={{
-                textAlign: "center",
-                color: "#ccc",
-                fontSize: "0.72rem",
-                marginTop: "0.75rem",
-              }}
-            >
-              Amount will be credited to your wallet instantly.
-            </p>
           </div>
         </div>
       </div>

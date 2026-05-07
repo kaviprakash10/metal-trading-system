@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../slice/Authslice";
+import { fetchCurrentPrices } from "../slice/Priceslice";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   Briefcase,
@@ -16,308 +18,377 @@ import {
   TrendingUp,
   TrendingDown,
   ChevronDown,
-  Sparkles,
   GalleryHorizontalEnd,
+  Bell,
+  Search,
+  User,
+  Settings,
+  HelpCircle,
+  Clock,
+  ChevronRight,
+  Activity,
+  History,
+  ExternalLink,
+  Plus,
+  Zap,
+  MoreVertical,
+  LayoutGrid,
+  ArrowRight,
+  PanelLeftClose,
+  PanelLeftOpen
 } from "lucide-react";
+
+const fmt = (n) => Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Dashboard", to: "/user/dashboard" },
   { icon: Briefcase, label: "Portfolio", to: "/user/portfolio" },
   { icon: Wallet, label: "Wallet", to: "/user/wallet" },
-  { type: "section", label: "TRADE" },
+  { section: "MARKETPLACE" },
   { icon: TrendingUp, label: "Buy Gold", to: "/user/buy/gold", accent: "gold" },
   { icon: TrendingUp, label: "Buy Silver", to: "/user/buy/silver", accent: "silver" },
   { icon: TrendingDown, label: "Sell Gold", to: "/user/sell/gold", accent: "sell" },
   { icon: TrendingDown, label: "Sell Silver", to: "/user/sell/silver", accent: "sell" },
-  { type: "section", label: "MANAGE" },
+  { section: "MY ASSETS" },
   { icon: RefreshCcw, label: "SIP", to: "/user/sip" },
-  { icon: ClipboardList, label: "Transactions", to: "/user/transactions" },
-  { icon: GalleryHorizontalEnd, label: "Metal Gallery", to: "/user/gallery" },
-  { type: "section", label: "PROFILE" },
-  { icon: ShieldCheck, label: "My Account", to: "/user/account" },
+  { icon: ClipboardList, label: "Audit", to: "/user/transactions" },
+  { icon: GalleryHorizontalEnd, label: "Gallery", to: "/user/gallery" },
+  { section: "IDENTITY" },
+  { icon: ShieldCheck, label: "My Identity", to: "/user/account" },
 ];
-
-const ACCENT_STYLES = {
-  gold: { color: "#c9a84c", bg: "rgba(201,168,76,0.12)" },
-  silver: { color: "#94a3b8", bg: "rgba(148,163,184,0.12)" },
-  sell: { color: "#f87171", bg: "rgba(248,113,113,0.10)" },
-};
 
 export default function UserLayout({ children }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useSelector((s) => s.auth);
+  const { current } = useSelector((s) => s.price);
+  
   const sidebarRef = useRef(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile & Collapsed Desktop
+  const [scrolled, setScrolled] = useState(false);
+  const [showQuickMenu, setShowQuickMenu] = useState(false);
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [tradeDropdown, setTradeDropdown] = useState(false);
-  const tradeRef = useRef(null);
+  useEffect(() => {
+    dispatch(fetchCurrentPrices());
+    const interval = setInterval(() => dispatch(fetchCurrentPrices()), 60000);
+    return () => clearInterval(interval);
+  }, [dispatch]);
 
-  const handleLogout = () => { dispatch(logout()); navigate("/login"); };
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+  };
+
   const isActive = (path) => location.pathname === path;
 
-  // Close sidebar on outside click
   useEffect(() => {
-    const handleClick = (e) => {
-      if (sidebarOpen && sidebarRef.current && !sidebarRef.current.contains(e.target)) {
-        setSidebarOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [sidebarOpen]);
-
-  // Close trade dropdown on outside click
-  useEffect(() => {
-    const handleClick = (e) => {
-      if (tradeDropdown && tradeRef.current && !tradeRef.current.contains(e.target)) {
-        setTradeDropdown(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [tradeDropdown]);
-
-  // Close sidebar on route change
-  useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
+    setSidebarOpen(false);
+    setShowQuickMenu(false);
+  }, [location.pathname]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "#FDFBF7", fontFamily: "'Outfit', sans-serif" }}>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" />
-      <style>{`
-        .sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); backdrop-filter:blur(2px); z-index:40; transition:opacity 0.25s; }
-        .sidebar-panel { position:fixed; top:0; left:0; height:100vh; width:268px; background:#100C04; z-index:50; display:flex; flex-direction:column; transform:translateX(-100%); transition:transform 0.3s cubic-bezier(.4,0,.2,1); overflow:hidden; }
-        .sidebar-panel.open { transform:translateX(0); }
-        .nav-link { display:flex; align-items:center; gap:12px; padding:11px 16px; border-radius:14px; transition:all 0.18s; cursor:pointer; text-decoration:none; font-size:14.5px; font-weight:500; color:#88857F; }
-        .nav-link:hover { background:rgba(255,255,255,0.06); color:#fff; }
-        .nav-link.active { background:#BA943A; color:#100C04; box-shadow:0 4px 14px rgba(186,148,58,0.3); }
-        .custom-scrollbar::-webkit-scrollbar { width:4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background:transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background:rgba(186,148,58,0.2); border-radius:4px; }
-        .topnav-btn { display:flex; align-items:center; gap:8px; padding:8px 16px; border-radius:10px; border:none; cursor:pointer; font-family:'Outfit',sans-serif; font-size:13.5px; font-weight:600; transition:all 0.18s; }
-        .topnav-btn:hover { transform:translateY(-1px); }
-        .trade-dropdown { position:absolute; top:calc(100% + 8px); right:0; background:#fff; border:1px solid #ede8d8; border-radius:14px; box-shadow:0 8px 32px rgba(0,0,0,0.1); width:200px; overflow:hidden; z-index:30; animation:dropIn 0.15s ease; }
-        @keyframes dropIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
-        .trade-item { display:flex; align-items:center; gap:10px; padding:11px 16px; font-size:13.5px; font-weight:500; color:#1a1200; text-decoration:none; transition:background 0.12s; }
-        .trade-item:hover { background:#fafaf7; }
-        .hamburger-btn { width:38px; height:38px; border-radius:10px; border:1px solid #ede8d8; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; color:#555; }
-        .hamburger-btn:hover { background:#fafaf7; border-color:#d4c8a0; }
-        @media (max-width:768px) { .topnav-center { display:none !important; } }
-      `}</style>
+    <div className="flex min-h-screen bg-[#FDFBF7] text-[#1a1200] font-sans selection:bg-[#BA943A]/20">
+      {/* ── Background Pattern ── */}
+      <div
+        className="fixed inset-0 pointer-events-none opacity-[0.03] z-0"
+        style={{
+          backgroundImage: `radial-gradient(#000 1px, transparent 1px)`,
+          backgroundSize: "24px 24px",
+        }}
+      />
 
-      {/* ── TOP NAVIGATION BAR ── */}
-      <header style={{
-        position: "sticky", top: 0, zIndex: 30,
-        background: "rgba(253,251,247,0.9)", backdropFilter: "blur(12px)",
-        borderBottom: "1px solid #ede8d8",
-        padding: "0 1.5rem", height: "64px",
-        display: "flex", alignItems: "center", gap: "16px",
-        boxShadow: "0 1px 12px rgba(0,0,0,0.04)",
-      }}>
-
-        {/* Left: Hamburger + Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: "0 0 auto" }}>
-          <button className="hamburger-btn" onClick={() => setSidebarOpen(true)} aria-label="Open menu">
-            <Menu size={18} />
-          </button>
-          <Link to="/user/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "baseline", gap: "4px" }}>
-            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.45rem", fontWeight: 700, color: "#1a1200" }}>Luna</span>
-            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.45rem", fontWeight: 700, color: "#BA943A" }}>Gold</span>
-          </Link>
-        </div>
-
-        {/* Center: Page title area / breadcrumb */}
-        <div className="topnav-center" style={{ flex: 1, display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "13px", color: "#bbb" }}>
-            {NAV_ITEMS.find(n => n.to === location.pathname)?.label || ""}
-          </span>
-        </div>
-
-        {/* Right: Buy / Sell CTAs + Trade dropdown + user */}
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginLeft: "auto" }}>
-
-          {/* Gallery Button */}
-          <Link to="/user/gallery" className="topnav-btn" style={{ background: "linear-gradient(135deg,#c9a84c,#e2c06a)", color: "#0a0800", boxShadow: "0 3px 12px rgba(201,168,76,0.28)" }}>
-            <GalleryHorizontalEnd size={14} />
-            <span>Gallery</span>
-          </Link> 
-          {/* SIP */}
-          <Link to="/user/sip" className="topnav-btn" style={{ background: "linear-gradient(135deg,#c9a84c,#e2c06a)", color: "#0a0800", boxShadow: "0 3px 12px rgba(201,168,76,0.28)" }}>
-            <GalleryHorizontalEnd size={14} />
-            <span>SIP</span>
-          </Link>
-          {/* Buy Gold */}
-          <Link to="/user/buy/gold" className="topnav-btn" style={{ background: "linear-gradient(135deg,#c9a84c,#e2c06a)", color: "#0a0800", boxShadow: "0 3px 12px rgba(201,168,76,0.28)" }}>
-            <TrendingUp size={14} />
-            <span>Buy Gold</span>
-          </Link>
-
-          {/* Buy Silver */}
-          <Link to="/user/buy/silver" className="topnav-btn" style={{ background: "linear-gradient(135deg,#94a3b8,#cbd5e1)", color: "#0f172a", boxShadow: "0 3px 12px rgba(148,163,184,0.22)" }}>
-            <TrendingUp size={14} />
-            <span style={{ display: "none" }}>Buy Silver</span>
-            <span className="topnav-center" style={{ display: "flex" }}>Buy Silver</span>
-          </Link>
-
-          {/* More Trade dropdown */}
-          <div ref={tradeRef} style={{ position: "relative" }}>
-            <button
-              className="topnav-btn"
-              style={{ background: "#fff", color: "#555", border: "1px solid #ede8d8" }}
-              onClick={() => setTradeDropdown(v => !v)}
+      {/* ── COLLAPSIBLE SIDEBAR (Universal) ── */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSidebarOpen(false)}
+              className="fixed inset-0 bg-[#100C04]/80 backdrop-blur-md z-[60]"
+            />
+            {/* Sidebar Shell */}
+            <motion.aside
+              ref={sidebarRef}
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="fixed top-0 left-0 h-full w-[300px] bg-[#100C04] z-[70] flex flex-col border-r border-white/10 shadow-[20px_0_60px_rgba(0,0,0,0.5)]"
             >
-              <span>Sell</span>
-              <ChevronDown size={13} style={{ transition: "transform 0.18s", transform: tradeDropdown ? "rotate(180deg)" : "rotate(0deg)" }} />
+              <div className="p-8 border-b border-white/5 flex justify-between items-center bg-[#1a150a]">
+                <div className="flex items-center gap-4">
+                   <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#BA943A] to-[#E2C06A] flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-full bg-white/20" />
+                   </div>
+                   <span className="font-serif text-2xl font-black text-white tracking-tight">Luna</span>
+                </div>
+                <button 
+                  onClick={() => setSidebarOpen(false)} 
+                  className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/40 hover:bg-rose-500 hover:text-white transition-all shadow-inner group"
+                >
+                  <X size={20} className="group-hover:rotate-90 transition-transform" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <SidebarContent user={user} isActive={isActive} handleLogout={handleLogout} />
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── MAIN VIEWPORT ── */}
+      <div className="flex-1 flex flex-col min-w-0 relative z-10 transition-all duration-500">
+
+        {/* ── TOP NAVIGATION ── */}
+        <header
+          className={`sticky top-0 z-30 px-6 lg:px-12 h-20 flex items-center justify-between transition-all duration-500
+            ${scrolled ? "bg-white/80 backdrop-blur-xl border-b border-[#ede8d8] shadow-sm" : "bg-transparent"}`}
+        >
+          <div className="flex items-center gap-6">
+            {/* Sidebar Toggle Button (Primary Menu) */}
+            <button
+              className={`p-3 rounded-2xl border transition-all shadow-sm flex items-center gap-3 group active:scale-95
+                ${sidebarOpen ? "bg-slate-900 border-slate-900 text-[#BA943A]" : "bg-white border-[#ede8d8] text-slate-900 hover:border-[#BA943A] hover:text-[#BA943A]"}`}
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+            >
+              <Menu size={22} strokeWidth={2.5} className="group-hover:rotate-180 transition-transform duration-500" />
+              <span className="text-[11px] font-black uppercase tracking-[0.2em] hidden sm:block">Command Center</span>
             </button>
 
-            {tradeDropdown && (
-              <div className="trade-dropdown">
-                <div style={{ padding: "8px 12px 4px", fontSize: "10px", fontWeight: 700, color: "#bbb", letterSpacing: "0.1em", textTransform: "uppercase" }}>Sell</div>
-                <Link to="/user/sell/gold" className="trade-item" onClick={() => setTradeDropdown(false)}>
-                  <span style={{ width: 20, height: 20, borderRadius: "50%", background: "linear-gradient(135deg,#fbbf24,#d97706)", display: "inline-block", flexShrink: 0 }} />
-                  Sell Gold
-                </Link>
-                <Link to="/user/sell/silver" className="trade-item" onClick={() => setTradeDropdown(false)}>
-                  <span style={{ width: 20, height: 20, borderRadius: "50%", background: "linear-gradient(135deg,#e2e8f0,#94a3b8)", display: "inline-block", flexShrink: 0 }} />
-                  Sell Silver
-                </Link>
-                <div style={{ height: "1px", background: "#f5f0e8", margin: "4px 0" }} />
-                <div style={{ padding: "4px 12px 8px", fontSize: "10px", fontWeight: 700, color: "#bbb", letterSpacing: "0.1em", textTransform: "uppercase" }}>Other</div>
-                
-                <Link to="/user/wallet" className="trade-item" onClick={() => setTradeDropdown(false)}>
-                  <Wallet size={16} style={{ color: "#f97316", flexShrink: 0 }} />
-                  Add Money
-                </Link>
-              </div>
-            )}
-          </div>
-
-        </div>
-      </header>
-
-      {/* ── SIDEBAR OVERLAY ── */}
-      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
-
-      {/* ── SIDEBAR PANEL ── */}
-      <aside ref={sidebarRef} className={`sidebar-panel${sidebarOpen ? " open" : ""}`}>
-
-        {/* Sidebar Header */}
-        <div style={{ padding: "20px 20px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <div>
-            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.7rem", fontWeight: 700 }}>
-              <span style={{ color: "#fff" }}>Luna </span>
-              <span style={{ color: "#BA943A" }}>Gold</span>
-            </div>
-            <p style={{ color: "#88857F", fontSize: "10px", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", marginTop: "2px", opacity: 0.6 }}>
-              Investor Portal
-            </p>
-          </div>
-          <button onClick={() => setSidebarOpen(false)} style={{ width: "32px", height: "32px", borderRadius: "8px", border: "none", background: "rgba(255,255,255,0.06)", color: "#88857F", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <X size={16} />
-          </button>
-        </div>
-
-        {/* User Card */}
-        <div style={{ margin: "12px 16px", background: "#1A160F", borderRadius: "14px", padding: "14px", border: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "linear-gradient(135deg,#BA943A,#E2C06A)", display: "flex", alignItems: "center", justifyContent: "center", color: "#100C04", fontWeight: 700, fontSize: "18px", flexShrink: 0 }}>
-            {user?.userName?.[0]?.toUpperCase() || "U"}
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ color: "#fff", fontWeight: 600, fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {user?.userName || "User"}
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "5px", marginTop: "3px" }}>
-              <ShieldCheck size={11} style={{ color: "#BA943A" }} />
-              <span style={{ color: "#88857F", fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                {user?.kycStatus === "VERIFIED" ? "Verified" : "Unverified"}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Nav */}
-        <nav className="custom-scrollbar" style={{ flex: 1, overflowY: "auto", padding: "8px 12px" }}>
-
-          {user?.role !== "user" && (
-            <Link
-              to={user?.role === "admin" ? "/admin/dashboard" : "/staff/dashboard"}
-              className="nav-link"
-              style={{ background: "rgba(201,168,76,0.1)", color: "#c9a84c", marginBottom: "12px", fontWeight: 600 }}
-            >
-              <ShieldPlus size={18} />
-              Management Portal
-            </Link>
-          )}
-
-          {NAV_ITEMS.map((item, i) => {
-            if (item.type === "section") {
-              return (
-                <div key={i} style={{ padding: "18px 12px 6px", fontSize: "10px", fontWeight: 700, color: "#88857F", letterSpacing: "0.18em", textTransform: "uppercase" }}>
-                  {item.label}
-                </div>
-              );
-            }
-
-            const active = isActive(item.to);
-            const Icon = item.icon;
-            const accent = item.accent ? ACCENT_STYLES[item.accent] : null;
-
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={`nav-link${active ? " active" : ""}`}
-                style={
-                  active ? {} :
-                    accent ? { color: accent.color } : {}
-                }
+            {/* Breadcrumbs (Staff Style) */}
+            <div className="hidden md:flex items-center gap-4">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex flex-col"
               >
-                <Icon
-                  size={18}
-                  strokeWidth={active ? 2.5 : 2}
-                  style={active ? { color: "#100C04" } : accent ? { color: accent.color } : {}}
-                />
-                {item.label}
+                <h2 className="text-xl font-serif font-black text-slate-900 capitalize tracking-tight leading-none">
+                  {NAV_ITEMS.find(n => n.to === location.pathname)?.label || "Terminal"}
+                </h2>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[9px] font-black text-[#A3A09A] uppercase tracking-[0.25em]">Luna Finance</span>
+                  <ChevronRight size={10} className="text-[#ede8d8]" />
+                  <span className="text-[9px] font-black text-[#BA943A] uppercase tracking-[0.25em]">Asset Portal</span>
+                </div>
+              </motion.div>
+            </div>
+          </div>
 
-                {/* Accent dot for buy/sell items */}
-                {accent && !active && (
-                  <span style={{
-                    marginLeft: "auto", width: "7px", height: "7px",
-                    borderRadius: "50%", background: accent.color,
-                    opacity: 0.7,
-                  }} />
+          {/* Quick Actions & Menu Button */}
+          <div className="flex items-center gap-4">
+            
+            {/* Quick Acquisition Bar (Staff Style) */}
+            <div className="hidden xl:flex gap-3 p-1 bg-slate-100/50 rounded-2xl border border-slate-200/50">
+               <Link to="/user/buy/gold" className="px-4 py-2 bg-white rounded-xl border border-slate-100 shadow-sm flex items-center gap-3 group hover:scale-[1.02] transition-all">
+                  <div className="flex flex-col text-right">
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider">AU Acquisition</span>
+                    <span className="text-xs font-black text-slate-900 tracking-tight">₹{fmt(current.gold?.pricePerGram)}</span>
+                  </div>
+                  <div className="w-8 h-8 rounded-lg bg-yellow-50 flex items-center justify-center text-[#BA943A] shadow-inner group-hover:bg-yellow-100 transition-colors">
+                    <TrendingUp size={16} strokeWidth={3} />
+                  </div>
+               </Link>
+               <Link to="/user/buy/silver" className="px-4 py-2 bg-white rounded-xl border border-slate-100 shadow-sm flex items-center gap-3 group hover:scale-[1.02] transition-all">
+                  <div className="flex flex-col text-right">
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider">AG Acquisition</span>
+                    <span className="text-xs font-black text-slate-900 tracking-tight">₹{fmt(current.silver?.pricePerGram)}</span>
+                  </div>
+                  <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 shadow-inner group-hover:bg-slate-200 transition-colors">
+                    <TrendingUp size={16} strokeWidth={3} />
+                  </div>
+               </Link>
+            </div>
+
+            {/* Quick Access Grid */}
+            <div className="relative">
+              <button 
+                onClick={() => setShowQuickMenu(!showQuickMenu)}
+                className={`p-3 rounded-2xl border transition-all shadow-sm flex items-center gap-3 group active:scale-95
+                  ${showQuickMenu ? "bg-slate-900 text-[#BA943A] border-slate-900" : "bg-white hover:bg-gray-50 text-slate-900 hover:border-[#BA943A] hover:text-[#BA943A]"}`}
+              >
+                <LayoutGrid size={22} strokeWidth={2.5} />
+                <span className="text-[11px] font-black uppercase tracking-[0.2em] hidden sm:block">Quick Terminal</span>
+              </button>
+              
+              <AnimatePresence>
+                {showQuickMenu && (
+                  <>
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowQuickMenu(false)} className="fixed inset-0 z-40" />
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                      className="absolute right-0 mt-4 w-72 bg-white rounded-[2.5rem] border border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.1)] z-50 overflow-hidden p-4"
+                    >
+                      <div className="p-4 border-b border-slate-50 mb-3 flex items-center justify-between">
+                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Institutional Access</p>
+                         <Zap size={14} className="text-[#BA943A]" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        {[
+                          { label: "Portfolio", to: "/user/portfolio", icon: Briefcase, color: "bg-indigo-50 text-indigo-600" },
+                          { label: "Wallet Hub", to: "/user/wallet", icon: Wallet, color: "bg-emerald-50 text-emerald-600" },
+                          { label: "Vault Gallery", to: "/user/gallery", icon: GalleryHorizontalEnd, color: "bg-rose-50 text-rose-600" },
+                          { label: "Savings Hub", to: "/user/sip", icon: RefreshCcw, color: "bg-amber-50 text-amber-600" },
+                          { label: "My Identity", to: "/user/account", icon: ShieldCheck, color: "bg-slate-50 text-slate-900" },
+                          { label: "Security Hub", to: "/user/account", icon: ShieldPlus, color: "bg-blue-50 text-blue-600" },
+                        ].map((item) => (
+                          <Link key={item.label} to={item.to} className="p-5 rounded-[1.5rem] bg-white border border-slate-50 hover:bg-slate-50 hover:border-slate-200 transition-all group flex flex-col items-center text-center">
+                             <div className={`w-12 h-12 rounded-2xl ${item.color} flex items-center justify-center mb-3 shadow-inner group-hover:scale-110 transition-transform`}>
+                               <item.icon size={22} strokeWidth={2.5} />
+                             </div>
+                             <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest leading-tight">{item.label}</span>
+                          </Link>
+                        ))}
+                      </div>
+                      <Link to="/user/transactions" className="mt-4 flex items-center justify-between p-5 rounded-[1.5rem] bg-slate-900 text-[#BA943A] hover:bg-black transition-all group shadow-xl shadow-yellow-900/10">
+                         <div className="flex items-center gap-4">
+                            <History size={18} />
+                            <span className="text-[11px] font-black uppercase tracking-widest leading-none">Trade Ledger</span>
+                         </div>
+                         <ChevronRight size={16} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
+                      </Link>
+                    </motion.div>
+                  </>
                 )}
-              </Link>
+              </AnimatePresence>
+            </div>
+
+            <Link
+              to="/user/account"
+              className="hidden sm:flex items-center gap-3 pl-2 pr-4 py-1.5 rounded-[1.25rem] border border-[#ede8d8] bg-white hover:border-[#BA943A] transition-all shadow-sm group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#100C04] to-[#2a2108] flex items-center justify-center text-[#BA943A] font-black text-sm shadow-lg group-hover:scale-105 transition-transform">
+                {user?.userName?.[0]?.toUpperCase() || "A"}
+              </div>
+              <div className="hidden lg:flex flex-col items-start leading-none pr-2">
+                <span className="text-xs font-black text-[#1a1200]">{user?.userName || "Investor"}</span>
+                <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mt-1">Verified Member</span>
+              </div>
+            </Link>
+          </div>
+        </header>
+
+        {/* ── CONTENT AREA ── */}
+        <main className="flex-1 overflow-y-auto custom-scrollbar px-6 lg:px-12 py-10">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.05); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.1); }
+      `}</style>
+    </div>
+  );
+}
+
+function SidebarContent({ user, isActive, handleLogout }) {
+  return (
+    <div className="p-8 flex flex-col h-full">
+      {/* Corporate Access (Staff Style) */}
+      {user?.role !== "user" && (
+        <Link
+          to={user?.role === "admin" ? "/admin/dashboard" : "/staff/dashboard"}
+          className="mb-10 flex items-center justify-between p-6 rounded-[2rem] bg-[#BA943A] text-[#100C04] shadow-2xl shadow-yellow-900/20 border border-[#BA943A] hover:scale-[1.02] active:scale-95 transition-all group"
+        >
+          <div className="flex items-center gap-5">
+            <ShieldPlus size={24} strokeWidth={2.5} className="group-hover:rotate-12 transition-transform" />
+            <span className="font-black text-[14px] tracking-tight uppercase">Executive Terminal</span>
+          </div>
+          <ChevronRight size={18} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
+        </Link>
+      )}
+
+      {/* Main Navigation (Staff Style) */}
+      <nav className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-2">
+        {NAV_ITEMS.map((item, i) => {
+          if (item.section) {
+            return (
+              <div key={i} className="px-5 pt-10 pb-3 text-[10px] font-black text-white/30 uppercase tracking-[0.4em]">
+                {item.section}
+              </div>
             );
-          })}
-        </nav>
+          }
 
-        {/* Logout */}
-        <div style={{ padding: "12px 12px 20px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-          <button
-            onClick={handleLogout}
-            style={{
-              display: "flex", alignItems: "center", gap: "12px",
-              width: "100%", padding: "11px 16px", borderRadius: "14px",
-              border: "none", background: "transparent",
-              color: "#FF5D5D", fontFamily: "'Outfit',sans-serif",
-              fontSize: "14.5px", fontWeight: 500, cursor: "pointer",
-              transition: "background 0.15s",
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,93,93,0.08)"}
-            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-          >
-            <LogOut size={18} strokeWidth={2} />
-            Logout
-          </button>
+          const active = isActive(item.to);
+          const Icon = item.icon;
+
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={`group flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 border
+                ${active
+                  ? "bg-[#BA943A] border-[#BA943A]/50 text-[#100C04] shadow-xl shadow-yellow-900/10"
+                  : "text-white/40 border-transparent hover:bg-white/5 hover:text-white hover:border-white/5"}`}
+            >
+              <div className="flex items-center gap-5">
+                <Icon size={20} strokeWidth={active ? 3 : 2} className={active ? "text-[#100C04]" : "text-white/20 group-hover:text-[#BA943A] transition-colors"} />
+                <span className={`text-[14px] tracking-tight uppercase ${active ? "font-black" : "font-bold"}`}>{item.label}</span>
+              </div>
+              {active ? (
+                <ChevronRight size={16} strokeWidth={3} className="text-[#100C04]" />
+              ) : (
+                <div className="w-1.5 h-1.5 rounded-full bg-white/10 group-hover:bg-[#BA943A]/50" />
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Bottom Profile Section (Staff Style) */}
+      <div className="mt-10 pt-8 border-t border-white/5">
+        <div className="flex items-center gap-5 p-5 rounded-[1.5rem] bg-white/5 border border-white/10 mb-6 group cursor-pointer hover:bg-white/10 transition-colors shadow-inner">
+          <div className="relative">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#BA943A] to-[#E2C06A] flex items-center justify-center text-[#100C04] font-black shadow-lg text-xl">
+              {user?.userName?.[0]?.toUpperCase() || "I"}
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-4.5 h-4.5 bg-emerald-500 border-2 border-[#100C04] rounded-full shadow-sm" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[14px] font-black text-white truncate tracking-tight uppercase">
+              {user?.userName || "Investor"}
+            </p>
+            <div className="flex items-center gap-2 mt-1 opacity-60">
+              <ShieldCheck size={12} className="text-[#BA943A]" />
+              <p className="text-[10px] text-[#BA943A] font-black tracking-widest uppercase">Verified Node</p>
+            </div>
+          </div>
         </div>
-      </aside>
 
-      {/* ── MAIN CONTENT ── */}
-      <main style={{ flex: 1, overflowY: "auto" }}>
-        {children}
-      </main>
+        <button
+          onClick={handleLogout}
+          className="flex items-center justify-center gap-4 w-full px-6 py-4 text-[11px] font-black uppercase tracking-widest text-rose-400 hover:bg-rose-500 hover:text-white rounded-2xl transition-all border border-rose-500/20 shadow-xl shadow-rose-900/10 group"
+        >
+          <LogOut size={18} strokeWidth={2.5} className="group-hover:-translate-x-1 transition-transform" />
+          Terminate Session
+        </button>
+      </div>
     </div>
   );
 }

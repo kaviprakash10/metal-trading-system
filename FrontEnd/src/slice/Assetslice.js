@@ -38,6 +38,8 @@ export const buyGold    = makeBuyThunk("buyGold",    "/gold/buy");
 export const buySilver  = makeBuyThunk("buySilver",  "/silver/buy");
 export const sellGold   = makeSellThunk("sellGold",  "/gold/sell");
 export const sellSilver = makeSellThunk("sellSilver","/silver/sell");
+export const redeemGold = makeSellThunk("redeemGold", "/gold/redeem");
+export const redeemSilver = makeSellThunk("redeemSilver", "/silver/redeem");
 
 const assetSlice = createSlice({
   name: "asset",
@@ -77,7 +79,7 @@ const assetSlice = createSlice({
       state.error   = action.payload;
     };
 
-    [buyGold, buySilver, sellGold, sellSilver].forEach((thunk) => {
+    [buyGold, buySilver, sellGold, sellSilver, redeemGold, redeemSilver].forEach((thunk) => {
       builder
         .addCase(thunk.pending,   pending)
         .addCase(thunk.fulfilled, fulfilled)

@@ -2,21 +2,50 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { updateProfile } from "../slice/Authslice";
 import UserLayout from "./userLayout";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  User, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  CreditCard, 
+  ShieldCheck, 
+  Wallet, 
+  CheckCircle2, 
+  AlertCircle, 
+  ChevronRight,
+  Save,
+  Building2,
+  Smartphone,
+  Hash,
+  ArrowRight,
+  AlertTriangle,
+  Info,
+  Key,
+  Database,
+  Lock,
+  Globe,
+  RefreshCcw,
+  Clock,
+  ShieldPlus,
+  Activity,
+  Fingerprint,
+  Cpu,
+  Scan
+} from "lucide-react";
 
 const fmt = (n) => Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
 
-/* ── Input Field Component ── */
-function Field({ label, icon, name, value, onChange, type = "text", placeholder, disabled, hint }) {
+/* ── Simple Field Component ── */
+function Field({ label, icon: Icon, name, value, onChange, type = "text", placeholder, disabled, hint }) {
   return (
-    <div style={{ marginBottom: "1.1rem" }}>
-      <label style={{ display: "block", fontSize: "0.7rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#aaa", marginBottom: "0.45rem", fontWeight: 500 }}>
-        {label}
-      </label>
-      <div style={{ position: "relative" }}>
-        {icon && (
-          <span style={{ position: "absolute", left: "0.9rem", top: "50%", transform: "translateY(-50%)", fontSize: "1rem", pointerEvents: "none" }}>
-            {icon}
-          </span>
+    <div className="flex flex-col gap-2 mb-8">
+      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{label}</label>
+      <div className="relative group">
+        {Icon && (
+          <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#BA943A] transition-colors">
+            <Icon size={18} />
+          </div>
         )}
         <input
           type={type}
@@ -25,89 +54,64 @@ function Field({ label, icon, name, value, onChange, type = "text", placeholder,
           onChange={onChange}
           placeholder={placeholder}
           disabled={disabled}
-          style={{
-            width: "100%",
-            padding: icon ? "0.8rem 1rem 0.8rem 2.4rem" : "0.8rem 1rem",
-            borderRadius: "10px",
-            border: `1px solid ${disabled ? "#f0ead8" : value ? "rgba(201,168,76,0.35)" : "#e5e0d0"}`,
-            fontSize: "0.88rem",
-            color: disabled ? "#bbb" : "#1a1200",
-            outline: "none",
-            background: disabled ? "#fafaf7" : "#fff",
-            boxSizing: "border-box",
-            transition: "border-color 0.2s",
-            fontFamily: "'DM Sans', sans-serif",
-          }}
+          className={`w-full py-4 rounded-[1.25rem] text-[13px] font-extrabold transition-all outline-none border
+            ${Icon ? "pl-14 pr-6" : "px-6"}
+            ${disabled 
+              ? "bg-slate-50 text-slate-400 border-dashed border-slate-200 cursor-not-allowed" 
+              : "bg-slate-50 border-slate-100 text-slate-900 focus:bg-white focus:border-[#BA943A]/40 transition-all shadow-sm"}`}
         />
       </div>
-      {hint && <div style={{ fontSize: "0.7rem", color: "#bbb", marginTop: "0.3rem" }}>{hint}</div>}
+      {hint && <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest ml-1 flex items-center gap-2 opacity-60"><Info size={12} /> {hint}</p>}
     </div>
   );
 }
 
-/* ── Section Card ── */
-function Section({ title, subtitle, icon, children }) {
+/* ── Simple Section Component ── */
+function Section({ title, subtitle, icon: Icon, children }) {
   return (
-    <div style={{ background: "#fff", borderRadius: "18px", border: "1px solid #ede8d8", boxShadow: "0 2px 16px rgba(0,0,0,0.04)", marginBottom: "1.5rem", overflow: "hidden" }}>
-      <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #f5f0e8", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-        <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(201,168,76,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem", flexShrink: 0 }}>
-          {icon}
-        </div>
-        <div>
-          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.1rem", fontWeight: 700, color: "#1a1200" }}>{title}</div>
-          {subtitle && <div style={{ fontSize: "0.72rem", color: "#aaa", marginTop: "0.1rem" }}>{subtitle}</div>}
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden mb-10"
+    >
+      <div className="px-8 py-8 border-b border-slate-50 flex items-center justify-between bg-white group hover:bg-slate-50/30 transition-colors">
+        <div className="flex items-center gap-5">
+          <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-[#BA943A] shadow-inner transition-transform group-hover:scale-105">
+            <Icon size={22} strokeWidth={2.5} />
+          </div>
+          <div>
+            <h3 className="font-serif text-2xl font-black text-slate-900 tracking-tight">{title}</h3>
+            {subtitle && <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{subtitle}</p>}
+          </div>
         </div>
       </div>
-      <div style={{ padding: "1.4rem 1.5rem" }}>
+      <div className="p-8">
         {children}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
-/* ══════════════════════════════════════════
-   ACCOUNT PAGE
-══════════════════════════════════════════ */
 export default function AccountPage() {
   const dispatch = useDispatch();
   const { user, loading, error } = useSelector((s) => s.auth);
 
-  const [paymentTab, setPaymentTab] = useState("UPI"); // UPI | BANK
+  const [paymentTab, setPaymentTab] = useState("UPI");
   const [saved, setSaved] = useState(false);
 
   const [form, setForm] = useState({
-    userName: "",
-    email: "",
-    phone: "",
-    address: "",
-    city: "",
-    state: "",
-    pincode: "",
-    // UPI
-    upiId: "",
-    // Bank
-    accountName: "",
-    accountNumber: "",
-    ifscCode: "",
-    bankName: "",
+    userName: "", email: "", phone: "", address: "", city: "", state: "", pincode: "",
+    upiId: "", accountName: "", accountNumber: "", ifscCode: "", bankName: "",
   });
 
-  // Pre-fill from Redux user
   useEffect(() => {
     if (user) {
       setForm({
-        userName: user.userName || "",
-        email: user.email || "",
-        phone: user.phone || "",
-        address: user.address || "",
-        city: user.city || "",
-        state: user.state || "",
-        pincode: user.pincode || "",
-        upiId: user.upiId || "",
-        accountName: user.accountName || "",
-        accountNumber: user.accountNumber || "",
-        ifscCode: user.ifscCode || "",
-        bankName: user.bankName || "",
+        userName: user.userName || "", email: user.email || "", phone: user.phone || "",
+        address: user.address || "", city: user.city || "", state: user.state || "", pincode: user.pincode || "",
+        upiId: user.upiId || "", accountName: user.accountName || "", accountNumber: user.accountNumber || "",
+        ifscCode: user.ifscCode || "", bankName: user.bankName || "",
       });
     }
   }, [user]);
@@ -122,168 +126,190 @@ export default function AccountPage() {
     e.preventDefault();
     dispatch(updateProfile(form)).then(() => {
       setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      setTimeout(() => setSaved(false), 4000);
     });
   };
 
-  const kycColor = {
-    VERIFIED: { bg: "#dcfce7", color: "#16a34a", label: "Verified ✅" },
-    PENDING: { bg: "#fef9c3", color: "#854d0e", label: "Pending ⏳" },
-    REJECTED: { bg: "#fee2e2", color: "#dc2626", label: "Rejected ❌" },
-  }[user?.kycStatus || "PENDING"];
+  const kycStatus = user?.kycStatus || "PENDING";
+  const kycConfig = {
+    VERIFIED: { color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100", label: "Identity Verified", icon: ShieldCheck },
+    PENDING: { color: "text-[#BA943A]", bg: "bg-yellow-50", border: "border-yellow-100", label: "Awaiting Verification", icon: Clock },
+    REJECTED: { color: "text-rose-600", bg: "bg-rose-50", border: "border-rose-100", label: "Verification Failed", icon: AlertTriangle },
+  }[kycStatus];
 
   return (
     <UserLayout active="/user/account">
-      <div style={{ maxWidth: "720px", margin: "0 auto" }}>
-
-        {/* ── HEADER ── */}
-        <div style={{ marginBottom: "1.75rem" }}>
-          <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.9rem", fontWeight: 700, color: "#1a1200", margin: 0 }}>
-            My Account
-          </h1>
-          <p style={{ color: "#999", fontSize: "0.875rem", marginTop: "0.25rem" }}>
-            Manage your personal details and payment information.
-          </p>
+      <div className="max-w-5xl mx-auto space-y-12">
+        
+        {/* Header Section (Staff-Matched) */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+            <h1 className="text-5xl font-serif font-black text-slate-900 tracking-tight leading-none mb-3">
+               My Identity<span className="text-amber-500">.</span>
+            </h1>
+            <p className="text-slate-500 font-medium flex items-center gap-2.5">
+               <ShieldCheck size={18} className="text-[#BA943A]" />
+               Profile Security
+               <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mx-2" />
+               <Database size={16} className="text-slate-400" />
+               Layer-3 Authorized
+            </p>
+          </motion.div>
+          
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-4 bg-white p-3 rounded-[1.5rem] border border-slate-200 shadow-sm">
+             <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                <Lock size={18} />
+             </div>
+             <div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Access Node</p>
+                <p className="text-sm font-black text-slate-900">Verified Personnel</p>
+             </div>
+          </motion.div>
         </div>
 
-        {/* ── PROFILE BANNER ── */}
-        <div style={{
-          background: "linear-gradient(135deg,#0f0c00,#1a1200)",
-          borderRadius: "20px", padding: "1.5rem",
-          marginBottom: "1.5rem",
-          border: "1px solid rgba(201,168,76,0.15)",
-          boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
-          display: "flex", alignItems: "center", gap: "1.25rem",
-        }}>
-          {/* Avatar */}
-          <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "linear-gradient(135deg,#c9a84c,#e2c06a)", display: "flex", alignItems: "center", justifyContent: "center", color: "#0a0800", fontWeight: 700, fontSize: "1.6rem", flexShrink: 0 }}>
-            {user?.userName?.[0]?.toUpperCase() || "U"}
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.4rem", fontWeight: 700, color: "#fff" }}>
-              {user?.userName || "User"}
+        {/* Profile Card (Simplified Digital ID) */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative bg-slate-900 text-white rounded-[2.5rem] p-10 overflow-hidden shadow-2xl border border-white/5"
+        >
+          <div className="flex flex-col md:flex-row items-center gap-10 relative z-10">
+            <div className="relative">
+              <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-[#BA943A] to-[#E2C06A] flex items-center justify-center text-[#100C04] font-serif text-5xl font-black shadow-xl">
+                {user?.userName?.[0]?.toUpperCase() || "U"}
+              </div>
+              <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-white border-4 border-slate-900 flex items-center justify-center text-emerald-500 shadow-lg">
+                 <ShieldCheck size={14} strokeWidth={3} />
+              </div>
             </div>
-            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.8rem", marginTop: "0.15rem" }}>{user?.email}</div>
-            <div style={{ marginTop: "0.5rem", display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-              <span style={{ padding: "0.2rem 0.65rem", borderRadius: "100px", fontSize: "0.7rem", fontWeight: 600, background: kycColor?.bg, color: kycColor?.color }}>
-                KYC {kycColor?.label}
-              </span>
-              <span style={{ padding: "0.2rem 0.65rem", borderRadius: "100px", fontSize: "0.7rem", fontWeight: 600, background: "rgba(201,168,76,0.15)", color: "#c9a84c" }}>
-                {user?.role?.toUpperCase() || "USER"}
-              </span>
+            
+            <div className="flex-1 text-center md:text-left space-y-4">
+              <div>
+                 <h2 className="font-serif text-4xl font-black text-white tracking-tighter leading-none mb-3">{user?.userName || "Investor Member"}</h2>
+                 <div className="flex flex-wrap justify-center md:justify-start gap-4 items-center">
+                   <div className="flex items-center gap-2 text-white/50 text-[11px] font-black tracking-widest uppercase">
+                     <Mail size={14} className="text-[#BA943A]" /> {user?.email}
+                   </div>
+                   <div className="h-4 w-[1px] bg-white/10 hidden md:block" />
+                   <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border ${kycConfig.bg} ${kycConfig.color} ${kycConfig.border} shadow-lg shadow-black/20`}>
+                     <kycConfig.icon size={12} strokeWidth={3} /> {kycConfig.label}
+                   </div>
+                 </div>
+              </div>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-3xl p-8 min-w-[200px] text-center backdrop-blur-xl">
+               <p className="text-white/20 text-[9px] font-black uppercase tracking-widest mb-4">Total Liquidity</p>
+               <p className="font-serif text-3xl font-black text-[#D8B452]">₹{fmt(user?.walletBalance)}</p>
             </div>
           </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>Wallet</div>
-            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1.5rem", fontWeight: 700, color: "#c9a84c" }}>₹{fmt(user?.walletBalance)}</div>
-          </div>
-        </div>
+        </motion.div>
 
-        {/* Success / Error */}
-        {saved && (
-          <div style={{ marginBottom: "1.25rem", padding: "0.9rem 1rem", borderRadius: "10px", background: "#dcfce7", border: "1px solid #86efac", color: "#15803d", fontSize: "0.85rem", fontWeight: 500 }}>
-            ✓ Profile updated successfully!
-          </div>
-        )}
-        {error && (
-          <div style={{ marginBottom: "1.25rem", padding: "0.9rem 1rem", borderRadius: "10px", background: "#fee2e2", border: "1px solid #fca5a5", color: "#dc2626", fontSize: "0.85rem" }}>
-            {error}
-          </div>
-        )}
+        {/* Sync Success Banner */}
+        <AnimatePresence>
+          {saved && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="p-6 bg-emerald-600 text-white rounded-3xl shadow-xl flex items-center gap-4"
+            >
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-md">
+                 <CheckCircle2 size={20} strokeWidth={3} />
+              </div>
+              <p className="font-black text-xs uppercase tracking-widest">Personnel Synchronized</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        <form onSubmit={handleSave}>
-
-          {/* ── PERSONAL INFORMATION ── */}
-          <Section title="Personal Information" subtitle="Your basic account details" icon="👤">
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 1rem" }}>
-              <Field label="Username" icon="👤" name="userName" value={form.userName} onChange={handleChange} placeholder="Your display name" />
-              <Field label="Email Address" icon="📧" name="email" value={form.email} onChange={handleChange} type="email" placeholder="your@email.com" disabled hint="Contact support to change email" />
-              <Field label="Phone Number" icon="📱" name="phone" value={form.phone} onChange={handleChange} type="tel" placeholder="+91 98765 43210" />
+        <form onSubmit={handleSave} className="space-y-10">
+          <Section title="Identity Details" subtitle="Core Personnel Parameters" icon={User}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10">
+              <Field label="Legal Name" icon={User} name="userName" value={form.userName} onChange={handleChange} placeholder="As per documents" />
+              <Field label="Ledger Email" icon={Mail} name="email" value={form.email} onChange={handleChange} type="email" disabled hint="Primary authenticated node" />
+              <Field label="Phone Terminal" icon={Smartphone} name="phone" value={form.phone} onChange={handleChange} type="tel" placeholder="Contact number" />
+              <div className="flex flex-col justify-center">
+                 <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-4">
+                    <ShieldPlus size={18} className="text-[#BA943A]" strokeWidth={3} />
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">Identity verified against high-grade data nodes.</p>
+                 </div>
+              </div>
             </div>
           </Section>
 
-          {/* ── ADDRESS ── */}
-          <Section title="Address" subtitle="Your residential address" icon="🏠">
-            <Field label="Street Address" icon="📍" name="address" value={form.address} onChange={handleChange} placeholder="House No, Street, Area" />
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0 1rem" }}>
-              <Field label="City" name="city" value={form.city} onChange={handleChange} placeholder="Chennai" icon="🏙️" />
-              <Field label="State" name="state" value={form.state} onChange={handleChange} placeholder="Tamil Nadu" icon="🗺️" />
-              <Field label="Pincode" name="pincode" value={form.pincode} onChange={handleChange} placeholder="600001" icon="📮" type="number" />
+          <Section title="Residency & Distribution" subtitle="Authorized Distribution Hub" icon={MapPin}>
+            <Field label="Primary Delivery Node" icon={MapPin} name="address" value={form.address} onChange={handleChange} placeholder="Full street coordinates" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6">
+              <Field label="City Hub" icon={Building2} name="city" value={form.city} onChange={handleChange} placeholder="City name" />
+              <Field label="Regional District" icon={Globe} name="state" value={form.state} onChange={handleChange} placeholder="State name" />
+              <Field label="Postal Node" icon={Hash} name="pincode" value={form.pincode} onChange={handleChange} placeholder="Pin code" type="number" />
             </div>
           </Section>
 
-          {/* ── PAYMENT DETAILS ── */}
-          <Section title="Payment Details" subtitle="For withdrawals and payouts" icon="💳">
-
-            {/* UPI / Bank Toggle */}
-            <div style={{ display: "flex", background: "#f0ead8", borderRadius: "10px", padding: "3px", marginBottom: "1.25rem" }}>
-              {[
-                { id: "UPI", label: "UPI ID", icon: "📲" },
-                { id: "BANK", label: "Bank Account", icon: "🏦" },
-              ].map(({ id, label, icon }) => (
-                <button key={id} type="button" onClick={() => setPaymentTab(id)}
-                  style={{ flex: 1, padding: "0.55rem", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: paymentTab === id ? 600 : 400, fontSize: "0.85rem", transition: "all 0.15s", background: paymentTab === id ? "#fff" : "transparent", color: paymentTab === id ? "#c9a84c" : "#999", boxShadow: paymentTab === id ? "0 1px 4px rgba(0,0,0,0.06)" : "none" }}>
-                  {icon} {label}
+          <Section title="Settlement Terminal" subtitle="Liquidity Extraction Configuration" icon={Lock}>
+            <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100 mb-10 max-w-sm mx-auto shadow-inner">
+              {["UPI", "BANK"].map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setPaymentTab(id)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-[1rem] text-[10px] font-black uppercase tracking-widest transition-all
+                    ${paymentTab === id ? "bg-slate-900 text-[#BA943A] shadow-lg" : "text-slate-400 hover:text-slate-900"}`}
+                >
+                  {id === "UPI" ? <Smartphone size={14} /> : <Building2 size={14} />} {id === "UPI" ? "UPI Node" : "Bank Wire"}
                 </button>
               ))}
             </div>
 
-            {/* UPI Tab */}
-            {paymentTab === "UPI" && (
-              <div>
-                <Field
-                  label="UPI ID"
-                  icon="📲"
-                  name="upiId"
-                  value={form.upiId}
-                  onChange={handleChange}
-                  placeholder="yourname@upi or yourname@okaxis"
-                  hint="e.g. 9876543210@paytm · kaviprakash@upi · name@ybl"
-                />
-                {form.upiId && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "-0.5rem", marginBottom: "0.75rem", padding: "0.65rem 0.85rem", background: "#fffbeb", borderRadius: "8px", border: "1px solid #fde68a", fontSize: "0.78rem", color: "#92400e" }}>
-                    ⚠️ Make sure your UPI ID is correct. Wrong ID may result in failed transfers.
+            <AnimatePresence mode="wait">
+              {paymentTab === "UPI" ? (
+                <motion.div key="upi" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                  <Field label="VPA Node ID" icon={Smartphone} name="upiId" value={form.upiId} onChange={handleChange} placeholder="id@sovereign" hint="Instant settlement active" />
+                </motion.div>
+              ) : (
+                <motion.div key="bank" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10">
+                    <Field label="Beneficiary" icon={User} name="accountName" value={form.accountName} onChange={handleChange} placeholder="Account name" />
+                    <Field label="Institution" icon={Building2} name="bankName" value={form.bankName} onChange={handleChange} placeholder="Bank Name" />
+                    <Field label="Node Number" icon={Lock} name="accountNumber" value={form.accountNumber} onChange={handleChange} placeholder="Account Number" type="password" />
+                    <Field label="Settlement ID (IFSC)" icon={ShieldCheck} name="ifscCode" value={form.ifscCode} onChange={handleChange} placeholder="IFSC Code" />
                   </div>
-                )}
-              </div>
-            )}
-
-            {/* Bank Tab */}
-            {paymentTab === "BANK" && (
-              <div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 1rem" }}>
-                  <Field label="Account Holder Name" icon="👤" name="accountName" value={form.accountName} onChange={handleChange} placeholder="Full name as per bank" />
-                  <Field label="Bank Name" icon="🏦" name="bankName" value={form.bankName} onChange={handleChange} placeholder="Name of your bank" />
-                  <Field label="Account Number" icon="🔢" name="accountNumber" value={form.accountNumber} onChange={handleChange} placeholder="Account Number" type="password" hint="Stored securely" />
-                  <Field label="IFSC Code" icon="🔑" name="ifscCode" value={form.ifscCode} onChange={handleChange} placeholder="IFSC Code" />
-                </div>
-                <div style={{ padding: "0.75rem 1rem", background: "#f0f9ff", borderRadius: "10px", border: "1px solid #bae6fd", fontSize: "0.78rem", color: "#0369a1", lineHeight: 1.6 }}>
-                  🔒 Your bank details are encrypted and stored securely. They are only used for withdrawal processing.
-                </div>
-              </div>
-            )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </Section>
 
-          {/* ── SAVE BUTTON ── */}
-          <button type="submit" disabled={loading}
-            style={{ width: "100%", padding: "1rem", borderRadius: "12px", border: "none", background: "linear-gradient(135deg,#c9a84c,#e2c06a)", color: "#0a0800", fontWeight: 700, fontSize: "0.95rem", cursor: loading ? "not-allowed" : "pointer", boxShadow: "0 4px 20px rgba(201,168,76,0.3)", opacity: loading ? 0.7 : 1, transition: "all 0.2s", marginBottom: "1.5rem" }}>
-            {loading ? "Saving..." : "Save Changes →"}
-          </button>
-
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            type="submit"
+            disabled={loading}
+            className="w-full bg-slate-900 text-[#BA943A] py-6 rounded-[2rem] font-black text-lg shadow-xl hover:bg-black transition-all flex items-center justify-center gap-4 disabled:opacity-50 tracking-widest uppercase"
+          >
+            {loading ? <RefreshCcw className="animate-spin" size={24} /> : <><Save size={20} /> Synchronize Profile</>}
+          </motion.button>
         </form>
 
-        {/* ── DANGER ZONE ── */}
-        <div style={{ background: "#fff", borderRadius: "18px", border: "1px solid #fca5a5", padding: "1.25rem 1.5rem" }}>
-          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "1rem", fontWeight: 700, color: "#dc2626", marginBottom: "0.5rem" }}>⚠️ Danger Zone</div>
-          <p style={{ color: "#888", fontSize: "0.82rem", marginBottom: "0.85rem", lineHeight: 1.6 }}>
-            Permanently delete your account and all associated data. This action cannot be undone. Your wallet balance and holdings will be forfeited.
-          </p>
-          <button type="button"
-            style={{ padding: "0.6rem 1.25rem", borderRadius: "8px", border: "1px solid #fca5a5", background: "#fff", color: "#dc2626", fontWeight: 600, fontSize: "0.82rem", cursor: "pointer" }}>
-            Delete Account
+        {/* Node Dissolution (Action Center) */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="mt-20 bg-rose-50/50 rounded-[3rem] border border-rose-100 p-10 flex flex-col md:flex-row justify-between items-center gap-8 shadow-sm"
+        >
+          <div className="flex-1 space-y-4 text-center md:text-left">
+            <div className="flex items-center justify-center md:justify-start gap-3">
+              <AlertTriangle className="text-rose-500" size={20} strokeWidth={3} />
+              <span className="text-rose-500 font-black text-[10px] uppercase tracking-widest">Critical Protocol</span>
+            </div>
+            <h3 className="font-serif text-3xl font-black text-slate-900 tracking-tight leading-none">Dissolve Identity Node</h3>
+            <p className="text-slate-400 text-xs font-medium leading-relaxed max-w-xl italic">
+              Permanently dissolve your institutional access and liquidate all holdings. This action is non-reversible.
+            </p>
+          </div>
+          
+          <button className="px-8 py-4 rounded-2xl border-2 border-rose-500 text-rose-500 font-black text-[11px] uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all active:scale-95 whitespace-nowrap">
+            Initiate Dissolution
           </button>
-        </div>
-
+        </motion.div>
       </div>
     </UserLayout>
   );

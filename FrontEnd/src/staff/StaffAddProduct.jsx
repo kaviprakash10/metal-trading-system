@@ -9,6 +9,7 @@ export default function StaffAddProduct() {
     description: "",
     metal: "GOLD",
     weightGrams: "",
+    availableWeights: "",
     purity: "",
     category: "coin",
     isLimited: false,
@@ -18,10 +19,10 @@ export default function StaffAddProduct() {
   const [images, setImages] = useState([]); // New file objects
   const [imagePreviews, setImagePreviews] = useState([]); // Previews for new files
   const [existingImages, setExistingImages] = useState([]); // {url, publicId} from DB
-  
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  
+
   const [products, setProducts] = useState([]);
   const [editingId, setEditingId] = useState(null);
 
@@ -49,7 +50,7 @@ export default function StaffAddProduct() {
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     const totalCount = existingImages.length + images.length + files.length;
-    
+
     if (totalCount > 5) {
       setMessage("❌ You can only have up to 5 images in total.");
       e.target.value = null;
@@ -60,7 +61,7 @@ export default function StaffAddProduct() {
       setImages(prev => [...prev, ...files]);
       setImagePreviews(prev => [...prev, ...files.map(file => URL.createObjectURL(file))]);
     }
-    
+
     e.target.value = null;
   };
 
@@ -90,16 +91,17 @@ export default function StaffAddProduct() {
     data.append("description", formData.description);
     data.append("metal", formData.metal);
     data.append("weightGrams", formData.weightGrams);
+    data.append("availableWeights", formData.availableWeights);
     data.append("purity", formData.purity);
     data.append("category", formData.category);
     data.append("isLimited", formData.isLimited);
     data.append("sortOrder", formData.sortOrder);
-    
+
     // For updates, send the retained images
     if (editingId) {
       data.append("retainedImages", JSON.stringify(existingImages));
     }
-    
+
     // Append any new files
     images.forEach(img => data.append("images", img));
 
@@ -115,7 +117,7 @@ export default function StaffAddProduct() {
         });
         setMessage("✅ Product added successfully!");
       }
-      
+
       resetForm();
       fetchProducts();
     } catch (err) {
@@ -127,7 +129,7 @@ export default function StaffAddProduct() {
 
   const resetForm = () => {
     setFormData({
-      name: "", description: "", metal: "GOLD", weightGrams: "",
+      name: "", description: "", metal: "GOLD", weightGrams: "", availableWeights: "",
       purity: "", category: "coin", isLimited: false, sortOrder: 0
     });
     setImages([]);
@@ -142,13 +144,14 @@ export default function StaffAddProduct() {
       name: product.name,
       description: product.description,
       metal: product.metal,
-      weightGrams: product.weightGrams,
+      weightGrams: product.weightGrams || "",
+      availableWeights: product.availableWeights ? product.availableWeights.join(", ") : "",
       purity: product.purity,
       category: product.category,
       isLimited: product.isLimited,
       sortOrder: product.sortOrder,
     });
-    
+
     // Populate existing images
     const dbImages = [];
     if (product.imageUrl) {
@@ -160,7 +163,7 @@ export default function StaffAddProduct() {
     setExistingImages(dbImages);
     setImages([]);
     setImagePreviews([]);
-    
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -188,7 +191,7 @@ export default function StaffAddProduct() {
   return (
     <StaffLayout>
       <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "2rem" }}>
-        
+
         {/* FORM SECTION */}
         <div style={{ background: "#fff", padding: "2rem", borderRadius: "16px", boxShadow: "0 4px 12px rgba(0,0,0,0.05)", marginBottom: "3rem" }}>
           <h1 style={{ fontSize: "1.8rem", marginBottom: "1.5rem" }}>
@@ -200,7 +203,7 @@ export default function StaffAddProduct() {
           <form onSubmit={handleSubmit} encType="multipart/form-data">
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
               <input type="text" name="name" placeholder="Product Name" value={formData.name} onChange={handleChange} required style={inputStyle} />
-              
+
               <select name="category" value={formData.category} onChange={handleChange} style={inputStyle}>
                 <option value="coin">Coin</option>
                 <option value="bar">Bar</option>
@@ -212,14 +215,18 @@ export default function StaffAddProduct() {
                 <option value="SILVER">Silver</option>
               </select>
 
-              <input type="number" name="weightGrams" placeholder="Weight in Grams" value={formData.weightGrams} onChange={handleChange} required style={inputStyle} />
+              {(formData.category === "coin" || formData.category === "bar") ? (
+                <input type="text" name="availableWeights" placeholder="Available Weights (comma separated, e.g. 3, 5, 8)" value={formData.availableWeights} onChange={handleChange} required style={inputStyle} title="Enter weights in grams separated by commas" />
+              ) : (
+                <input type="number" step="0.01" name="weightGrams" placeholder="Weight in Grams" value={formData.weightGrams} onChange={handleChange} required style={inputStyle} />
+              )}
 
               <input type="text" name="purity" placeholder="Purity (e.g. 22K or 999)" value={formData.purity} onChange={handleChange} style={inputStyle} />
-              
+
               <input type="number" name="sortOrder" placeholder="Sort Order" value={formData.sortOrder} onChange={handleChange} style={inputStyle} />
             </div>
 
-            <textarea name="description" placeholder="Description" value={formData.description} onChange={handleChange} style={{...inputStyle, width: "100%"}} rows={3} />
+            <textarea name="description" placeholder="Description" value={formData.description} onChange={handleChange} style={{ ...inputStyle, width: "100%" }} rows={3} />
 
             <div style={{ margin: "1rem 0" }}>
               <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
@@ -231,13 +238,13 @@ export default function StaffAddProduct() {
             <div style={{ margin: "1.5rem 0", padding: "1.5rem", border: "1px dashed #ccc", borderRadius: "12px", background: "#fafafa" }}>
               <h3 style={{ margin: "0 0 1rem 0", fontSize: "1rem", color: "#555" }}>Product Images</h3>
               <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                
+
                 {/* Existing Images (When Editing) */}
                 {existingImages.map((img, i) => (
                   <div key={`exist-${i}`} style={{ position: "relative" }}>
                     <img src={img.url} alt="existing" style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px", border: "1px solid #ddd" }} />
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => removeExistingImage(i)}
                       style={{ position: "absolute", top: "-8px", right: "-8px", background: "#ff4444", color: "#fff", border: "none", borderRadius: "50%", width: "24px", height: "24px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "bold", boxShadow: "0 2px 4px rgba(0,0,0,0.2)" }}
                     >
@@ -250,8 +257,8 @@ export default function StaffAddProduct() {
                 {imagePreviews.map((src, i) => (
                   <div key={`new-${i}`} style={{ position: "relative" }}>
                     <img src={src} alt="new preview" style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px", border: "2px solid #c9a84c" }} />
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => removeNewImage(i)}
                       style={{ position: "absolute", top: "-8px", right: "-8px", background: "#ff4444", color: "#fff", border: "none", borderRadius: "50%", width: "24px", height: "24px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "bold", boxShadow: "0 2px 4px rgba(0,0,0,0.2)" }}
                     >
@@ -259,7 +266,7 @@ export default function StaffAddProduct() {
                     </button>
                   </div>
                 ))}
-                
+
                 {/* Upload Button */}
                 {totalSelectedImages < 5 && (
                   <label style={{ width: "100px", height: "100px", borderRadius: "8px", border: "2px dashed #bbb", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", background: "#fff", transition: "0.2s" }}
@@ -280,7 +287,7 @@ export default function StaffAddProduct() {
               <button type="submit" disabled={loading} style={{ flex: 1, padding: "1rem", background: "#1a1a1a", color: "#d4af37", border: "none", borderRadius: "8px", fontWeight: 700, fontSize: "1.1rem", cursor: "pointer", transition: "0.2s" }}>
                 {loading ? "Processing..." : (editingId ? "Save Changes" : "Upload Product")}
               </button>
-              
+
               {editingId && (
                 <button type="button" onClick={resetForm} style={{ padding: "1rem 2rem", background: "#f0f0f0", color: "#333", border: "none", borderRadius: "8px", fontWeight: 600, cursor: "pointer" }}>
                   Cancel
@@ -300,7 +307,7 @@ export default function StaffAddProduct() {
               products.map(product => (
                 <div key={product._id} style={{ display: "flex", alignItems: "center", background: "#fff", padding: "1rem", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.04)", opacity: product.inStock ? 1 : 0.6 }}>
                   <img src={product.imageUrl} alt={product.name} style={{ width: "80px", height: "80px", borderRadius: "8px", objectFit: "cover", marginRight: "1.5rem" }} />
-                  
+
                   <div style={{ flex: 1 }}>
                     <h3 style={{ margin: "0 0 0.25rem", fontSize: "1.1rem" }}>{product.name}</h3>
                     <p style={{ margin: 0, color: "#666", fontSize: "0.9rem" }}>

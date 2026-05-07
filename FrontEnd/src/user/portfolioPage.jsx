@@ -5,314 +5,141 @@ import { fetchPortfolio } from "../slice/Portfolioslice";
 import { fetchCurrentPrices } from "../slice/Priceslice";
 import { fetchWallet } from "../slice/Walletslice";
 import UserLayout from "./userLayout";
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  ShieldCheck, 
+  ArrowUpRight, 
+  Wallet, 
+  BarChart3, 
+  PieChart,
+  ArrowRight,
+  Package,
+  History,
+  Activity,
+  Zap,
+  Globe,
+  Coins,
+  Sparkles,
+  Layers,
+  ArrowRightCircle
+} from "lucide-react";
+import { motion } from "framer-motion";
 
-const fmt = (n) =>
-  Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
-const fmtG = (n) =>
-  Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 4 });
+const fmt = (n) => Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+const fmtG = (n) => Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 4 });
 
-/* ── Allocation Bar ── */
-function AllocationBar({ goldValue, silverValue }) {
+function AllocationVisual({ goldValue, silverValue }) {
   const total = goldValue + silverValue;
-  const goldPct = total > 0 ? ((goldValue / total) * 100).toFixed(1) : 50;
-  const silverPct = total > 0 ? ((silverValue / total) * 100).toFixed(1) : 50;
-
+  const goldPct = total > 0 ? ((goldValue / total) * 100).toFixed(1) : 0;
+  const silverPct = total > 0 ? ((silverValue / total) * 100).toFixed(1) : 0;
+  
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: "0.5rem",
-        }}
-      >
-        <span
-          style={{
-            fontSize: "0.72rem",
-            color: "#aaa",
-            textTransform: "uppercase",
-            letterSpacing: "0.06em",
-          }}
-        >
-          Allocation
-        </span>
-        <span style={{ fontSize: "0.72rem", color: "#aaa" }}>
-          🟡 {goldPct}% &nbsp; ⚪ {silverPct}%
-        </span>
+    <div className="bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-sm relative overflow-hidden group">
+      <div className="flex items-center gap-2 mb-8 relative z-10">
+        <PieChart className="text-[#BA943A]" size={16} />
+        <span className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">Capital Allocation</span>
       </div>
-      <div
-        style={{
-          height: "8px",
-          borderRadius: "100px",
-          background: "#f0ead8",
-          overflow: "hidden",
-          display: "flex",
-        }}
-      >
-        <div
-          style={{
-            width: `${goldPct}%`,
-            background: "linear-gradient(90deg, #c9a84c, #e2c06a)",
-            borderRadius: "100px 0 0 100px",
-            transition: "width 0.6s ease",
-          }}
+
+      <div className="flex items-end gap-2 h-20 mb-8 relative z-10">
+        <motion.div 
+          initial={{ height: 0 }}
+          whileInView={{ height: `${goldPct}%` }}
+          className="flex-1 bg-gradient-to-t from-[#BA943A] to-[#E2C06A] rounded-2xl relative group/bar"
         />
-        <div
-          style={{
-            width: `${silverPct}%`,
-            background: "linear-gradient(90deg, #94a3b8, #cbd5e1)",
-            borderRadius: "0 100px 100px 0",
-            transition: "width 0.6s ease",
-          }}
+        <motion.div 
+          initial={{ height: 0 }}
+          whileInView={{ height: `${silverPct}%` }}
+          className="flex-1 bg-gradient-to-t from-slate-400 to-slate-200 rounded-2xl relative group/bar"
         />
+      </div>
+
+      <div className="space-y-4 relative z-10">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-2.5 h-2.5 rounded-full bg-[#BA943A] shadow-lg shadow-yellow-500/20"></div>
+            <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Aureum</span>
+          </div>
+          <span className="text-slate-900 font-serif text-xl font-black">{goldPct}%</span>
+        </div>
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-2.5 h-2.5 rounded-full bg-slate-400 shadow-lg shadow-slate-400/20"></div>
+            <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Argentum</span>
+          </div>
+          <span className="text-slate-900 font-serif text-xl font-black">{silverPct}%</span>
+        </div>
       </div>
     </div>
   );
 }
 
-/* ── PnL Badge ── */
-function PnLBadge({ value }) {
-  const isPos = value >= 0;
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "0.2rem",
-        padding: "0.2rem 0.65rem",
-        borderRadius: "100px",
-        fontSize: "0.75rem",
-        fontWeight: 600,
-        background: isPos ? "#dcfce7" : "#fee2e2",
-        color: isPos ? "#16a34a" : "#dc2626",
-      }}
-    >
-      {isPos ? "▲" : "▼"} {isPos ? "+" : ""}
-      {fmt(value)}
-    </span>
-  );
-}
-
-/* ── Metric Row ── */
-function MetricRow({ label, value, highlight }) {
-  return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "0.6rem 0",
-        borderBottom: "1px solid #f5f0e8",
-      }}
-    >
-      <span style={{ fontSize: "0.82rem", color: "#888" }}>{label}</span>
-      <span
-        style={{
-          fontSize: "0.88rem",
-          fontWeight: highlight ? 700 : 500,
-          color: highlight ? "#1a1200" : "#444",
-        }}
-      >
-        {value}
-      </span>
-    </div>
-  );
-}
-
-/* ── Asset Card ── */
-function AssetCard({ asset, data, price, accentColor, icon, to }) {
+function AssetReport({ asset, data, price, to }) {
   if (!data) return null;
+  const isGold = asset === "GOLD";
   const isPos = data.pnl >= 0;
+  const accent = isGold ? "text-[#BA943A]" : "text-slate-500";
 
   return (
-    <div
-      style={{
-        background: "#fff",
-        borderRadius: "20px",
-        border: "1px solid #ede8d8",
-        boxShadow: "0 2px 16px rgba(0,0,0,0.04)",
-        overflow: "hidden",
-      }}
+    <motion.div 
+      whileHover={{ y: -5 }}
+      className="bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden shadow-sm flex flex-col h-full group"
     >
-      {/* Card Header */}
-      <div
-        style={{
-          background:
-            asset === "GOLD"
-              ? "linear-gradient(135deg, #0f0c00, #1a1200)"
-              : "linear-gradient(135deg, #0f1117, #1a2030)",
-          padding: "1.4rem",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-          }}
-        >
+      <div className="p-8 border-b border-slate-50 bg-white">
+        <div className="flex justify-between items-start mb-8">
           <div>
-            <div
-              style={{
-                color: "rgba(255,255,255,0.4)",
-                fontSize: "0.68rem",
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                marginBottom: "0.3rem",
-              }}
-            >
-              {asset} Holdings
+            <div className="flex items-center gap-2 mb-3">
+              <Package className={accent} size={14} strokeWidth={3} />
+              <span className="text-slate-400 text-[9px] font-black uppercase tracking-[0.2em]">{asset} Inventory</span>
             </div>
-            <div
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "2.2rem",
-                fontWeight: 700,
-                color: accentColor,
-              }}
-            >
-              {fmtG(data.grams)}{" "}
-              <span
-                style={{ fontSize: "1rem", color: "rgba(255,255,255,0.3)" }}
-              >
-                grams
-              </span>
-            </div>
+            <h3 className={`font-serif text-5xl font-black tracking-tighter ${accent} leading-none`}>
+              {fmtG(data.grams)}<span className="text-2xl font-medium text-slate-300 ml-1">g</span>
+            </h3>
           </div>
-          <div style={{ fontSize: "2rem" }}>{icon}</div>
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border border-slate-100 shadow-inner ${isGold ? 'bg-yellow-50' : 'bg-slate-50'}`}>
+             {isGold ? <TrendingUp size={22} className="text-[#BA943A]" /> : <TrendingUp size={22} className="text-slate-400" />}
+          </div>
         </div>
 
-        <div
-          style={{
-            marginTop: "1rem",
-            paddingTop: "1rem",
-            borderTop: "1px solid rgba(255,255,255,0.06)",
-            display: "flex",
-            gap: "1.5rem",
-          }}
-        >
+        <div className="grid grid-cols-2 gap-6">
           <div>
-            <div
-              style={{
-                color: "rgba(255,255,255,0.3)",
-                fontSize: "0.65rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-              }}
-            >
-              Current Value
-            </div>
-            <div
-              style={{
-                color: "#fff",
-                fontWeight: 600,
-                fontSize: "1rem",
-                marginTop: "0.2rem",
-              }}
-            >
-              ₹{fmt(data.currentValue)}
-            </div>
+            <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest mb-1">Valuation</p>
+            <p className="font-serif text-xl font-black text-slate-900 tracking-tight">₹{fmt(data.currentValue)}</p>
           </div>
-          <div>
-            <div
-              style={{
-                color: "rgba(255,255,255,0.3)",
-                fontSize: "0.65rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-              }}
-            >
-              Live Rate
-            </div>
-            <div
-              style={{
-                color: accentColor,
-                fontWeight: 600,
-                fontSize: "1rem",
-                marginTop: "0.2rem",
-              }}
-            >
-              ₹{fmt(price)}/g
+          <div className="text-right">
+            <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest mb-1">Net Accrual</p>
+            <div className={`flex items-center justify-end gap-1 font-serif text-xl font-black tracking-tight ${isPos ? 'text-emerald-600' : 'text-red-600'}`}>
+              {isPos ? "+" : ""}₹{fmt(data.pnl)}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Card Body */}
-      <div style={{ padding: "1.25rem" }}>
-        <MetricRow label="Amount Invested" value={`₹${fmt(data.invested)}`} />
-        <MetricRow label="Current Value" value={`₹${fmt(data.currentValue)}`} />
-        <MetricRow label="P&L" value={<PnLBadge value={data.pnl} />} />
-        <MetricRow
-          label="Returns"
-          value={
-            <span
-              style={{
-                fontWeight: 700,
-                color: isPos ? "#16a34a" : "#dc2626",
-                fontSize: "0.88rem",
-              }}
-            >
-              {isPos ? "+" : ""}
-              {data.returnsPercent || 0}%
-            </span>
-          }
-        />
-        <div style={{ marginTop: "1.1rem" }}>
-          <MetricRow
-            label="Price per gram"
-            value={`₹${fmt(price)}`}
-            highlight
-          />
-        </div>
-
-        {/* Actions */}
-        <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.1rem" }}>
-          <Link
-            to={to.buy}
-            style={{
-              flex: 1,
-              textAlign: "center",
-              padding: "0.6rem",
-              borderRadius: "8px",
-              textDecoration: "none",
-              background:
-                asset === "GOLD"
-                  ? "linear-gradient(135deg, #c9a84c, #e2c06a)"
-                  : "linear-gradient(135deg, #64748b, #94a3b8)",
-              color: asset === "GOLD" ? "#0a0800" : "#fff",
-              fontSize: "0.8rem",
-              fontWeight: 600,
-            }}
-          >
-            Buy More
+      <div className="p-8 space-y-3 bg-slate-50/30">
+        {[
+          { label: "Cost Basis", value: `₹${fmt(data.invested)}` },
+          { label: "ROI", value: <span className={isPos ? "text-emerald-600" : "text-red-600"}>{isPos ? "+" : ""}{data.returnsPercent || 0}%</span> },
+          { label: "Live Rate", value: `₹${fmt(price)}/g`, bold: true },
+        ].map(({ label, value, bold }) => (
+          <div key={label} className="flex justify-between items-center py-2.5 border-b border-dashed border-slate-200 last:border-0">
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{label}</span>
+            <span className={`text-xs ${bold ? "font-black text-slate-900" : "font-extrabold text-slate-600"}`}>{value}</span>
+          </div>
+        ))}
+        
+        <div className="grid grid-cols-2 gap-4 mt-8">
+          <Link to={to.buy} className={`flex items-center justify-center gap-2 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 shadow-lg active:scale-95 ${isGold ? "bg-slate-900 text-[#BA943A] hover:bg-black" : "bg-slate-700 text-white hover:bg-slate-800"}`}>
+            Acquire More <ArrowUpRight size={12} />
           </Link>
-          <Link
-            to={to.sell}
-            style={{
-              flex: 1,
-              textAlign: "center",
-              padding: "0.6rem",
-              borderRadius: "8px",
-              textDecoration: "none",
-              background: "#f7f5f0",
-              border: "1px solid #ede8d8",
-              color: "#666",
-              fontSize: "0.8rem",
-              fontWeight: 600,
-            }}
-          >
-            Sell
+          <Link to={to.sell} className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-white border border-slate-200 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:border-[#BA943A] hover:text-[#BA943A] transition-all shadow-sm active:scale-95">
+            Liquidate
           </Link>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
-/* ══════════════════════════════════════════
-   PORTFOLIO PAGE
-══════════════════════════════════════════ */
 export default function PortfolioPage() {
   const dispatch = useDispatch();
   const { gold, silver, summary, loading } = useSelector((s) => s.portfolio);
@@ -327,289 +154,150 @@ export default function PortfolioPage() {
 
   const goldPrice = current.gold?.pricePerGram ?? 0;
   const silverPrice = current.silver?.pricePerGram ?? 0;
-  const totalPnL = summary?.totalPnL ?? 0;
+  
+  const container = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100, damping: 20 } }
+  };
 
   return (
     <UserLayout active="/user/portfolio">
-      {/* Header */}
-      <div style={{ marginBottom: "1.75rem" }}>
-        <h1
-          style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontSize: "1.9rem",
-            fontWeight: 700,
-            color: "#1a1200",
-            margin: 0,
-          }}
-        >
-          My Portfolio
-        </h1>
-        <p
-          style={{ color: "#999", fontSize: "0.875rem", marginTop: "0.25rem" }}
-        >
-          Real-time view of your gold & silver holdings.
-        </p>
-      </div>
+      <div className="max-w-7xl mx-auto space-y-12">
 
-      {loading ? (
-        <div
-          style={{ display: "flex", justifyContent: "center", padding: "4rem" }}
-        >
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              border: "3px solid #c9a84c",
-              borderTopColor: "transparent",
-              borderRadius: "50%",
-              animation: "spin 0.8s linear infinite",
-            }}
-          />
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        {/* Header Section (Staff-Matched) */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+            <h1 className="text-5xl font-serif font-black text-slate-900 tracking-tight leading-none mb-3">
+               Asset Portfolio<span className="text-amber-500">.</span>
+            </h1>
+            <p className="text-slate-500 font-medium flex items-center gap-2.5">
+               <ShieldCheck size={18} className="text-[#BA943A]" />
+               Audited Reserves
+               <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mx-2" />
+               <Activity size={16} className="text-emerald-500" />
+               Real-time Valuation
+            </p>
+          </motion.div>
+
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-6 bg-white p-4 rounded-[1.5rem] border border-slate-200 shadow-sm"
+          >
+             <div className="px-6 py-1 border-r border-slate-100 text-center">
+                <p className="text-slate-400 text-[9px] font-black tracking-widest uppercase mb-1">Net Liquidity</p>
+                <p className="font-serif font-black text-slate-900 text-2xl tracking-tight">₹{fmt(walletBalance)}</p>
+             </div>
+             <div className="pr-4">
+                <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400">
+                   <Wallet size={22} />
+                </div>
+             </div>
+          </motion.div>
         </div>
-      ) : (
-        <>
-          {/* ── SUMMARY BANNER ── */}
-          <div
-            style={{
-              background: "linear-gradient(135deg, #0f0c00, #1a1200)",
-              borderRadius: "20px",
-              padding: "1.75rem",
-              marginBottom: "1.5rem",
-              border: "1px solid rgba(201,168,76,0.15)",
-              boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
-            }}
-          >
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-                gap: "1.5rem",
-              }}
-            >
-              {/* Total Value */}
-              <div>
-                <div
-                  style={{
-                    color: "rgba(255,255,255,0.35)",
-                    fontSize: "0.68rem",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em",
-                    marginBottom: "0.3rem",
-                  }}
-                >
-                  Total Portfolio Value
-                </div>
-                <div
-                  style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: "2rem",
-                    fontWeight: 700,
-                    color: "#c9a84c",
-                  }}
-                >
-                  ₹{fmt(summary?.totalCurrentValue)}
-                </div>
-              </div>
 
-              {/* Invested */}
-              <div>
-                <div
-                  style={{
-                    color: "rgba(255,255,255,0.35)",
-                    fontSize: "0.68rem",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em",
-                    marginBottom: "0.3rem",
-                  }}
-                >
-                  Total Invested
-                </div>
-                <div
-                  style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: "2rem",
-                    fontWeight: 700,
-                    color: "#fff",
-                  }}
-                >
-                  ₹{fmt(summary?.totalInvested)}
-                </div>
-              </div>
-
-              {/* P&L */}
-              <div>
-                <div
-                  style={{
-                    color: "rgba(255,255,255,0.35)",
-                    fontSize: "0.68rem",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em",
-                    marginBottom: "0.3rem",
-                  }}
-                >
-                  Overall P&L
-                </div>
-                <div
-                  style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: "2rem",
-                    fontWeight: 700,
-                    color: totalPnL >= 0 ? "#4ade80" : "#f87171",
-                  }}
-                >
-                  {totalPnL >= 0 ? "+" : ""}₹{fmt(totalPnL)}
-                </div>
-              </div>
-
-              {/* Returns */}
-              <div>
-                <div
-                  style={{
-                    color: "rgba(255,255,255,0.35)",
-                    fontSize: "0.68rem",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em",
-                    marginBottom: "0.3rem",
-                  }}
-                >
-                  Returns
-                </div>
-                <div
-                  style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: "2rem",
-                    fontWeight: 700,
-                    color:
-                      (summary?.totalReturnsPercent ?? 0) >= 0
-                        ? "#4ade80"
-                        : "#f87171",
-                  }}
-                >
-                  {(summary?.totalReturnsPercent ?? 0) >= 0 ? "+" : ""}
-                  {summary?.totalReturnsPercent ?? 0}%
-                </div>
-              </div>
-
-              {/* Wallet */}
-              <div>
-                <div
-                  style={{
-                    color: "rgba(255,255,255,0.35)",
-                    fontSize: "0.68rem",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em",
-                    marginBottom: "0.3rem",
-                  }}
-                >
-                  Wallet Balance
-                </div>
-                <div
-                  style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: "2rem",
-                    fontWeight: 700,
-                    color: "#fff",
-                  }}
-                >
-                  ₹{fmt(walletBalance)}
-                </div>
-              </div>
-            </div>
-
-            {/* Allocation Bar */}
-            <div
-              style={{
-                marginTop: "1.5rem",
-                paddingTop: "1.25rem",
-                borderTop: "1px solid rgba(255,255,255,0.06)",
-              }}
-            >
-              <AllocationBar
-                goldValue={gold?.currentValue ?? 0}
-                silverValue={silver?.currentValue ?? 0}
-              />
-            </div>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-40 gap-4">
+             <div className="w-12 h-12 border-4 border-[#BA943A]/10 border-t-[#BA943A] rounded-full animate-spin" />
+             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Accessing Vaults...</p>
           </div>
+        ) : (
+          <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-1 xl:grid-cols-12 gap-10">
+            {/* Left Column: Summary & Assets */}
+            <div className="xl:col-span-8 space-y-10">
+              
+              {/* Executive Summary (Staff-Matched Scale) */}
+              <motion.div variants={item} className="relative bg-slate-900 text-white rounded-[2.5rem] p-10 overflow-hidden shadow-2xl group border border-white/5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-10 relative z-10">
+                  <div className="md:col-span-1">
+                    <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.3em] mb-4">Total Portfolio Value</p>
+                    <h2 className="font-serif text-5xl font-black text-[#D8B452] tracking-tighter mb-4">
+                      ₹{fmt(summary?.totalCurrentValue)}
+                    </h2>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                       <TrendingUp size={12} strokeWidth={3} />
+                       {summary?.totalReturnsPercent}% ROI
+                    </div>
+                  </div>
 
-          {/* ── ASSET CARDS ── */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-              gap: "1.25rem",
-              marginBottom: "1.5rem",
-            }}
-          >
-            <AssetCard
-              asset="GOLD"
-              data={gold}
-              price={goldPrice}
-              accentColor="#c9a84c"
-              icon="🟡"
-              to={{ buy: "/user/buy/gold", sell: "/user/sell/gold" }}
-            />
-            <AssetCard
-              asset="SILVER"
-              data={silver}
-              price={silverPrice}
-              accentColor="#94a3b8"
-              icon="⚪"
-              to={{ buy: "/user/buy/silver", sell: "/user/sell/silver" }}
-            />
-          </div>
+                  <div className="flex flex-col justify-center border-l border-white/5 pl-10">
+                    <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.3em] mb-2">Principal Basis</p>
+                    <p className="font-serif text-2xl font-black text-white tracking-tight">₹{fmt(summary?.totalInvested)}</p>
+                    <p className="mt-2 text-slate-600 text-[8px] font-black uppercase tracking-[0.2em]">Verified Assets</p>
+                  </div>
 
-          {/* ── EMPTY STATE ── */}
-          {!gold?.grams && !silver?.grams && (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "3rem",
-                background: "#fff",
-                borderRadius: "20px",
-                border: "1px solid #ede8d8",
-              }}
-            >
-              <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🪙</div>
-              <h3
-                style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: "1.4rem",
-                  fontWeight: 700,
-                  color: "#1a1200",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                No holdings yet
-              </h3>
-              <p
-                style={{
-                  color: "#aaa",
-                  fontSize: "0.88rem",
-                  marginBottom: "1.5rem",
-                }}
-              >
-                Start investing to see your portfolio here.
-              </p>
-              <Link
-                to="/user/buy/gold"
-                style={{
-                  display: "inline-block",
-                  padding: "0.7rem 1.8rem",
-                  background: "linear-gradient(135deg, #c9a84c, #e2c06a)",
-                  color: "#0a0800",
-                  borderRadius: "8px",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  fontSize: "0.88rem",
-                }}
-              >
-                Buy Gold Now →
-              </Link>
+                  <div className="flex flex-col justify-center border-l border-white/5 pl-10">
+                    <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.3em] mb-2">Net Accrual</p>
+                    <p className={`font-serif text-2xl font-black tracking-tight ${summary?.totalPnL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {summary?.totalPnL >= 0 ? "+" : ""}₹{fmt(summary?.totalPnL)}
+                    </p>
+                    <p className="mt-2 text-slate-600 text-[8px] font-black uppercase tracking-[0.2em]">Live Displacement</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Asset Breakdown */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <motion.div variants={item}>
+                  <AssetReport asset="GOLD" data={gold} price={goldPrice} to={{ buy: "/user/buy/gold", sell: "/user/sell/gold" }} />
+                </motion.div>
+                <motion.div variants={item}>
+                  <AssetReport asset="SILVER" data={silver} price={silverPrice} to={{ buy: "/user/buy/silver", sell: "/user/sell/silver" }} />
+                </motion.div>
+              </div>
             </div>
-          )}
-        </>
-      )}
+
+            {/* Right Column: Allocation & Insights */}
+            <div className="xl:col-span-4 space-y-10">
+               <motion.div variants={item}>
+                  <AllocationVisual goldValue={gold?.currentValue ?? 0} silverValue={silver?.currentValue ?? 0} />
+               </motion.div>
+
+               {/* Market Intel (Staff-Matched) */}
+               <motion.div variants={item} className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm">
+                  <div className="flex items-center gap-3 mb-8">
+                     <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-[#BA943A]">
+                        <Zap size={20} />
+                     </div>
+                     <div>
+                        <h4 className="font-serif text-xl font-black text-slate-900 tracking-tight">Market Intel</h4>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Real-time Observations</p>
+                     </div>
+                  </div>
+                  
+                  <div className="space-y-6">
+                     <div className="flex gap-4">
+                        <div className="w-10 h-10 shrink-0 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100">
+                           <TrendingUp size={18} strokeWidth={3} />
+                        </div>
+                        <div>
+                           <p className="text-xs font-black text-slate-900 mb-1 tracking-tight">Positive Divergence</p>
+                           <p className="text-[10px] text-slate-500 font-medium leading-relaxed italic">Market technicals suggest strong support at current units.</p>
+                        </div>
+                     </div>
+                     <div className="flex gap-4">
+                        <div className="w-10 h-10 shrink-0 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-100">
+                           <ShieldCheck size={18} strokeWidth={3} />
+                        </div>
+                        <div>
+                           <p className="text-xs font-black text-slate-900 mb-1 tracking-tight">Vault Protocol</p>
+                           <p className="text-[10px] text-slate-500 font-medium leading-relaxed italic">Your physical reserves are currently synchronized with LBMA tier-1 custody.</p>
+                        </div>
+                     </div>
+                  </div>
+                  
+                  <Link to="/user/transactions" className="mt-10 flex items-center justify-center gap-3 w-full py-4 rounded-[1.25rem] bg-slate-50 border border-slate-200 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:bg-slate-900 hover:text-[#BA943A] transition-all">
+                     Audit History <ArrowRight size={14} />
+                  </Link>
+               </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </div>
     </UserLayout>
   );
 }
