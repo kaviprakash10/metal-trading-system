@@ -63,7 +63,7 @@ export default function UserLayout({ children }) {
   const location = useLocation();
   const { user } = useSelector((s) => s.auth);
   const { current } = useSelector((s) => s.price);
-  
+
   const sidebarRef = useRef(null);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile & Collapsed Desktop
   const [scrolled, setScrolled] = useState(false);
@@ -127,13 +127,13 @@ export default function UserLayout({ children }) {
             >
               <div className="p-8 border-b border-white/5 flex justify-between items-center bg-[#1a150a]">
                 <div className="flex items-center gap-4">
-                   <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#BA943A] to-[#E2C06A] flex items-center justify-center">
-                      <div className="w-5 h-5 rounded-full bg-white/20" />
-                   </div>
-                   <span className="font-serif text-2xl font-black text-white tracking-tight">Luna</span>
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#BA943A] to-[#E2C06A] flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-white/20" />
+                  </div>
+                  <span className="font-serif text-2xl font-black text-white tracking-tight">Luna</span>
                 </div>
-                <button 
-                  onClick={() => setSidebarOpen(false)} 
+                <button
+                  onClick={() => setSidebarOpen(false)}
                   className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/40 hover:bg-rose-500 hover:text-white transition-all shadow-inner group"
                 >
                   <X size={20} className="group-hover:rotate-90 transition-transform" />
@@ -188,32 +188,32 @@ export default function UserLayout({ children }) {
 
           {/* Quick Actions & Menu Button */}
           <div className="flex items-center gap-4">
-            
+
             {/* Quick Acquisition Bar (Staff Style) */}
             <div className="hidden xl:flex gap-3 p-1 bg-slate-100/50 rounded-2xl border border-slate-200/50">
-               <Link to="/user/buy/gold" className="px-4 py-2 bg-white rounded-xl border border-slate-100 shadow-sm flex items-center gap-3 group hover:scale-[1.02] transition-all">
-                  <div className="flex flex-col text-right">
-                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider">AU Acquisition</span>
-                    <span className="text-xs font-black text-slate-900 tracking-tight">₹{fmt(current.gold?.pricePerGram)}</span>
-                  </div>
-                  <div className="w-8 h-8 rounded-lg bg-yellow-50 flex items-center justify-center text-[#BA943A] shadow-inner group-hover:bg-yellow-100 transition-colors">
-                    <TrendingUp size={16} strokeWidth={3} />
-                  </div>
-               </Link>
-               <Link to="/user/buy/silver" className="px-4 py-2 bg-white rounded-xl border border-slate-100 shadow-sm flex items-center gap-3 group hover:scale-[1.02] transition-all">
-                  <div className="flex flex-col text-right">
-                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider">AG Acquisition</span>
-                    <span className="text-xs font-black text-slate-900 tracking-tight">₹{fmt(current.silver?.pricePerGram)}</span>
-                  </div>
-                  <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 shadow-inner group-hover:bg-slate-200 transition-colors">
-                    <TrendingUp size={16} strokeWidth={3} />
-                  </div>
-               </Link>
+              <Link to="/user/buy/gold" className="px-4 py-2 bg-white rounded-xl border border-slate-100 shadow-sm flex items-center gap-3 group hover:scale-[1.02] transition-all">
+                <div className="flex flex-col text-right">
+                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider">Buy Gold</span>
+                  <span className="text-xs font-black text-slate-900 tracking-tight">₹{fmt(current.gold?.pricePerGram)}</span>
+                </div>
+                <div className="w-8 h-8 rounded-lg bg-yellow-50 flex items-center justify-center text-[#BA943A] shadow-inner group-hover:bg-yellow-100 transition-colors">
+                  <TrendingUp size={16} strokeWidth={3} />
+                </div>
+              </Link>
+              <Link to="/user/buy/silver" className="px-4 py-2 bg-white rounded-xl border border-slate-100 shadow-sm flex items-center gap-3 group hover:scale-[1.02] transition-all">
+                <div className="flex flex-col text-right">
+                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider">Buy Silver</span>
+                  <span className="text-xs font-black text-slate-900 tracking-tight">₹{fmt(current.silver?.pricePerGram)}</span>
+                </div>
+                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 shadow-inner group-hover:bg-slate-200 transition-colors">
+                  <TrendingUp size={16} strokeWidth={3} />
+                </div>
+              </Link>
             </div>
 
             {/* Quick Access Grid */}
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setShowQuickMenu(!showQuickMenu)}
                 className={`p-3 rounded-2xl border transition-all shadow-sm flex items-center gap-3 group active:scale-95
                   ${showQuickMenu ? "bg-slate-900 text-[#BA943A] border-slate-900" : "bg-white hover:bg-gray-50 text-slate-900 hover:border-[#BA943A] hover:text-[#BA943A]"}`}
@@ -221,20 +221,20 @@ export default function UserLayout({ children }) {
                 <LayoutGrid size={22} strokeWidth={2.5} />
                 <span className="text-[11px] font-black uppercase tracking-[0.2em] hidden sm:block">Quick Terminal</span>
               </button>
-              
+
               <AnimatePresence>
                 {showQuickMenu && (
                   <>
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowQuickMenu(false)} className="fixed inset-0 z-40" />
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, scale: 0.95, y: 10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, y: 10 }}
                       className="absolute right-0 mt-4 w-72 bg-white rounded-[2.5rem] border border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.1)] z-50 overflow-hidden p-4"
                     >
                       <div className="p-4 border-b border-slate-50 mb-3 flex items-center justify-between">
-                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Institutional Access</p>
-                         <Zap size={14} className="text-[#BA943A]" />
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Institutional Access</p>
+                        <Zap size={14} className="text-[#BA943A]" />
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         {[
@@ -246,19 +246,19 @@ export default function UserLayout({ children }) {
                           { label: "Security Hub", to: "/user/account", icon: ShieldPlus, color: "bg-blue-50 text-blue-600" },
                         ].map((item) => (
                           <Link key={item.label} to={item.to} className="p-5 rounded-[1.5rem] bg-white border border-slate-50 hover:bg-slate-50 hover:border-slate-200 transition-all group flex flex-col items-center text-center">
-                             <div className={`w-12 h-12 rounded-2xl ${item.color} flex items-center justify-center mb-3 shadow-inner group-hover:scale-110 transition-transform`}>
-                               <item.icon size={22} strokeWidth={2.5} />
-                             </div>
-                             <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest leading-tight">{item.label}</span>
+                            <div className={`w-12 h-12 rounded-2xl ${item.color} flex items-center justify-center mb-3 shadow-inner group-hover:scale-110 transition-transform`}>
+                              <item.icon size={22} strokeWidth={2.5} />
+                            </div>
+                            <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest leading-tight">{item.label}</span>
                           </Link>
                         ))}
                       </div>
                       <Link to="/user/transactions" className="mt-4 flex items-center justify-between p-5 rounded-[1.5rem] bg-slate-900 text-[#BA943A] hover:bg-black transition-all group shadow-xl shadow-yellow-900/10">
-                         <div className="flex items-center gap-4">
-                            <History size={18} />
-                            <span className="text-[11px] font-black uppercase tracking-widest leading-none">Trade Ledger</span>
-                         </div>
-                         <ChevronRight size={16} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
+                        <div className="flex items-center gap-4">
+                          <History size={18} />
+                          <span className="text-[11px] font-black uppercase tracking-widest leading-none">Trade Ledger</span>
+                        </div>
+                        <ChevronRight size={16} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
                       </Link>
                     </motion.div>
                   </>
