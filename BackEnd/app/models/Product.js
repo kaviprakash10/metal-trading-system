@@ -8,6 +8,7 @@ const productSchema = new mongoose.Schema({
   weightGrams: { type: Number, required: true },     // Base weight
   availableWeights: { type: [Number], default: [] }, // Allowed weights for coins and bars
   purity:      { type: String, default: "999.9" },
+  makingCost:  { type: Number, default: 0 },          // Per-gram making charge (jewellery only)
   imageUrl:    { type: String, required: true },     // Cloudinary URL
   imagePublicId: { type: String },                   // Cloudinary public_id
   additionalImages: [{ url: String, publicId: String }], // extra images

@@ -49,6 +49,7 @@ productController.create = async (req, res) => {
       category,
       isLimited,
       sortOrder,
+      makingCost,
     } = req.body;
 
     if (!req.files || req.files.length === 0) {
@@ -87,6 +88,7 @@ productController.create = async (req, res) => {
       category: category || "standard",
       isLimited: isLimited === "true" || false,
       sortOrder: Number(sortOrder) || 0,
+      makingCost: Number(makingCost) || 0,
       inStock: true,
     });
 
@@ -129,6 +131,7 @@ productController.update = async (req, res) => {
       isLimited,
       sortOrder,
       retainedImages,
+      makingCost,
     } = req.body;
 
     let parsedRetained = [];
@@ -196,6 +199,7 @@ productController.update = async (req, res) => {
         category: category || "standard",
         isLimited: isLimited === "true" || false,
         sortOrder: Number(sortOrder) || 0,
+        makingCost: Number(makingCost) || 0,
         imageUrl: mainImage.url,
         imagePublicId: mainImage.publicId,
         additionalImages,
