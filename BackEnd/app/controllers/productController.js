@@ -9,28 +9,39 @@ const productController = {};
 // Get all products with live pricing
 productController.getAll = async (req, res) => {
   try {
-    const products = await Product.find({ inStock: true }).sort({
-      sortOrder: 1,
-    });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    const { category, metal } = req.query;
+    const skip = (page - 1) * limit;
 
+    const query = {};
+    if (req.query.isAdmin !== "true") {
+      query.inStock = true;
+    }
+    if (metal) query.metal = metal.toUpperCase();
+    if (category) {
+      if (category === "jewellery_all") {
+        query.category = { $in: ["jewellery", "special"] };
+      } else {
+        query.category = category;
+      }
+    }
+
+    const [products, total] = await Promise.all([
+      Product.find(query)
+        .sort({ sortOrder: 1 })
+        .skip(skip)
+        .limit(limit),
+      Product.countDocuments(query),
+    ]);
     const goldPrice = await GoldPrice.findOne().sort({ createdAt: -1 });
     const silverPrice = await SilverPrice.findOne().sort({ createdAt: -1 });
-
-    const withPrices = products.map((p) => ({
+    const withPrices = products.map(p => ({
       ...p.toObject(),
-      pricePerGram:
-        p.metal === "GOLD"
-          ? goldPrice?.pricePerGram
-          : silverPrice?.pricePerGram,
-      totalPrice: (
-        p.weightGrams *
-        (p.metal === "GOLD"
-          ? goldPrice?.pricePerGram
-          : silverPrice?.pricePerGram || 0)
-      ).toFixed(2),
+      pricePerGram: p.metal === "GOLD" ? goldPrice?.pricePerGram : silverPrice?.pricePerGram,
+      totalPrice: (p.weightGrams * (p.metal === "GOLD" ? goldPrice?.pricePerGram : silverPrice?.pricePerGram || 0)).toFixed(2),
     }));
-
-    res.json({ success: true, products: withPrices });
+    res.json({ success: true, products: withPrices, total, page, limit });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
