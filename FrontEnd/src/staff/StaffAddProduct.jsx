@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "../config/axios";
 import StaffLayout from "./StaffLayout";
-import { Trash2, Edit, PackageX, PackageCheck } from "lucide-react";
+import { Trash2, Edit, PackageX, PackageCheck, Plus, X, Image as ImageIcon } from "lucide-react";
 
 export default function StaffAddProduct() {
   const [formData, setFormData] = useState({
@@ -27,14 +27,30 @@ export default function StaffAddProduct() {
   const [products, setProducts] = useState([]);
   const [editingId, setEditingId] = useState(null);
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [activeCategory, setActiveCategory] = useState("All Items");
 
-  const fetchProducts = async () => {
+  useEffect(() => {
+    fetchProducts(page);
+  }, [page, activeCategory]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [activeCategory]);
+
+  const fetchProducts = async (pageNumber = 1) => {
     try {
-      const res = await axios.get("/products");
+      let url = `/products?page=${pageNumber}&limit=12&isAdmin=true`;
+      if (activeCategory === "Gold Coins") url += "&metal=GOLD&category=coin";
+      else if (activeCategory === "Silver Coins") url += "&metal=SILVER&category=coin";
+      else if (activeCategory === "Gold Bars") url += "&metal=GOLD&category=bar";
+      else if (activeCategory === "Silver Bars") url += "&metal=SILVER&category=bar";
+      else if (activeCategory === "Jewellery") url += "&category=jewellery_all";
+
+      const res = await axios.get(url);
       setProducts(res.data.products || []);
+      setTotalPages(res.data.totalPages || Math.ceil((res.data.total || 0) / 12));
     } catch (err) {
       console.error(err);
     }
@@ -97,11 +113,8 @@ export default function StaffAddProduct() {
     data.append("category", formData.category);
     data.append("isLimited", formData.isLimited);
     data.append("sortOrder", formData.sortOrder);
-    if (formData.category === "jewellery") {
-      data.append("makingCost", formData.makingCost || 0);
-    }
     
-    // New: Making Cost for Jewellery
+    // Making Cost for Jewellery
     if (formData.category === "jewellery") {
       data.append("makingCost", formData.makingCost || 0);
     }
@@ -254,10 +267,65 @@ export default function StaffAddProduct() {
               </label>
             </div>
 
-            {/* Images Section (unchanged) */}
+            {/* Images Section */}
             <div style={{ margin: "1.5rem 0", padding: "1.5rem", border: "1px dashed #ccc", borderRadius: "12px", background: "#fafafa" }}>
-              <h3 style={{ margin: "0 0 1rem 0", fontSize: "1rem", color: "#555" }}>Product Images</h3>
-              {/* ... existing image preview code ... */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                <h3 style={{ margin: 0, fontSize: "1.1rem", color: "#333", fontWeight: 600 }}>Product Images</h3>
+                <span style={{ fontSize: "0.85rem", color: totalSelectedImages >= 5 ? "#dc3545" : "#666" }}>
+                  {totalSelectedImages} / 5 Images
+                </span>
+              </div>
+              
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "1rem" }}>
+                {/* Existing Images */}
+                {existingImages.map((img, idx) => (
+                  <div key={`existing-${idx}`} style={{ position: "relative", aspectRatio: "1/1", borderRadius: "10px", overflow: "hidden", border: "1px solid #eee", boxShadow: "0 2px 5px rgba(0,0,0,0.05)" }}>
+                    <img src={img.url} alt="preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <button
+                      type="button"
+                      onClick={() => removeExistingImage(idx)}
+                      style={{ position: "absolute", top: "5px", right: "5px", background: "rgba(220, 38, 38, 0.9)", color: "white", border: "none", borderRadius: "50%", cursor: "pointer", width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", transition: "0.2s" }}
+                    >
+                      <X size={14} />
+                    </button>
+                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.6)", color: "white", fontSize: "10px", textAlign: "center", padding: "2px 0" }}>Existing</div>
+                  </div>
+                ))}
+
+                {/* New Previews */}
+                {imagePreviews.map((url, idx) => (
+                  <div key={`new-${idx}`} style={{ position: "relative", aspectRatio: "1/1", borderRadius: "10px", overflow: "hidden", border: "1px solid #dcfce7", boxShadow: "0 2px 5px rgba(0,0,0,0.05)" }}>
+                    <img src={url} alt="preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <button
+                      type="button"
+                      onClick={() => removeNewImage(idx)}
+                      style={{ position: "absolute", top: "5px", right: "5px", background: "rgba(220, 38, 38, 0.9)", color: "white", border: "none", borderRadius: "50%", cursor: "pointer", width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", transition: "0.2s" }}
+                    >
+                      <X size={14} />
+                    </button>
+                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(22, 163, 74, 0.8)", color: "white", fontSize: "10px", textAlign: "center", padding: "2px 0" }}>New</div>
+                  </div>
+                ))}
+
+                {/* Upload Placeholder */}
+                {totalSelectedImages < 5 && (
+                  <label style={{
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    border: "2px dashed #d1d5db", borderRadius: "10px", cursor: "pointer", background: "#fff",
+                    aspectRatio: "1/1", transition: "all 0.3s ease", color: "#6b7280"
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.borderColor = "#d4af37"; e.currentTarget.style.color = "#d4af37"; }}
+                  onMouseOut={(e) => { e.currentTarget.style.borderColor = "#d1d5db"; e.currentTarget.style.color = "#6b7280"; }}
+                  >
+                    <input type="file" multiple accept="image/*" onChange={handleImageChange} style={{ display: "none" }} />
+                    <Plus size={24} />
+                    <span style={{ fontSize: "0.8rem", marginTop: "4px", fontWeight: 500 }}>Add Image</span>
+                  </label>
+                )}
+              </div>
+              <p style={{ fontSize: "0.75rem", color: "#888", marginTop: "1rem" }}>
+                * Maximum 5 images. The first image will be the primary display image.
+              </p>
             </div>
 
             <div style={{ display: "flex", gap: "1rem", marginTop: "2rem" }}>
@@ -276,7 +344,31 @@ export default function StaffAddProduct() {
 
         {/* LIST SECTION - Show Making Cost for Jewellery */}
         <div>
-          <h2 style={{ fontSize: "1.5rem", marginBottom: "1.5rem" }}>Manage Existing Products</h2>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+            <h2 style={{ fontSize: "1.5rem", margin: 0 }}>Manage Existing Products</h2>
+            <div style={{ display: "flex", gap: "0.5rem", background: "#f5f5f5", padding: "4px", borderRadius: "10px" }}>
+              {["All Items", "Gold Coins", "Silver Coins", "Gold Bars", "Silver Bars", "Jewellery"].map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: "8px",
+                    border: "none",
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    background: activeCategory === cat ? "#fff" : "transparent",
+                    color: activeCategory === cat ? "#1a1a1a" : "#666",
+                    boxShadow: activeCategory === cat ? "0 2px 4px rgba(0,0,0,0.1)" : "none",
+                    transition: "0.2s"
+                  }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {products.length === 0 ? (
               <p style={{ color: "#777" }}>No products found in the database.</p>
@@ -315,6 +407,29 @@ export default function StaffAddProduct() {
               ))
             )}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "1rem", marginTop: "2rem" }}>
+              <button
+                onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+                disabled={page <= 1}
+                style={{ padding: "8px 16px", borderRadius: "8px", border: "1px solid #ddd", background: page <= 1 ? "#f5f5f5" : "#fff", cursor: page <= 1 ? "not-allowed" : "pointer" }}
+              >
+                Previous
+              </button>
+              <span style={{ fontSize: "0.9rem", fontWeight: 600, color: "#666" }}>
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={page >= totalPages}
+                style={{ padding: "8px 16px", borderRadius: "8px", border: "1px solid #ddd", background: page >= totalPages ? "#f5f5f5" : "#fff", cursor: page >= totalPages ? "not-allowed" : "pointer" }}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
 
       </div>

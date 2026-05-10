@@ -40,32 +40,49 @@ export default function GalleryPage() {
   const portfolio = useSelector((state) => state.portfolio);
   const { loading: assetLoading, successMessage, error } = useSelector((state) => state.asset);
 
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 12;
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [customGrams, setCustomGrams] = useState(0);
   const [activeImage, setActiveImage] = useState("");
   const [activeCategory, setActiveCategory] = useState("All Items");
 
-  useEffect(() => {
-    dispatch(fetchCurrentPrices());
-    dispatch(fetchWallet());
-    dispatch(fetchPortfolio());
-    fetchProducts();
-  }, [dispatch]);
+    // Fetch products when page or category changes
+    useEffect(() => {
+      fetchProducts(page);
+    }, [page, activeCategory]);
 
-  const fetchProducts = async () => {
-    try {
-      const res = await axios.get("/products");
-      setProducts(res.data.products || []);
-    } catch (err) {
-      console.error("Failed to fetch products:", err);
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Reset page to 1 when category changes
+    useEffect(() => {
+      setPage(1);
+    }, [activeCategory]);
+
+    const fetchProducts = async (pageNumber = 1) => {
+      setLoading(true);
+      try {
+        let url = `/products?page=${pageNumber}&limit=12`;
+        if (activeCategory === "Gold Coins") url += "&metal=GOLD&category=coin";
+        else if (activeCategory === "Silver Coins") url += "&metal=SILVER&category=coin";
+        else if (activeCategory === "Gold Bars") url += "&metal=GOLD&category=bar";
+        else if (activeCategory === "Silver Bars") url += "&metal=SILVER&category=bar";
+        else if (activeCategory === "Jewellery") url += "&category=jewellery_all";
+
+        const res = await axios.get(url);
+        setProducts(res.data.products || []);
+        setTotalCount(res.data.total || 0);
+        setTotalPages(Math.ceil((res.data.total || 0) / 12));
+      } catch (err) {
+        console.error('Failed to fetch products:', err);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
   const getLivePrice = (product) => {
     if (!product) return 0;
@@ -180,32 +197,14 @@ export default function GalleryPage() {
         </div>
 
         {/* Products Grid */}
-        {products.filter(p => {
-          if (activeCategory === "All Items") return true;
-          if (activeCategory === "Gold Coins") return p.metal === "GOLD" && p.category === "coin";
-          if (activeCategory === "Silver Coins") return p.metal === "SILVER" && p.category === "coin";
-          if (activeCategory === "Gold Bars") return p.metal === "GOLD" && p.category === "bar";
-          if (activeCategory === "Silver Bars") return p.metal === "SILVER" && p.category === "bar";
-          if (activeCategory === "Jewellery") return p.category === "jewellery" || p.category === "special";
-          return true;
-        }).length === 0 ? (
+        {products.length === 0 ? (
           <div className="bg-white rounded-[2.5rem] p-24 text-center border border-slate-200/50">
             <Package size={48} className="mx-auto text-slate-100 mb-4" strokeWidth={1} />
             <p className="text-slate-400 font-medium italic">No assets found in this category</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {products
-              .filter(p => {
-                if (activeCategory === "All Items") return true;
-                if (activeCategory === "Gold Coins") return p.metal === "GOLD" && p.category === "coin";
-                if (activeCategory === "Silver Coins") return p.metal === "SILVER" && p.category === "coin";
-                if (activeCategory === "Gold Bars") return p.metal === "GOLD" && p.category === "bar";
-                if (activeCategory === "Silver Bars") return p.metal === "SILVER" && p.category === "bar";
-                if (activeCategory === "Jewellery") return p.category === "jewellery" || p.category === "special";
-                return true;
-              })
-              .map((product, i) => {
+            {products.map((product, i) => {
               const livePrice = getLivePrice(product);
               return (
                 <motion.div
@@ -264,6 +263,24 @@ export default function GalleryPage() {
             })}
           </div>
         )}
+          {/* Pagination Controls */}
+          <div className="flex justify-center items-center gap-4 mt-8">
+            <button
+              onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+              disabled={page <= 1}
+              className="px-4 py-2 rounded bg-slate-200 text-slate-800 disabled:opacity-50"
+            >
+              Prev
+            </button>
+            <span className="font-medium">Page {page} of {totalPages}</span>
+            <button
+              onClick={() => setPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={page >= totalPages}
+              className="px-4 py-2 rounded bg-slate-200 text-slate-800 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
       </div>
 
       {/* Simple Product Modal (Staff-Matched Scale) */}
