@@ -100,6 +100,23 @@ const Dashboard = () => {
           </motion.div>
         </div>
 
+        {user?.authProvider === 'google' && !user?.phoneVerified && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-rose-50 border border-rose-200 rounded-[1.5rem] p-5 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center text-rose-600">
+                <ShieldCheck size={20} />
+              </div>
+              <div>
+                <h4 className="text-sm font-black text-rose-900">Action Required: Verify Phone Number</h4>
+                <p className="text-xs font-medium text-rose-600 mt-0.5">Please add and verify your phone number to unlock all features.</p>
+              </div>
+            </div>
+            <Link to="/update-phone" className="px-6 py-2.5 bg-rose-600 text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-rose-700 transition-all shadow-lg shadow-rose-200">
+              Verify Now
+            </Link>
+          </motion.div>
+        )}
+
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-40 gap-4 text-center">
              <div className="w-12 h-12 border-4 border-[#BA943A]/10 border-t-[#BA943A] rounded-full animate-spin" />

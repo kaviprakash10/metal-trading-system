@@ -6,6 +6,9 @@ import { fetchUser } from "./slice/Authslice";
 // Guest Layout
 import Guest from "./Guest-user/Guest";
 
+// General Pages
+import UpdatePhonePage from "./Pages/UpdatePhonePage";
+
 // User Pages
 import Dashboard from "./user/Dashboard";
 import BuyPage from "./user/metalBuyPage";
@@ -256,6 +259,11 @@ function App() {
       />
 
       {/* ── Guest / Public Routes (Login, Register, Landing) ── */}
+      <Route path="/update-phone" element={
+        <ProtectedRoute>
+          <UpdatePhonePage />
+        </ProtectedRoute>
+      } />
       <Route path="/*" element={<Guest />} />
     </Routes>
   );

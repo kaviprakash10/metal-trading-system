@@ -10,11 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-oauth/google": "^0.13.5",
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.5",
     "framer-motion": "^12.38.0",
     "init": "^0.1.2",
     "joi": "^18.0.2",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.564.0",
     "razorpay": "^2.9.6",
     "react": "^19.2.4",

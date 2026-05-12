@@ -16,6 +16,47 @@ export const registerUser = createAsyncThunk(
   },
 );
 
+export const googleAuthUser = createAsyncThunk(
+  "auth/googleAuthUser",
+  async ({ email, userName, googleId, redirect }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post("/user/google-auth", {
+        email,
+        userName,
+        googleId,
+      });
+
+      if (response.status === 202 && response.data.requiresOtp) {
+        return { requiresOtp: true, phone: response.data.phone, email: response.data.email };
+      }
+
+      localStorage.setItem("token", response.data.token);
+
+      const userResponse = await axios.get("/user/profile", {
+        headers: { Authorization: `Bearer ${response.data.token}` },
+      });
+      const user = userResponse.data;
+
+      if (redirect) {
+        if (response.data.needsPhone || !user.phone || !user.phoneVerified) {
+          redirect("/update-phone");
+        } else if (user.role === "admin") {
+          redirect("/admin/dashboard");
+        } else if (user.role === "staff") {
+          redirect("/staff/dashboard");
+        } else {
+          redirect("/user/dashboard");
+        }
+      }
+      return { user };
+    } catch (err) {
+      const msg = err.response?.data?.error || "Google Auth failed";
+      return rejectWithValue(msg);
+    }
+  },
+);
+
+
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async ({ formData, redirect }, { rejectWithValue }) => {
@@ -24,7 +65,11 @@ export const loginUser = createAsyncThunk(
 
       // If OTP is required (202 status)
       if (response.status === 202 && response.data.requiresOtp) {
-        return { requiresOtp: true, phone: response.data.phone, email: response.data.email };
+        return {
+          requiresOtp: true,
+          phone: response.data.phone,
+          email: response.data.email,
+        };
       }
 
       localStorage.setItem("token", response.data.token);
@@ -106,6 +151,51 @@ export const updateProfile = createAsyncThunk(
   },
 );
 
+export const sendPhoneVerification = createAsyncThunk(
+  "auth/sendPhoneVerification",
+  async ({ phone }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        "/user/update-phone",
+        { phone },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        },
+      );
+      return response.data;
+    } catch (err) {
+      const msg = err.response?.data?.error || "Failed to send verification";
+      return rejectWithValue(msg);
+    }
+  },
+);
+
+export const verifyUpdatedPhone = createAsyncThunk(
+  "auth/verifyUpdatedPhone",
+  async ({ otp, redirect }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        "/user/verify-phone-otp",
+        { otp },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        },
+      );
+
+      const user = response.data.user;
+      if (redirect) {
+        if (user.role === "admin") redirect("/admin/dashboard");
+        else if (user.role === "staff") redirect("/staff/dashboard");
+        else redirect("/user/dashboard");
+      }
+      return user;
+    } catch (err) {
+      const msg = err.response?.data?.error || "OTP Verification failed";
+      return rejectWithValue(msg);
+    }
+  },
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState: {
@@ -131,7 +221,7 @@ const authSlice = createSlice({
       state.requiresOtp = false;
       state.otpPhone = null;
       state.otpEmail = null;
-    }
+    },
   },
   extraReducers: (builder) => {
     // Register
@@ -143,6 +233,29 @@ const authSlice = createSlice({
       state.loading = false;
     });
     builder.addCase(registerUser.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    });
+
+    // Google Auth
+    builder.addCase(googleAuthUser.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(googleAuthUser.fulfilled, (state, action) => {
+      state.loading = false;
+      if (action.payload.requiresOtp) {
+        state.requiresOtp = true;
+        state.otpPhone = action.payload.phone;
+        state.otpEmail = action.payload.email;
+      } else {
+        state.user = action.payload.user;
+        state.isLoggedIn = true;
+        state.requiresOtp = false;
+        state.error = null;
+      }
+    });
+    builder.addCase(googleAuthUser.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload;
     });
@@ -220,6 +333,20 @@ const authSlice = createSlice({
       state.error = null;
     });
     builder.addCase(updateProfile.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    });
+    // Verify Updated Phone
+    builder.addCase(verifyUpdatedPhone.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(verifyUpdatedPhone.fulfilled, (state, action) => {
+      state.loading = false;
+      state.user = action.payload;
+      state.error = null;
+    });
+    builder.addCase(verifyUpdatedPhone.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload;
     });
