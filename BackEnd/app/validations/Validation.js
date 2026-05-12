@@ -25,6 +25,12 @@ const UserRegisterValidationSchema = Joi.object({
         "Password must contain at least one uppercase, one lowercase, one number, and one special character",
       "string.empty": "Password is required",
     }),
+
+  phone: Joi.string().trim().min(10).max(15).required().messages({
+    "string.empty": "Phone number is required",
+    "string.min": "Phone number must be at least 10 digits",
+    "any.required": "Phone number is required",
+  }),
 });
 
 // Login Validation

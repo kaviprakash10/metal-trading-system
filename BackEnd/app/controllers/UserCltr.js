@@ -5,7 +5,17 @@ import {
   UserRegisterValidationSchema,
   UserloginValidationSchema,
 } from "../validations/Validation.js";
-import { sendOTP, verifyOTP } from "../utils/twilio.js";
+import { sendOTP, verifyOTP, sendManualSMS } from "../utils/twilio.js";
+
+const formatPhoneNumber = (phone) => {
+  if (!phone) return "";
+  // If it already starts with +, return it
+  if (phone.startsWith("+")) return phone;
+  // If it's a 10 digit number, assume +91 (India) as per project context
+  if (phone.length === 10) return `+91${phone}`;
+  // Otherwise, just prepend + if missing (risky but better than nothing)
+  return phone.startsWith("+") ? phone : `+${phone}`;
+};
 
 
 const UserCltr = {};
@@ -33,6 +43,9 @@ UserCltr.register = async (req, res) => {
         error: "Email already present",
       });
     }
+
+    // Format phone number
+    value.phone = formatPhoneNumber(value.phone);
 
     const user = new User(value);
 
@@ -102,15 +115,29 @@ UserCltr.login = async (req, res) => {
         return res.status(400).json({ error: "Phone number not found. Please contact support." });
       }
 
+      const formattedPhone = formatPhoneNumber(user.phone);
+
       try {
-        await sendOTP(user.phone);
+        if (process.env.TWILIO_SERVICE_SID) {
+          await sendOTP(formattedPhone);
+        } else {
+          // Manual OTP generation
+          const otp = Math.floor(100000 + Math.random() * 900000).toString();
+          user.otpCode = otp;
+          user.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+          await user.save();
+
+          await sendManualSMS(formattedPhone, `Your GoldVault login OTP is: ${otp}. Valid for 10 minutes.`);
+        }
+
         return res.status(202).json({
           requiresOtp: true,
           phone: user.phone,
-          email: user.email, // helpful for the next step
+          email: user.email,
           message: "OTP sent to your registered phone number"
         });
       } catch (otpErr) {
+        console.error("OTP send failed:", otpErr);
         return res.status(500).json({ error: "Failed to send OTP. Please try again later." });
       }
     }
@@ -237,9 +264,22 @@ UserCltr.verifyLoginOTP = async (req, res) => {
       return res.status(400).json({ error: "Verification not required" });
     }
 
-    const verificationCheck = await verifyOTP(user.phone, otp);
+    const formattedPhone = formatPhoneNumber(user.phone);
+    let isApproved = false;
 
-    if (verificationCheck.status === "approved") {
+    if (process.env.TWILIO_SERVICE_SID) {
+      isApproved = await verifyOTP(formattedPhone, otp);
+    } else {
+      // Manual verification
+      if (user.otpCode === otp && user.otpExpires > new Date()) {
+        isApproved = true;
+        // Clear OTP after use
+        user.otpCode = undefined;
+        user.otpExpires = undefined;
+      }
+    }
+
+    if (isApproved) {
       // Mark as verified
       user.needsVerification = false;
       await user.save();

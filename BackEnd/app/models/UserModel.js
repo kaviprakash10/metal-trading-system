@@ -68,6 +68,8 @@ const userSchema = new Schema(
     ifscCode:      { type: String, default: "" },
     bankName:      { type: String, default: "" },
     needsVerification: { type: Boolean, default: false },
+    otpCode: { type: String },
+    otpExpires: { type: Date },
   },
   {
     timestamps: true,
