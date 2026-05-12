@@ -56,10 +56,15 @@ const userSchema = new Schema(
 
     // ── Personal Info ──
     phone:   { type: String, default: "" },
+    phoneVerified: { type: Boolean, default: false },
     address: { type: String, default: "" },
     city:    { type: String, default: "" },
     state:   { type: String, default: "" },
     pincode: { type: String, default: "" },
+
+    // ── Auth Provider ──
+    authProvider: { type: String, enum: ["local", "google"], default: "local" },
+    googleId: { type: String },
 
     // ── Payment Details ──
     upiId:         { type: String, default: "" },

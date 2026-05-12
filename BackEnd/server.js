@@ -73,6 +73,9 @@ app.use(
 app.post("/api/user/register", userCltr.register);
 app.post("/api/user/login", userCltr.login);
 app.post("/api/user/verify-login", userCltr.verifyLoginOTP);
+app.post("/api/user/google-auth", userCltr.googleAuth);
+app.post("/api/user/update-phone", auth, userCltr.updatePhone);
+app.post("/api/user/verify-phone-otp", auth, userCltr.verifyPhoneOtp);
 app.get("/api/user/profile", auth, userCltr.getProfile);
 app.patch("/api/user/profile", auth, userCltr.updateProfile);
 
@@ -113,6 +116,12 @@ app.patch(
   auth,
   admin,
   AdminController.updateUserBalance,
+);
+app.delete(
+  "/api/admin/users/:userId",
+  auth,
+  staff,
+  AdminController.deleteUser,
 );
 app.get(
   "/api/admin/transactions",

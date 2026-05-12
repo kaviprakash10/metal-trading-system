@@ -17,7 +17,6 @@ const formatPhoneNumber = (phone) => {
   return phone.startsWith("+") ? phone : `+${phone}`;
 };
 
-
 const UserCltr = {};
 
 /* ================= REGISTER ================= */
@@ -112,7 +111,9 @@ UserCltr.login = async (req, res) => {
     // Check if OTP verification is required
     if (user.needsVerification) {
       if (!user.phone) {
-        return res.status(400).json({ error: "Phone number not found. Please contact support." });
+        return res
+          .status(400)
+          .json({ error: "Phone number not found. Please contact support." });
       }
 
       const formattedPhone = formatPhoneNumber(user.phone);
@@ -127,18 +128,23 @@ UserCltr.login = async (req, res) => {
           user.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
           await user.save();
 
-          await sendManualSMS(formattedPhone, `Your GoldVault login OTP is: ${otp}. Valid for 10 minutes.`);
+          await sendManualSMS(
+            formattedPhone,
+            `Your GoldVault login OTP is: ${otp}. Valid for 10 minutes.`,
+          );
         }
 
         return res.status(202).json({
           requiresOtp: true,
           phone: user.phone,
           email: user.email,
-          message: "OTP sent to your registered phone number"
+          message: "OTP sent to your registered phone number",
         });
       } catch (otpErr) {
         console.error("OTP send failed:", otpErr);
-        return res.status(500).json({ error: "Failed to send OTP. Please try again later." });
+        return res
+          .status(500)
+          .json({ error: "Failed to send OTP. Please try again later." });
       }
     }
 
@@ -304,5 +310,161 @@ UserCltr.verifyLoginOTP = async (req, res) => {
   }
 };
 
-export default UserCltr;
+/* ================= GOOGLE AUTH ================= */
+UserCltr.googleAuth = async (req, res) => {
+  const { email, userName, googleId } = req.body;
+  if (!email || !googleId) {
+    return res.status(400).json({ error: "Email and Google ID required" });
+  }
 
+  try {
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create new Google user (Signup Flow)
+      user = new User({
+        email,
+        userName: userName || email.split("@")[0],
+        googleId,
+        authProvider: "google",
+        password: await bcryptjs.hash(googleId + process.env.JWT_SECRET, 10), // dummy password
+      });
+      const usersCount = await User.countDocuments();
+      if (usersCount === 0) user.role = "admin";
+      await user.save();
+    } else if (user.authProvider === "local") {
+      // Link Google ID if local user logs in with Google
+      user.googleId = googleId;
+      user.authProvider = "google";
+      await user.save();
+    }
+
+    // Login Flow: If user already has a phone, require OTP verification
+    if (user.phone) {
+      user.needsVerification = true;
+      const formattedPhone = formatPhoneNumber(user.phone);
+
+      if (process.env.TWILIO_SERVICE_SID) {
+        try {
+          await sendOTP(formattedPhone);
+        } catch (err) {
+          console.warn("Twilio sendOTP failed:", err.message);
+        }
+      } else {
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        user.otpCode = otp;
+        user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+        console.log(`[DEVELOPMENT ONLY] OTP for Google Login (${formattedPhone}) is: ${otp}`);
+        try {
+          await sendManualSMS(formattedPhone, `Your GoldVault login OTP is: ${otp}. Valid for 10 minutes.`);
+        } catch (err) {
+          console.warn("Twilio sendManualSMS failed:", err.message);
+        }
+      }
+
+      await user.save();
+      return res.status(202).json({
+        requiresOtp: true,
+        phone: user.phone,
+        email: user.email,
+        message: "OTP sent to your registered phone number"
+      });
+    }
+
+    // Direct Login (Signup or no phone yet)
+    const tokenData = { userId: user._id, role: user.role };
+    const token = jwt.sign(tokenData, process.env.JWT_SECRET, {
+      expiresIn: "2d",
+    });
+
+    res.json({
+      token,
+      user,
+      needsPhone: true,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Google authentication failed" });
+  }
+};
+
+/* ================= UPDATE PHONE & SEND OTP ================= */
+UserCltr.updatePhone = async (req, res) => {
+  const { phone } = req.body;
+  const userId = req.user.userId;
+
+  if (!phone) return res.status(400).json({ error: "Phone number required" });
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const formattedPhone = formatPhoneNumber(phone);
+    user.phone = formattedPhone;
+    user.phoneVerified = false;
+
+    if (process.env.TWILIO_SERVICE_SID) {
+      try {
+        await sendOTP(formattedPhone);
+      } catch (smsErr) {
+        console.warn("Twilio sendOTP failed:", smsErr.message);
+      }
+    } else {
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      user.otpCode = otp;
+      user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+      console.log(`[DEVELOPMENT ONLY] OTP for ${formattedPhone} is: ${otp}`);
+      try {
+        await sendManualSMS(formattedPhone, `Your GoldVault phone verification OTP is: ${otp}. Valid for 10 minutes.`);
+      } catch (smsErr) {
+        console.warn("Twilio sendManualSMS failed:", smsErr.message);
+      }
+    }
+
+    await user.save();
+    res.json({ message: "OTP sent to phone", phone: formattedPhone });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Failed to update phone and send OTP" });
+  }
+};
+
+/* ================= VERIFY PHONE OTP ================= */
+UserCltr.verifyPhoneOtp = async (req, res) => {
+  const { otp } = req.body;
+  const userId = req.user.userId;
+
+  if (!otp) return res.status(400).json({ error: "OTP required" });
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    let isApproved = false;
+    const formattedPhone = formatPhoneNumber(user.phone);
+
+    if (process.env.TWILIO_SERVICE_SID) {
+      isApproved = await verifyOTP(formattedPhone, otp);
+    } else {
+      if (user.otpCode === otp && user.otpExpires > new Date()) {
+        isApproved = true;
+        user.otpCode = undefined;
+        user.otpExpires = undefined;
+      }
+    }
+
+    if (isApproved) {
+      user.phoneVerified = true;
+      user.needsVerification = false;
+      await user.save();
+      res.json({ message: "Phone verified successfully", user });
+    } else {
+      res.status(400).json({ error: "Invalid OTP" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Phone verification failed" });
+  }
+};
+
+export default UserCltr;

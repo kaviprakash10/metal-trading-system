@@ -360,4 +360,33 @@ AdminController.provisionUser = async (req, res) => {
   }
 };
 
+AdminController.deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const targetUser = await User.findById(userId);
+    if (!targetUser) return res.status(404).json({ message: "User not found" });
+
+    // Prevent self-deletion
+    if (targetUser._id.toString() === req.user.userId.toString()) {
+      return res.status(400).json({ message: "You cannot delete your own account." });
+    }
+
+    // Protect other admins from being deleted by anyone except maybe themselves (but we blocked self-delete)
+    if (targetUser.role === "admin" && req.user.role !== "admin") {
+      return res.status(403).json({ message: "You cannot delete admin accounts." });
+    }
+
+    await User.findByIdAndDelete(userId);
+
+    // Optionally delete related data like transactions, but usually we just want to remove the user
+    // await Transaction.deleteMany({ user: userId }); 
+
+    res.status(200).json({ message: "User account deleted successfully", userId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to delete user" });
+  }
+};
+
 export default AdminController;
