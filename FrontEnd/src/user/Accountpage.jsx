@@ -3,16 +3,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { updateProfile } from "../slice/Authslice";
 import UserLayout from "./userLayout";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  CreditCard, 
-  ShieldCheck, 
-  Wallet, 
-  CheckCircle2, 
-  AlertCircle, 
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  CreditCard,
+  ShieldCheck,
+  Wallet,
+  CheckCircle2,
+  AlertCircle,
   ChevronRight,
   Save,
   Building2,
@@ -56,8 +56,8 @@ function Field({ label, icon: Icon, name, value, onChange, type = "text", placeh
           disabled={disabled}
           className={`w-full py-4 rounded-[1.25rem] text-[13px] font-extrabold transition-all outline-none border
             ${Icon ? "pl-14 pr-6" : "px-6"}
-            ${disabled 
-              ? "bg-slate-50 text-slate-400 border-dashed border-slate-200 cursor-not-allowed" 
+            ${disabled
+              ? "bg-slate-50 text-slate-400 border-dashed border-slate-200 cursor-not-allowed"
               : "bg-slate-50 border-slate-100 text-slate-900 focus:bg-white focus:border-[#BA943A]/40 transition-all shadow-sm"}`}
         />
       </div>
@@ -69,7 +69,7 @@ function Field({ label, icon: Icon, name, value, onChange, type = "text", placeh
 /* ── Simple Section Component ── */
 function Section({ title, subtitle, icon: Icon, children }) {
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -140,35 +140,35 @@ export default function AccountPage() {
   return (
     <UserLayout active="/user/account">
       <div className="max-w-5xl mx-auto space-y-12">
-        
+
         {/* Header Section (Staff-Matched) */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
             <h1 className="text-5xl font-serif font-black text-slate-900 tracking-tight leading-none mb-3">
-               My Identity<span className="text-amber-500">.</span>
+              My Identity<span className="text-amber-500">.</span>
             </h1>
             <p className="text-slate-500 font-medium flex items-center gap-2.5">
-               <ShieldCheck size={18} className="text-[#BA943A]" />
-               Profile Security
-               <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mx-2" />
-               <Database size={16} className="text-slate-400" />
-               Layer-3 Authorized
+              <ShieldCheck size={18} className="text-[#BA943A]" />
+              Profile Security
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mx-2" />
+              <Database size={16} className="text-slate-400" />
+              Layer-3 Authorized
             </p>
           </motion.div>
-          
+
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-4 bg-white p-3 rounded-[1.5rem] border border-slate-200 shadow-sm">
-             <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
-                <Lock size={18} />
-             </div>
-             <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Access Node</p>
-                <p className="text-sm font-black text-slate-900">Verified Personnel</p>
-             </div>
+            <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+              <Lock size={18} />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Access Node</p>
+              <p className="text-sm font-black text-slate-900">Verified Personnel</p>
+            </div>
           </motion.div>
         </div>
 
         {/* Profile Card (Simplified Digital ID) */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="relative bg-slate-900 text-white rounded-[2.5rem] p-10 overflow-hidden shadow-2xl border border-white/5"
@@ -179,28 +179,28 @@ export default function AccountPage() {
                 {user?.userName?.[0]?.toUpperCase() || "U"}
               </div>
               <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-white border-4 border-slate-900 flex items-center justify-center text-emerald-500 shadow-lg">
-                 <ShieldCheck size={14} strokeWidth={3} />
+                <ShieldCheck size={14} strokeWidth={3} />
               </div>
             </div>
-            
+
             <div className="flex-1 text-center md:text-left space-y-4">
               <div>
-                 <h2 className="font-serif text-4xl font-black text-white tracking-tighter leading-none mb-3">{user?.userName || "Investor Member"}</h2>
-                 <div className="flex flex-wrap justify-center md:justify-start gap-4 items-center">
-                   <div className="flex items-center gap-2 text-white/50 text-[11px] font-black tracking-widest uppercase">
-                     <Mail size={14} className="text-[#BA943A]" /> {user?.email}
-                   </div>
-                   <div className="h-4 w-[1px] bg-white/10 hidden md:block" />
-                   <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border ${kycConfig.bg} ${kycConfig.color} ${kycConfig.border} shadow-lg shadow-black/20`}>
-                     <kycConfig.icon size={12} strokeWidth={3} /> {kycConfig.label}
-                   </div>
-                 </div>
+                <h2 className="font-serif text-4xl font-black text-white tracking-tighter leading-none mb-3">{user?.userName || "Investor Member"}</h2>
+                <div className="flex flex-wrap justify-center md:justify-start gap-4 items-center">
+                  <div className="flex items-center gap-2 text-white/50 text-[11px] font-black tracking-widest uppercase">
+                    <Mail size={14} className="text-[#BA943A]" /> {user?.email}
+                  </div>
+                  <div className="h-4 w-[1px] bg-white/10 hidden md:block" />
+                  <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border ${kycConfig.bg} ${kycConfig.color} ${kycConfig.border} shadow-lg shadow-black/20`}>
+                    <kycConfig.icon size={12} strokeWidth={3} /> {kycConfig.label}
+                  </div>
+                </div>
               </div>
             </div>
 
             <div className="bg-white/5 border border-white/10 rounded-3xl p-8 min-w-[200px] text-center backdrop-blur-xl">
-               <p className="text-white/20 text-[9px] font-black uppercase tracking-widest mb-4">Total Liquidity</p>
-               <p className="font-serif text-3xl font-black text-[#D8B452]">₹{fmt(user?.walletBalance)}</p>
+              <p className="text-white/20 text-[9px] font-black uppercase tracking-widest mb-4">Total Liquidity</p>
+              <p className="font-serif text-3xl font-black text-[#D8B452]">₹{fmt(user?.walletBalance)}</p>
             </div>
           </div>
         </motion.div>
@@ -208,12 +208,12 @@ export default function AccountPage() {
         {/* Sync Success Banner */}
         <AnimatePresence>
           {saved && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
               className="p-6 bg-emerald-600 text-white rounded-3xl shadow-xl flex items-center gap-4"
             >
               <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-md">
-                 <CheckCircle2 size={20} strokeWidth={3} />
+                <CheckCircle2 size={20} strokeWidth={3} />
               </div>
               <p className="font-black text-xs uppercase tracking-widest">Personnel Synchronized</p>
             </motion.div>
@@ -223,28 +223,28 @@ export default function AccountPage() {
         <form onSubmit={handleSave} className="space-y-10">
           <Section title="Identity Details" subtitle="Core Personnel Parameters" icon={User}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10">
-              <Field label="Legal Name" icon={User} name="userName" value={form.userName} onChange={handleChange} placeholder="As per documents" />
-              <Field label="Ledger Email" icon={Mail} name="email" value={form.email} onChange={handleChange} type="email" disabled hint="Primary authenticated node" />
-              <Field label="Phone Terminal" icon={Smartphone} name="phone" value={form.phone} onChange={handleChange} type="tel" placeholder="Contact number" />
+              <Field label="Full Name" icon={User} name="userName" value={form.userName} onChange={handleChange} placeholder="As per documents" />
+              <Field label="Email" icon={Mail} name="email" value={form.email} onChange={handleChange} type="email" disabled hint="Primary authenticated node" />
+              <Field label="Phone Number" icon={Smartphone} name="phone" value={form.phone} onChange={handleChange} type="tel" placeholder="Contact number" hint="Changing this will require OTP verification on your next login" />
               <div className="flex flex-col justify-center">
-                 <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-4">
-                    <ShieldPlus size={18} className="text-[#BA943A]" strokeWidth={3} />
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">Identity verified against high-grade data nodes.</p>
-                 </div>
+                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-4">
+                  <ShieldPlus size={18} className="text-[#BA943A]" strokeWidth={3} />
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">Identity verified against high-grade data nodes.</p>
+                </div>
               </div>
             </div>
           </Section>
 
           <Section title="Residency & Distribution" subtitle="Authorized Distribution Hub" icon={MapPin}>
-            <Field label="Primary Delivery Node" icon={MapPin} name="address" value={form.address} onChange={handleChange} placeholder="Full street coordinates" />
+            <Field label="Delivery Address Line" icon={MapPin} name="address" value={form.address} onChange={handleChange} placeholder="Full street coordinates" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6">
-              <Field label="City Hub" icon={Building2} name="city" value={form.city} onChange={handleChange} placeholder="City name" />
-              <Field label="Regional District" icon={Globe} name="state" value={form.state} onChange={handleChange} placeholder="State name" />
-              <Field label="Postal Node" icon={Hash} name="pincode" value={form.pincode} onChange={handleChange} placeholder="Pin code" type="number" />
+              <Field label="City" icon={Building2} name="city" value={form.city} onChange={handleChange} placeholder="City name" />
+              <Field label="State" icon={Globe} name="state" value={form.state} onChange={handleChange} placeholder="State name" />
+              <Field label="Pin Code" icon={Hash} name="pincode" value={form.pincode} onChange={handleChange} placeholder="Pin code" type="number" />
             </div>
           </Section>
 
-          <Section title="Settlement Terminal" subtitle="Liquidity Extraction Configuration" icon={Lock}>
+          <Section title="Withdrawal Method" subtitle="Liquidity Extraction Configuration" icon={Lock}>
             <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100 mb-10 max-w-sm mx-auto shadow-inner">
               {["UPI", "BANK"].map((id) => (
                 <button
@@ -267,10 +267,10 @@ export default function AccountPage() {
               ) : (
                 <motion.div key="bank" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10">
-                    <Field label="Beneficiary" icon={User} name="accountName" value={form.accountName} onChange={handleChange} placeholder="Account name" />
-                    <Field label="Institution" icon={Building2} name="bankName" value={form.bankName} onChange={handleChange} placeholder="Bank Name" />
-                    <Field label="Node Number" icon={Lock} name="accountNumber" value={form.accountNumber} onChange={handleChange} placeholder="Account Number" type="password" />
-                    <Field label="Settlement ID (IFSC)" icon={ShieldCheck} name="ifscCode" value={form.ifscCode} onChange={handleChange} placeholder="IFSC Code" />
+                    <Field label="Account Holder Name" icon={User} name="accountName" value={form.accountName} onChange={handleChange} placeholder="Account name" />
+                    <Field label="Bank Name" icon={Building2} name="bankName" value={form.bankName} onChange={handleChange} placeholder="Bank Name" />
+                    <Field label="Account Number" icon={Lock} name="accountNumber" value={form.accountNumber} onChange={handleChange} placeholder="Account Number" type="password" />
+                    <Field label="IFSC Code" icon={ShieldCheck} name="ifscCode" value={form.ifscCode} onChange={handleChange} placeholder="IFSC Code" />
                   </div>
                 </motion.div>
               )}
@@ -284,12 +284,12 @@ export default function AccountPage() {
             disabled={loading}
             className="w-full bg-slate-900 text-[#BA943A] py-6 rounded-[2rem] font-black text-lg shadow-xl hover:bg-black transition-all flex items-center justify-center gap-4 disabled:opacity-50 tracking-widest uppercase"
           >
-            {loading ? <RefreshCcw className="animate-spin" size={24} /> : <><Save size={20} /> Synchronize Profile</>}
+            {loading ? <RefreshCcw className="animate-spin" size={24} /> : <><Save size={20} /> Update</>}
           </motion.button>
         </form>
 
         {/* Node Dissolution (Action Center) */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
@@ -300,14 +300,14 @@ export default function AccountPage() {
               <AlertTriangle className="text-rose-500" size={20} strokeWidth={3} />
               <span className="text-rose-500 font-black text-[10px] uppercase tracking-widest">Critical Protocol</span>
             </div>
-            <h3 className="font-serif text-3xl font-black text-slate-900 tracking-tight leading-none">Dissolve Identity Node</h3>
+            <h3 className="font-serif text-3xl font-black text-slate-900 tracking-tight leading-none">Deactivate Account</h3>
             <p className="text-slate-400 text-xs font-medium leading-relaxed max-w-xl italic">
-              Permanently dissolve your institutional access and liquidate all holdings. This action is non-reversible.
+              Permanently deactivate your account access and liquidate all holdings. This action is non-reversible.
             </p>
           </div>
-          
+
           <button className="px-8 py-4 rounded-2xl border-2 border-rose-500 text-rose-500 font-black text-[11px] uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all active:scale-95 whitespace-nowrap">
-            Initiate Dissolution
+            Deactivate Account
           </button>
         </motion.div>
       </div>

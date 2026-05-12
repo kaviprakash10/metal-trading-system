@@ -20,31 +20,57 @@ export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async ({ formData, redirect }, { rejectWithValue }) => {
     try {
-      // Step 1: Login → get token
       const response = await axios.post("/user/login", formData);
+
+      // If OTP is required (202 status)
+      if (response.status === 202 && response.data.requiresOtp) {
+        return { requiresOtp: true, phone: response.data.phone, email: response.data.email };
+      }
+
       localStorage.setItem("token", response.data.token);
 
-      // Step 2: Fetch full profile → get role
       const userResponse = await axios.get("/user/profile", {
         headers: { Authorization: `Bearer ${response.data.token}` },
       });
 
       const user = userResponse.data;
 
-      // Step 3: Redirect based on role AFTER we have the user data
       if (redirect) {
-        if (user.role === "admin") {
-          redirect("/admin/dashboard");
-        } else if (user.role === "staff") {
-          redirect("/staff/dashboard");
-        } else {
-          redirect("/user/dashboard");
-        }
+        if (user.role === "admin") redirect("/admin/dashboard");
+        else if (user.role === "staff") redirect("/staff/dashboard");
+        else redirect("/user/dashboard");
       }
 
       return user;
     } catch (err) {
       const msg = err.response?.data?.error || "Login failed";
+      return rejectWithValue(msg);
+    }
+  },
+);
+
+export const verifyOtp = createAsyncThunk(
+  "auth/verifyOtp",
+  async ({ email, otp, redirect }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post("/user/verify-login", { email, otp });
+      localStorage.setItem("token", response.data.token);
+
+      const userResponse = await axios.get("/user/profile", {
+        headers: { Authorization: `Bearer ${response.data.token}` },
+      });
+
+      const user = userResponse.data;
+
+      if (redirect) {
+        if (user.role === "admin") redirect("/admin/dashboard");
+        else if (user.role === "staff") redirect("/staff/dashboard");
+        else redirect("/user/dashboard");
+      }
+
+      return user;
+    } catch (err) {
+      const msg = err.response?.data?.error || "Verification failed";
       return rejectWithValue(msg);
     }
   },
@@ -87,14 +113,25 @@ const authSlice = createSlice({
     isLoggedIn: false,
     loading: false,
     error: null,
+    requiresOtp: false,
+    otpPhone: null,
+    otpEmail: null,
   },
   reducers: {
     logout: (state) => {
       state.user = null;
       state.isLoggedIn = false;
       state.error = null;
+      state.requiresOtp = false;
+      state.otpPhone = null;
+      state.otpEmail = null;
       localStorage.removeItem("token");
     },
+    clearOtpState: (state) => {
+      state.requiresOtp = false;
+      state.otpPhone = null;
+      state.otpEmail = null;
+    }
   },
   extraReducers: (builder) => {
     // Register
@@ -117,8 +154,15 @@ const authSlice = createSlice({
     });
     builder.addCase(loginUser.fulfilled, (state, action) => {
       state.loading = false;
-      state.user = action.payload;
-      state.isLoggedIn = true;
+      if (action.payload.requiresOtp) {
+        state.requiresOtp = true;
+        state.otpPhone = action.payload.phone;
+        state.otpEmail = action.payload.email;
+      } else {
+        state.user = action.payload;
+        state.isLoggedIn = true;
+        state.requiresOtp = false;
+      }
       state.error = null;
     });
     builder.addCase(loginUser.rejected, (state, action) => {
@@ -126,6 +170,25 @@ const authSlice = createSlice({
       state.error = action.payload;
       state.user = null;
       state.isLoggedIn = false;
+    });
+
+    // Verify OTP
+    builder.addCase(verifyOtp.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(verifyOtp.fulfilled, (state, action) => {
+      state.loading = false;
+      state.user = action.payload;
+      state.isLoggedIn = true;
+      state.requiresOtp = false;
+      state.otpPhone = null;
+      state.otpEmail = null;
+      state.error = null;
+    });
+    builder.addCase(verifyOtp.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
     });
 
     // Fetch User
@@ -163,5 +226,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, clearOtpState } = authSlice.actions;
 export default authSlice.reducer;

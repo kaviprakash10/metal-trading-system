@@ -54,7 +54,7 @@ const NAV_ITEMS = [
   { icon: ClipboardList, label: "Audit", to: "/user/transactions" },
   { icon: GalleryHorizontalEnd, label: "Gallery", to: "/user/gallery" },
   { section: "IDENTITY" },
-  { icon: ShieldCheck, label: "My Identity", to: "/user/account" },
+  { icon: ShieldCheck, label: "My Account", to: "/user/account" },
 ];
 
 export default function UserLayout({ children }) {
@@ -386,7 +386,7 @@ function SidebarContent({ user, isActive, handleLogout }) {
           className="flex items-center justify-center gap-4 w-full px-6 py-4 text-[11px] font-black uppercase tracking-widest text-rose-400 hover:bg-rose-500 hover:text-white rounded-2xl transition-all border border-rose-500/20 shadow-xl shadow-rose-900/10 group"
         >
           <LogOut size={18} strokeWidth={2.5} className="group-hover:-translate-x-1 transition-transform" />
-          Terminate Session
+          Log Out
         </button>
       </div>
     </div>

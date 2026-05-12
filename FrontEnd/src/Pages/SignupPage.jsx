@@ -17,6 +17,7 @@ export default function SignupPage() {
     email: "",
     password: "",
     confirmPassword: "",
+    phone: "",
     agreeToTerms: false,
   });
 
@@ -49,6 +50,7 @@ export default function SignupPage() {
           userName: formData.userName,
           email: formData.email,
           password: formData.password,
+          phone: formData.phone,
         },
         redirect,
       }),
@@ -130,6 +132,26 @@ export default function SignupPage() {
                 onChange={handleChange}
                 className="w-full px-6 py-4 bg-gray-50/50 border border-transparent rounded-2xl focus:bg-white focus:border-amber-500/30 focus:ring-4 focus:ring-amber-500/5 transition-all outline-none text-gray-900 font-medium"
                 placeholder="your.email@example.com"
+                required
+              />
+            </div>
+
+            {/* Phone Number */}
+            <div className="space-y-2">
+              <label
+                htmlFor="phone"
+                className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1"
+              >
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                className="w-full px-6 py-4 bg-gray-50/50 border border-transparent rounded-2xl focus:bg-white focus:border-amber-500/30 focus:ring-4 focus:ring-amber-500/5 transition-all outline-none text-gray-900 font-medium"
+                placeholder="10-digit mobile number"
                 required
               />
             </div>
