@@ -67,6 +67,7 @@ const userSchema = new Schema(
     accountNumber: { type: String, default: "" },
     ifscCode:      { type: String, default: "" },
     bankName:      { type: String, default: "" },
+    needsVerification: { type: Boolean, default: false },
   },
   {
     timestamps: true,

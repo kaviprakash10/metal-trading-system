@@ -5,6 +5,8 @@ import {
   UserRegisterValidationSchema,
   UserloginValidationSchema,
 } from "../validations/Validation.js";
+import { sendOTP, verifyOTP } from "../utils/twilio.js";
+
 
 const UserCltr = {};
 
@@ -94,6 +96,25 @@ UserCltr.login = async (req, res) => {
       });
     }
 
+    // Check if OTP verification is required
+    if (user.needsVerification) {
+      if (!user.phone) {
+        return res.status(400).json({ error: "Phone number not found. Please contact support." });
+      }
+
+      try {
+        await sendOTP(user.phone);
+        return res.status(202).json({
+          requiresOtp: true,
+          phone: user.phone,
+          email: user.email, // helpful for the next step
+          message: "OTP sent to your registered phone number"
+        });
+      } catch (otpErr) {
+        return res.status(500).json({ error: "Failed to send OTP. Please try again later." });
+      }
+    }
+
     // Generate JWT (FIXED userId)
     const tokenData = {
       userId: user._id,
@@ -177,19 +198,71 @@ UserCltr.updateProfile = async (req, res) => {
       }
     }
 
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { $set: updates },
-      { new: true, runValidators: true }
-    ).select("-password");
-
+    const user = await User.findById(userId);
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    res.json({ message: "Profile updated successfully", user });
+    // Check if phone is being updated
+    if (updates.phone && updates.phone !== user.phone) {
+      updates.needsVerification = true;
+    }
+
+    Object.assign(user, updates);
+    await user.save();
+
+    const updatedUser = user.toObject();
+    delete updatedUser.password;
+
+    res.json({ message: "Profile updated successfully", user: updatedUser });
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Failed to update profile" });
   }
 };
 
+/* ================= VERIFY LOGIN OTP ================= */
+UserCltr.verifyLoginOTP = async (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    return res.status(400).json({ error: "Email and OTP are required" });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (!user.needsVerification) {
+      return res.status(400).json({ error: "Verification not required" });
+    }
+
+    const verificationCheck = await verifyOTP(user.phone, otp);
+
+    if (verificationCheck.status === "approved") {
+      // Mark as verified
+      user.needsVerification = false;
+      await user.save();
+
+      // Generate JWT
+      const tokenData = {
+        userId: user._id,
+        role: user.role,
+      };
+
+      const token = jwt.sign(tokenData, process.env.JWT_SECRET, {
+        expiresIn: "2d",
+      });
+
+      return res.json({ token, message: "Verification successful" });
+    } else {
+      return res.status(400).json({ error: "Invalid OTP" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Verification failed" });
+  }
+};
+
 export default UserCltr;
+

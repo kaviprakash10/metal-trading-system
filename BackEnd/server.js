@@ -72,6 +72,7 @@ app.use(
 // ── User Routes
 app.post("/api/user/register", userCltr.register);
 app.post("/api/user/login", userCltr.login);
+app.post("/api/user/verify-login", userCltr.verifyLoginOTP);
 app.get("/api/user/profile", auth, userCltr.getProfile);
 app.patch("/api/user/profile", auth, userCltr.updateProfile);
 
