@@ -15,9 +15,7 @@ const makeBuyThunk = (name, endpoint) =>
       const res = await axios.post(endpoint, payload, authHeader());
       return res.data;
     } catch (err) {
-      return rejectWithValue(
-        err.response?.data?.message || `${name} failed`
-      );
+      return rejectWithValue(err.response?.data?.message || `${name} failed`);
     }
   });
 
@@ -28,62 +26,67 @@ const makeSellThunk = (name, endpoint) =>
       const res = await axios.post(endpoint, payload, authHeader());
       return res.data;
     } catch (err) {
-      return rejectWithValue(
-        err.response?.data?.message || `${name} failed`
-      );
+      return rejectWithValue(err.response?.data?.message || `${name} failed`);
     }
   });
 
-export const buyGold    = makeBuyThunk("buyGold",    "/gold/buy");
-export const buySilver  = makeBuyThunk("buySilver",  "/silver/buy");
-export const sellGold   = makeSellThunk("sellGold",  "/gold/sell");
-export const sellSilver = makeSellThunk("sellSilver","/silver/sell");
+export const buyGold = makeBuyThunk("buyGold", "/gold/buy");
+export const buySilver = makeBuyThunk("buySilver", "/silver/buy");
+export const sellGold = makeSellThunk("sellGold", "/gold/sell");
+export const sellSilver = makeSellThunk("sellSilver", "/silver/sell");
 export const redeemGold = makeSellThunk("redeemGold", "/gold/redeem");
 export const redeemSilver = makeSellThunk("redeemSilver", "/silver/redeem");
 
 const assetSlice = createSlice({
   name: "asset",
   initialState: {
-    loading:        false,
-    error:          null,
+    loading: false,
+    error: null,
     successMessage: null,
-    lastTransaction: null,  // stores last response for UI display
+    lastTransaction: null, // stores last response for UI display
   },
   reducers: {
     clearAssetMessages(state) {
-      state.error          = null;
+      state.error = null;
       state.successMessage = null;
       state.lastTransaction = null;
     },
   },
   extraReducers: (builder) => {
     const pending = (state) => {
-      state.loading        = true;
-      state.error          = null;
+      state.loading = true;
+      state.error = null;
       state.successMessage = null;
     };
     const fulfilled = (state, action) => {
-      state.loading        = false;
+      state.loading = false;
       state.successMessage = action.payload.message;
       // Store full response so BuyPage can show grams received etc.
       state.lastTransaction = {
-        grams:       action.payload.grams,
-        baseAmount:  action.payload.baseAmount,
-        gstAmount:   action.payload.gstAmount,
+        grams: action.payload.grams,
+        baseAmount: action.payload.baseAmount,
+        gstAmount: action.payload.gstAmount,
         totalAmount: action.payload.totalAmount,
-        usedPrice:   action.payload.usedPrice,
+        usedPrice: action.payload.usedPrice,
       };
     };
     const rejected = (state, action) => {
       state.loading = false;
-      state.error   = action.payload;
+      state.error = action.payload;
     };
 
-    [buyGold, buySilver, sellGold, sellSilver, redeemGold, redeemSilver].forEach((thunk) => {
+    [
+      buyGold,
+      buySilver,
+      sellGold,
+      sellSilver,
+      redeemGold,
+      redeemSilver,
+    ].forEach((thunk) => {
       builder
-        .addCase(thunk.pending,   pending)
+        .addCase(thunk.pending, pending)
         .addCase(thunk.fulfilled, fulfilled)
-        .addCase(thunk.rejected,  rejected);
+        .addCase(thunk.rejected, rejected);
     });
   },
 });
