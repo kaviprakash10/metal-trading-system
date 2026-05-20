@@ -2,7 +2,7 @@ import "../App.css";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
-import { registerUser, googleAuthUser } from "../slice/Authslice";
+import { registerUser, googleAuthUser } from "../slice/authSlice";
 import Logo2 from "../assets/Logo2.png";
 import PassOff from "../assets/PassOff.png";
 import PassOn from "../assets/PassOn.png";

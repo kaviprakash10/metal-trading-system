@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { updateProfile } from "../slice/Authslice";
+import { updateProfile } from "../slice/authSlice";
 import UserLayout from "./userLayout";
 import { motion, AnimatePresence } from "framer-motion";
 import {

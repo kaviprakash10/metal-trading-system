@@ -20,7 +20,7 @@ import {
   Package,
   Image
 } from "lucide-react";
-import { logout } from "../slice/Authslice";
+import { logout } from "../slice/authSlice";
 import { fetchCurrentPrices } from "../slice/Priceslice";
 
 const fmt = (n) =>

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { sendPhoneVerification, verifyUpdatedPhone } from "../slice/Authslice";
+import { sendPhoneVerification, verifyUpdatedPhone } from "../slice/authSlice";
 
 export default function UpdatePhonePage() {
   const dispatch = useDispatch();
