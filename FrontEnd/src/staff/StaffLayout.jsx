@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../slice/authSlice";
+import { logout } from "../slice/Authslice";
 import { fetchCurrentPrices } from "../slice/Priceslice";
 import { motion, AnimatePresence } from "framer-motion";
 import {
