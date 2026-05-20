@@ -18,7 +18,7 @@ import {
   Bell,
   Search,
 } from "lucide-react";
-import logo from "../assets/logo.png";
+import logo from "../assets/Logo.png";
 
 const fmt = (n) =>
   Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
