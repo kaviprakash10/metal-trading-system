@@ -5,6 +5,7 @@ Luna Gold is a premium, secure, and modern digital platform for trading and inve
 ## 🚀 Features
 
 ### **For Users**
+
 - **Digital Metal Trading**: Buy and sell Gold/Silver in real-time at market rates.
 - **SIP (Systematic Investment Plan)**: Automate your investments with structured periodic plans.
 - **Secure Wallet**: Manage funds with integrated Razorpay for seamless deposits.
@@ -13,6 +14,7 @@ Luna Gold is a premium, secure, and modern digital platform for trading and inve
 - **Security First**: Mandatory phone verification via **Twilio OTP** for sensitive actions.
 
 ### **For Staff & Admin**
+
 - **Identity Management**: Comprehensive directory of platform participants with KYC auditing.
 - **Security Clearance**: Multi-tier role management (Admin, Staff, User).
 - **Market Control**: Real-time price management for metals.
@@ -22,6 +24,7 @@ Luna Gold is a premium, secure, and modern digital platform for trading and inve
 ## 🛠 Tech Stack
 
 ### **Frontend**
+
 - **React 19** with **Vite** for blazing fast performance.
 - **Redux Toolkit** for robust state management.
 - **Tailwind CSS** for premium, responsive design.
@@ -29,11 +32,13 @@ Luna Gold is a premium, secure, and modern digital platform for trading and inve
 - **Lucide React** for consistent, modern iconography.
 
 ### **Backend**
+
 - **Node.js** & **Express** for a scalable API architecture.
 - **MongoDB** with **Mongoose** for flexible data modeling.
 - **JWT (JSON Web Tokens)** for secure, stateless authentication.
 
 ### **Integrations**
+
 - **Google Cloud Console**: OAuth2 Identity Services.
 - **Razorpay**: Enterprise-grade payment gateway.
 - **Twilio**: SMS and OTP verification services.
@@ -42,10 +47,12 @@ Luna Gold is a premium, secure, and modern digital platform for trading and inve
 ## ⚙️ Installation & Setup
 
 ### **Prerequisites**
+
 - Node.js (v18+)
 - MongoDB (Local or Atlas)
 
 ### **Backend Setup**
+
 1. Navigate to the `BackEnd` directory.
 2. Install dependencies:
    ```bash
@@ -72,6 +79,7 @@ Luna Gold is a premium, secure, and modern digital platform for trading and inve
    ```
 
 ### **Frontend Setup**
+
 1. Navigate to the `FrontEnd` directory.
 2. Install dependencies:
    ```bash
@@ -87,7 +95,9 @@ Luna Gold is a premium, secure, and modern digital platform for trading and inve
    ```
 
 ## 🛡 Security Note
+
 Ensure that all API keys and secrets are kept confidential. Never commit `.env` files to public repositories.
 
 ---
-*Built with passion for the future of digital assets.*
+
+_Built with passion for the future of digital assets._
