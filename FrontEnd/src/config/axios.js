@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:1010/api",
+  baseURL: "https://metal-trading-system.onrender.com/api",
 });
 
 // Attach token to every request automatically
