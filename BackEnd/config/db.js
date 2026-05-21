@@ -1,13 +1,12 @@
-// const mongoose=require('mongoose');
-import mongoose from 'mongoose'
-const ConfigureDB=async function(){
-    try{
-        await mongoose.connect(process.env.DB_URL);
-        console.log("connected to db");
+import mongoose from 'mongoose';
 
-    }catch(err){
-        console.log(`error connecting to db ${err}`)
+const ConfigureDB = async () => {
+    try {
+        await mongoose.connect(process.env.MONGO_URI);
+        console.log("✅ MongoDB Atlas Connected Successfully");
+    } catch (err) {
+        console.error("❌ MongoDB Connection Error:", err.message);
     }
-}
+};
 
 export default ConfigureDB;

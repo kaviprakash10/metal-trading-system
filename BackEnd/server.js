@@ -45,6 +45,12 @@ import RazorpayController from "./app/controllers/razorpayController.js";
 import productController from "./app/controllers/productController.js";
 import { upload } from "./app/middlewares/upload.js";
 
+// Server Fix
+import dns from "node:dns";
+
+dns.setServers(["1.1.1.1", "8.8.8.8"]);   // Cloudflare + Google DNS
+console.log("✅ DNS servers set to public resolvers");
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
