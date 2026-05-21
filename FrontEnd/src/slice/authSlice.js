@@ -153,9 +153,7 @@ export const updatePassword = createAsyncThunk(
   "auth/updatePassword",
   async ({ oldPassword, newPassword }, { rejectWithValue }) => {
     try {
-      const response = await axios.patch("/user/update-password", { oldPassword, newPassword }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+      const response = await axios.patch("/user/update-password", { oldPassword, newPassword });
       return response.data.message;
     } catch (err) {
       const msg = err.response?.data?.error || "Failed to update password";
