@@ -138,17 +138,30 @@ export const fetchUser = createAsyncThunk(
 
 export const updateProfile = createAsyncThunk(
   "auth/updateProfile",
-  async (formData, { rejectWithValue }) => {
+  async (profileData, { rejectWithValue }) => {
     try {
-      const response = await axios.patch("/user/profile", formData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      return response.data.user;
+      const response = await axios.patch("/user/profile", profileData);
+      return response.data;
     } catch (err) {
       const msg = err.response?.data?.error || "Failed to update profile";
       return rejectWithValue(msg);
     }
   },
+);
+
+export const updatePassword = createAsyncThunk(
+  "auth/updatePassword",
+  async ({ oldPassword, newPassword }, { rejectWithValue }) => {
+    try {
+      const response = await axios.patch("/user/update-password", { oldPassword, newPassword }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      return response.data.message;
+    } catch (err) {
+      const msg = err.response?.data?.error || "Failed to update password";
+      return rejectWithValue(msg);
+    }
+  }
 );
 
 export const sendPhoneVerification = createAsyncThunk(

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { updateProfile } from "../slice/authSlice";
+import { updateProfile, updatePassword } from "../slice/authSlice";
 import UserLayout from "./userLayout";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -99,6 +99,12 @@ export default function AccountPage() {
 
   const [paymentTab, setPaymentTab] = useState("UPI");
   const [saved, setSaved] = useState(false);
+  const [pwForm, setPwForm] = useState({
+    oldPassword: "",
+    newPassword: "",
+  });
+  const [pwSaved, setPwSaved] = useState(false);
+  const [pwError, setPwError] = useState(null);
 
   const [form, setForm] = useState({
     userName: "", email: "", phone: "", address: "", city: "", state: "", pincode: "",
@@ -128,6 +134,22 @@ export default function AccountPage() {
       setSaved(true);
       setTimeout(() => setSaved(false), 4000);
     });
+  };
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPwForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePasswordSubmit = (e) => {
+    e.preventDefault();
+    dispatch(updatePassword(pwForm))
+      .then(() => {
+        setPwSaved(true);
+        setTimeout(() => setPwSaved(false), 4000);
+      })
+      .catch((err) => {
+        setPwError(err?.message || "Failed to update password");
+      });
   };
 
   const kycStatus = user?.kycStatus || "PENDING";
@@ -287,6 +309,56 @@ export default function AccountPage() {
             {loading ? <RefreshCcw className="animate-spin" size={24} /> : <><Save size={20} /> Update</>}
           </motion.button>
         </form>
+      <AnimatePresence>
+        {pwSaved && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="p-4 bg-emerald-600 text-white rounded-2xl mt-4 flex items-center gap-2"
+          >
+            <CheckCircle2 size={16} strokeWidth={3} />
+            <p className="font-black text-xs uppercase">Password Updated</p>
+          </motion.div>
+        )}
+        {pwError && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 bg-rose-600 text-white rounded-2xl mt-4">
+            <p className="font-black">{pwError}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* Change Password Section */}
+      <Section title="Change Password" subtitle="Update your login credentials" icon={Lock}>
+        <form onSubmit={handlePasswordSubmit} className="space-y-6">
+          <Field
+            label="Current Password"
+            icon={Lock}
+            name="oldPassword"
+            type="password"
+            value={pwForm.oldPassword}
+            onChange={handlePasswordChange}
+            placeholder="Enter current password"
+          />
+          <Field
+            label="New Password"
+            icon={Lock}
+            name="newPassword"
+            type="password"
+            value={pwForm.newPassword}
+            onChange={handlePasswordChange}
+            placeholder="Enter new password"
+          />
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            type="submit"
+            disabled={loading}
+            className="w-full bg-slate-900 text-[#BA943A] py-4 rounded-[2rem] font-black text-base shadow-xl hover:bg-black transition-all flex items-center justify-center gap-2 disabled:opacity-50 tracking-widest uppercase"
+          >
+            {loading ? <RefreshCcw className="animate-spin" size={20} /> : <>Update Password</>}
+          </motion.button>
+        </form>
+      </Section>
 
         {/* Node Dissolution (Action Center) */}
         <motion.div
