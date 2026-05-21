@@ -84,6 +84,7 @@ app.post("/api/user/update-phone", auth, userCltr.updatePhone);
 app.post("/api/user/verify-phone-otp", auth, userCltr.verifyPhoneOtp);
 app.get("/api/user/profile", auth, userCltr.getProfile);
 app.patch("/api/user/profile", auth, userCltr.updateProfile);
+app.patch("/api/user/update-password", auth, userCltr.updatePassword);
 
 // To buy and sell the assest
 app.post("/api/gold/buy", auth, asset.buyGold);

@@ -193,6 +193,30 @@ UserCltr.getProfile = async (req, res) => {
   }
 };
 
+UserCltr.updatePassword = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ error: "Old and new passwords are required" });
+    }
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+    const isMatch = await bcryptjs.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: "Old password is incorrect" });
+    }
+    const salt = await bcryptjs.genSalt();
+    const hashed = await bcryptjs.hash(newPassword, salt);
+    user.password = hashed;
+    await user.save();
+    res.json({ message: "Password updated successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Failed to update password" });
+  }
+};
+
 /* ================= UPDATE PROFILE ================= */
 UserCltr.updateProfile = async (req, res) => {
   try {
