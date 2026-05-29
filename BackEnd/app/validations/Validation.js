@@ -26,10 +26,9 @@ const UserRegisterValidationSchema = Joi.object({
       "string.empty": "Password is required",
     }),
 
-  phone: Joi.string().trim().min(10).max(15).required().messages({
+  phone: Joi.string().trim().min(10).max(15).allow("").optional().messages({
     "string.empty": "Phone number is required",
     "string.min": "Phone number must be at least 10 digits",
-    "any.required": "Phone number is required",
   }),
 });
 

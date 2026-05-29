@@ -26,10 +26,6 @@ export const googleAuthUser = createAsyncThunk(
         googleId,
       });
 
-      if (response.status === 202 && response.data.requiresOtp) {
-        return { requiresOtp: true, phone: response.data.phone, email: response.data.email };
-      }
-
       localStorage.setItem("token", response.data.token);
 
       const userResponse = await axios.get("/user/profile", {
@@ -38,9 +34,7 @@ export const googleAuthUser = createAsyncThunk(
       const user = userResponse.data;
 
       if (redirect) {
-        if (response.data.needsPhone || !user.phone || !user.phoneVerified) {
-          redirect("/update-phone");
-        } else if (user.role === "admin") {
+        if (user.role === "admin") {
           redirect("/admin/dashboard");
         } else if (user.role === "staff") {
           redirect("/staff/dashboard");
@@ -62,15 +56,6 @@ export const loginUser = createAsyncThunk(
   async ({ formData, redirect }, { rejectWithValue }) => {
     try {
       const response = await axios.post("/user/login", formData);
-
-      // If OTP is required (202 status)
-      if (response.status === 202 && response.data.requiresOtp) {
-        return {
-          requiresOtp: true,
-          phone: response.data.phone,
-          email: response.data.email,
-        };
-      }
 
       localStorage.setItem("token", response.data.token);
 
@@ -340,7 +325,7 @@ const authSlice = createSlice({
     });
     builder.addCase(updateProfile.fulfilled, (state, action) => {
       state.loading = false;
-      state.user = action.payload; // updated user object
+      state.user = action.payload?.user ?? action.payload;
       state.error = null;
     });
     builder.addCase(updateProfile.rejected, (state, action) => {
@@ -354,7 +339,7 @@ const authSlice = createSlice({
     });
     builder.addCase(verifyUpdatedPhone.fulfilled, (state, action) => {
       state.loading = false;
-      state.user = action.payload;
+      state.user = action.payload?.user ?? action.payload;
       state.error = null;
     });
     builder.addCase(verifyUpdatedPhone.rejected, (state, action) => {

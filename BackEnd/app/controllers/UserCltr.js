@@ -44,7 +44,7 @@ UserCltr.register = async (req, res) => {
     }
 
     // Format phone number
-    value.phone = formatPhoneNumber(value.phone);
+    value.phone = value.phone ? formatPhoneNumber(value.phone) : "";
 
     const user = new User(value);
 
@@ -106,46 +106,6 @@ UserCltr.login = async (req, res) => {
       return res.status(400).json({
         error: "Invalid password",
       });
-    }
-
-    // Check if OTP verification is required
-    if (user.needsVerification) {
-      if (!user.phone) {
-        return res
-          .status(400)
-          .json({ error: "Phone number not found. Please contact support." });
-      }
-
-      const formattedPhone = formatPhoneNumber(user.phone);
-
-      try {
-        if (process.env.TWILIO_SERVICE_SID) {
-          await sendOTP(formattedPhone);
-        } else {
-          // Manual OTP generation
-          const otp = Math.floor(100000 + Math.random() * 900000).toString();
-          user.otpCode = otp;
-          user.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
-          await user.save();
-
-          await sendManualSMS(
-            formattedPhone,
-            `Your GoldVault login OTP is: ${otp}. Valid for 10 minutes.`,
-          );
-        }
-
-        return res.status(202).json({
-          requiresOtp: true,
-          phone: user.phone,
-          email: user.email,
-          message: "OTP sent to your registered phone number",
-        });
-      } catch (otpErr) {
-        console.error("OTP send failed:", otpErr);
-        return res
-          .status(500)
-          .json({ error: "Failed to send OTP. Please try again later." });
-      }
     }
 
     // Generate JWT (FIXED userId)
@@ -345,57 +305,19 @@ UserCltr.googleAuth = async (req, res) => {
     let user = await User.findOne({ email });
 
     if (!user) {
-      // Create new Google user (Signup Flow)
-      user = new User({
-        email,
-        userName: userName || email.split("@")[0],
-        googleId,
-        authProvider: "google",
-        password: await bcryptjs.hash(googleId + process.env.JWT_SECRET, 10), // dummy password
+      return res.status(404).json({
+        error: "This Google account is not registered. Please register manually first."
       });
-      const usersCount = await User.countDocuments();
-      if (usersCount === 0) user.role = "admin";
-      await user.save();
-    } else if (user.authProvider === "local") {
+    }
+
+    if (user.authProvider === "local") {
       // Link Google ID if local user logs in with Google
       user.googleId = googleId;
       user.authProvider = "google";
       await user.save();
     }
 
-    // Login Flow: If user already has a phone, require OTP verification
-    if (user.phone) {
-      user.needsVerification = true;
-      const formattedPhone = formatPhoneNumber(user.phone);
-
-      if (process.env.TWILIO_SERVICE_SID) {
-        try {
-          await sendOTP(formattedPhone);
-        } catch (err) {
-          console.warn("Twilio sendOTP failed:", err.message);
-        }
-      } else {
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        user.otpCode = otp;
-        user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
-        console.log(`[DEVELOPMENT ONLY] OTP for Google Login (${formattedPhone}) is: ${otp}`);
-        try {
-          await sendManualSMS(formattedPhone, `Your GoldVault login OTP is: ${otp}. Valid for 10 minutes.`);
-        } catch (err) {
-          console.warn("Twilio sendManualSMS failed:", err.message);
-        }
-      }
-
-      await user.save();
-      return res.status(202).json({
-        requiresOtp: true,
-        phone: user.phone,
-        email: user.email,
-        message: "OTP sent to your registered phone number"
-      });
-    }
-
-    // Direct Login (Signup or no phone yet)
+    // Direct Login (existing user)
     const tokenData = { userId: user._id, role: user.role };
     const token = jwt.sign(tokenData, process.env.JWT_SECRET, {
       expiresIn: "2d",
@@ -404,7 +326,6 @@ UserCltr.googleAuth = async (req, res) => {
     res.json({
       token,
       user,
-      needsPhone: true,
     });
   } catch (err) {
     console.log(err);

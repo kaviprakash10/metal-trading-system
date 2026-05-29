@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { updateProfile, updatePassword } from "../slice/authSlice";
+import { updateProfile, updatePassword, sendPhoneVerification, verifyUpdatedPhone } from "../slice/authSlice";
 import UserLayout from "./userLayout";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -105,6 +105,11 @@ export default function AccountPage() {
   });
   const [pwSaved, setPwSaved] = useState(false);
   const [pwError, setPwError] = useState(null);
+  const [phoneVerification, setPhoneVerification] = useState({
+    step: "idle",
+    pendingPhone: "",
+    otp: "",
+  });
 
   const [form, setForm] = useState({
     userName: "", email: "", phone: "", address: "", city: "", state: "", pincode: "",
@@ -126,14 +131,51 @@ export default function AccountPage() {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     setSaved(false);
+    if (name === "phone") {
+      setPhoneVerification({ step: "idle", pendingPhone: "", otp: "" });
+    }
   };
 
-  const handleSave = (e) => {
-    e.preventDefault();
-    dispatch(updateProfile(form)).then(() => {
+  const handleVerifyPhoneOtp = async () => {
+    if (!phoneVerification.otp) return;
+
+    const verifyResult = await dispatch(verifyUpdatedPhone({ otp: phoneVerification.otp }));
+    if (verifyResult.meta.requestStatus === "fulfilled") {
+      await dispatch(updateProfile(form));
+      setPhoneVerification({ step: "idle", pendingPhone: "", otp: "" });
       setSaved(true);
       setTimeout(() => setSaved(false), 4000);
-    });
+    }
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+
+    const originalPhone = user?.phone || "";
+    const phoneChanged = form.phone !== originalPhone;
+
+    if (phoneChanged && phoneVerification.step !== "verify") {
+      const result = await dispatch(sendPhoneVerification({ phone: form.phone }));
+      if (result.meta.requestStatus === "fulfilled") {
+        setPhoneVerification({
+          step: "verify",
+          pendingPhone: form.phone,
+          otp: "",
+        });
+        return;
+      }
+      return;
+    }
+
+    if (phoneChanged && phoneVerification.step === "verify") {
+      return;
+    }
+
+    const result = await dispatch(updateProfile(form));
+    if (result.meta.requestStatus === "fulfilled") {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 4000);
+    }
   };
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
@@ -247,7 +289,39 @@ export default function AccountPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10">
               <Field label="Full Name" icon={User} name="userName" value={form.userName} onChange={handleChange} placeholder="As per documents" />
               <Field label="Email" icon={Mail} name="email" value={form.email} onChange={handleChange} type="email" disabled hint="Primary authenticated node" />
-              <Field label="Phone Number" icon={Smartphone} name="phone" value={form.phone} onChange={handleChange} type="tel" placeholder="Contact number" hint="Changing this will require OTP verification on your next login" />
+              <Field label="Phone Number" icon={Smartphone} name="phone" value={form.phone} onChange={handleChange} type="tel" placeholder="Contact number" hint="Changing this will require OTP verification before saving" />
+
+              {form.phone !== (user?.phone || "") && phoneVerification.step === "verify" && (
+                <div className="md:col-span-2 rounded-3xl border border-amber-200 bg-amber-50 p-5 shadow-inner shadow-amber-100/60">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-9 h-9 rounded-xl bg-white text-amber-600 flex items-center justify-center border border-amber-200">
+                      <Smartphone size={18} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-widest text-amber-700">Phone Verification Required</p>
+                      <p className="text-[11px] text-amber-800/70">An OTP was sent to {phoneVerification.pendingPhone}. Enter it below to confirm the phone change.</p>
+                    </div>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-[1fr_auto] items-center">
+                    <input
+                      type="text"
+                      value={phoneVerification.otp}
+                      onChange={(e) => setPhoneVerification((prev) => ({ ...prev, otp: e.target.value }))}
+                      placeholder="Enter OTP"
+                      className="w-full px-5 py-4 rounded-2xl bg-white border border-amber-200 text-slate-900 text-sm font-bold outline-none focus:ring-4 focus:ring-amber-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleVerifyPhoneOtp}
+                      disabled={loading || !phoneVerification.otp}
+                      className="px-5 py-4 rounded-2xl bg-amber-600 text-white text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
+                    >
+                      Verify & Save
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-col justify-center">
                 <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-4">
                   <ShieldPlus size={18} className="text-[#BA943A]" strokeWidth={3} />
